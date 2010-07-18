@@ -91,42 +91,90 @@ size_t mzed_echelonize_travolta(mzed_t *A, int full) {
 
   size_t k = ff->degree;
   size_t kk = 1;
+  while( ((kk * TWOPOW(k) * A->x->width) < CPU_L1_CACHE) && kk <= 5) 
+    kk += 1;
   size_t kbar = 0;
 
   mzed_t *T0 = mzed_init(ff, TWOPOW(k), A->ncols);
   mzed_t *T1 = mzed_init(ff, TWOPOW(k), A->ncols);
+  mzed_t *T2 = mzed_init(ff, TWOPOW(k), A->ncols);
+  mzed_t *T3 = mzed_init(ff, TWOPOW(k), A->ncols);
+  mzed_t *T4 = mzed_init(ff, TWOPOW(k), A->ncols);
+  mzed_t *T5 = mzed_init(ff, TWOPOW(k), A->ncols);
   
   /* this is dummy, we keep it for compatibility with the M4RI functions */
-  size_t *L0 = (size_t *)m4ri_mm_calloc(TWOPOW(k), sizeof(size_t));
-  for(i=0;i<TWOPOW(k);i++) L0[i] = i;
+  size_t *L = (size_t *)m4ri_mm_calloc(TWOPOW(k), sizeof(size_t));
+  for(i=0;i<TWOPOW(k);i++) L[i] = i;
 
   r = 0;
   c = 0;
   while(c < A->ncols) {
     if(c+kk > A->ncols) kk = A->ncols - c;
     kbar = _mzed_gauss_submatrix_full(A, r, c, A->nrows, kk);
-    if(kbar > k) {
+    if (kbar == 6)  {
+      mzed_make_table(T0, A, r,   c,   ff);
+      mzed_make_table(T1, A, r+1, c+1, ff);
+      mzed_make_table(T2, A, r+2, c+2, ff);
+      mzed_make_table(T3, A, r+3, c+3, ff);
+      mzed_make_table(T4, A, r+4, c+4, ff);
+      mzed_make_table(T5, A, r+5, c+5, ff);
+      if(kbar == kk)
+        mzd_process_rows6(A->x, r+6, A->nrows, c*A->width, kbar*A->width, T0->x, L, T1->x, L, T2->x, L, T3->x, L, T4->x, L, T5->x, L);
+      if(full)
+        mzd_process_rows6(A->x, 0, r, c*A->width, kbar*A->width, T0->x, L, T1->x, L, T2->x, L, T3->x, L, T4->x, L, T5->x, L);
+    } else if(kbar == 5) {
+      mzed_make_table(T0, A, r, c, ff);
+      mzed_make_table(T1, A, r+1, c+1, ff);
+      mzed_make_table(T2, A, r+2, c+2, ff);
+      mzed_make_table(T3, A, r+3, c+3, ff);
+      mzed_make_table(T4, A, r+4, c+4, ff);
+      if(kbar == kk)
+        mzd_process_rows5(A->x, r+5, A->nrows, c*A->width, kbar*A->width, T0->x, L, T1->x, L, T2->x, L, T3->x, L, T4->x, L);
+      if(full)
+        mzd_process_rows5(A->x, 0, r, c*A->width, kbar*A->width, T0->x, L, T1->x, L, T2->x, L, T3->x, L, T4->x, L);
+    } else if(kbar == 4) {
+      mzed_make_table(T0, A, r, c, ff);
+      mzed_make_table(T1, A, r+1, c+1, ff);
+      mzed_make_table(T2, A, r+2, c+2, ff);
+      mzed_make_table(T3, A, r+3, c+3, ff);
+      if(kbar == kk)
+        mzd_process_rows4(A->x, r+4, A->nrows, c*A->width, kbar*A->width, T0->x, L, T1->x, L, T2->x, L, T3->x, L);
+      if(full)
+        mzd_process_rows4(A->x, 0, r, c*A->width, kbar*A->width, T0->x, L, T1->x, L, T2->x, L, T3->x, L);
+    } else if(kbar == 3) {
+      mzed_make_table(T0, A, r, c, ff);
+      mzed_make_table(T1, A, r+1, c+1, ff);
+      mzed_make_table(T2, A, r+2, c+2, ff);
+      if(kbar == kk)
+        mzd_process_rows3(A->x, r+3, A->nrows, c*A->width, kbar*A->width, T0->x, L, T1->x, L, T2->x, L);
+      if(full)
+        mzd_process_rows3(A->x, 0, r, c*A->width, kbar*A->width, T0->x, L, T1->x, L, T2->x, L);
+    } else if(kbar == 2) {
       mzed_make_table(T0, A, r, c, ff);
       mzed_make_table(T1, A, r+1, c+1, ff);
       if(kbar == kk)
-        mzd_process_rows2(A->x, r+1, A->nrows, c*A->width, kbar*A->width, T0->x, L0, T1->x, L0);
+        mzd_process_rows2(A->x, r+2, A->nrows, c*A->width, 2*A->width, T0->x, L, T1->x, L);
       if(full)
-        mzd_process_rows2(A->x, 0, r, c*A->width, kbar*A->width, T0->x, L0, T1->x, L0);
-    } else if (kbar > 0) {
+        mzd_process_rows2(A->x, 0, r, c*A->width, 2*A->width, T0->x, L, T1->x, L);
+    } else if (kbar == 1) {
       mzed_make_table(T0, A, r, c, ff);
       if(kbar == kk)
-        mzd_process_rows(A->x, r+1, A->nrows, c*A->width, kbar*A->width, T0->x, L0);
+        mzd_process_rows(A->x, r+1, A->nrows, c*A->width, kbar*A->width, T0->x, L);
       if(full)
-        mzd_process_rows(A->x, 0, r, c*A->width, kbar*A->width, T0->x, L0);
+        mzd_process_rows(A->x, 0, r, c*A->width, kbar*A->width, T0->x, L);
     } else {
       c++;
     }
     r += kbar;
     c += kbar;
   }
-  m4ri_mm_free(L0);
+  m4ri_mm_free(L);
   mzed_free(T0);
   mzed_free(T1);
+  mzed_free(T2);
+  mzed_free(T3);
+  mzed_free(T4);
+  mzed_free(T5);
   return r;
 }
 
