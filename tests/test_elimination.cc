@@ -8,7 +8,7 @@ int main(int argc, char **argv) {
   for(size_t k=2; k<=10; k++) {
     FiniteField *F = (FiniteField*)(new GFqDom<int>(2,k));
     gf2e *ff = gf2e_init_givgfq(F);
-    for(size_t i=0; i<(2048/(1<<k)); i++) {
+    for(size_t i=0; i<(k*1024/(1<<k)); i++) {
       size_t m = random() & 255;
       size_t n = random() & 255;
       m = m ? (m) : 1;

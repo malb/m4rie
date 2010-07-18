@@ -332,6 +332,61 @@ static inline void mzed_add_multiple_of_row(mzed_t *A, size_t ar, mzed_t *B, siz
     case  8: _t[j] ^= ((word)X[(int)((_f[j] & 0xFF00000000000000ULL)>>56)])<<56;
     };
 
+  } else if (A->width == 16) {
+    size_t startblock = start_col/RADIX;
+    mzd_t *from_x = B->x;
+    mzd_t *to_x = A->x;
+    word *_f = from_x->rows[br];
+    word *_t = to_x->rows[ar];
+    size_t j;
+    register word __t, __f;
+
+    for(j=startblock; j+4<to_x->width; j+=4) {
+      __f = _f[j], __t = _t[j];
+      __t ^= (X[((__f)& 0x000000000000FFFFULL)])<<0;  __f >>= 16;
+      __t ^= (X[((__f)& 0x000000000000FFFFULL)])<<16; __f >>= 16;
+      __t ^= (X[((__f)& 0x000000000000FFFFULL)])<<32; __f >>= 16;
+      __t ^= (X[((__f)& 0x000000000000FFFFULL)])<<48; __f >>= 16;
+      _t[j] = __t;
+
+      __f = _f[j+1], __t = _t[j+1];
+      __t ^= (X[((__f)& 0x000000000000FFFFULL)])<<0;  __f >>= 16;
+      __t ^= (X[((__f)& 0x000000000000FFFFULL)])<<16; __f >>= 16;
+      __t ^= (X[((__f)& 0x000000000000FFFFULL)])<<32; __f >>= 16;
+      __t ^= (X[((__f)& 0x000000000000FFFFULL)])<<48; __f >>= 16;
+      _t[j+1] = __t;
+
+
+      __f = _f[j+2], __t = _t[j+2];
+      __t ^= (X[((__f)& 0x000000000000FFFFULL)])<<0;  __f >>= 16;
+      __t ^= (X[((__f)& 0x000000000000FFFFULL)])<<16; __f >>= 16;
+      __t ^= (X[((__f)& 0x000000000000FFFFULL)])<<32; __f >>= 16;
+      __t ^= (X[((__f)& 0x000000000000FFFFULL)])<<48; __f >>= 16;
+      _t[j+2] = __t;
+
+      __f = _f[j+3], __t = _t[j+3];
+      __t ^= (X[((__f)& 0x000000000000FFFFULL)])<<0;  __f >>= 16;
+      __t ^= (X[((__f)& 0x000000000000FFFFULL)])<<16; __f >>= 16;
+      __t ^= (X[((__f)& 0x000000000000FFFFULL)])<<32; __f >>= 16;
+      __t ^= (X[((__f)& 0x000000000000FFFFULL)])<<48; __f >>= 16;
+      _t[j+3] = __t;
+    }
+    for( ; j<to_x->width-1; j++) {
+      __f = _f[j], __t = _t[j];
+      __t ^= (X[((__f)& 0x000000000000FFFFULL)])<<0;  __f >>= 16;
+      __t ^= (X[((__f)& 0x000000000000FFFFULL)])<<16; __f >>= 16;
+      __t ^= (X[((__f)& 0x000000000000FFFFULL)])<<32; __f >>= 16;
+      __t ^= (X[((__f)& 0x000000000000FFFFULL)])<<48; __f >>= 16;
+      _t[j] = __t;
+    }
+
+    switch(to_x->ncols % RADIX) {
+    case  0: _t[j] ^= ((word)X[(int)((_f[j] & 0x000000000000FFFFULL)>> 0)])<< 0;
+    case 48: _t[j] ^= ((word)X[(int)((_f[j] & 0x00000000FFFF0000ULL)>>16)])<<16;
+    case 32: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000FFFF00000000ULL)>>32)])<<32;
+    case 16: _t[j] ^= ((word)X[(int)((_f[j] & 0xFFFF000000000000ULL)>>48)])<<48;
+    };
+
   }  else {
     for(size_t j=start_col; j<B->ncols; j++) {
       mzed_add_elem(A, ar, j, X[mzed_read_elem(B, br, j)]);
