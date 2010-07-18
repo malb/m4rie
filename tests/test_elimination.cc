@@ -16,10 +16,12 @@ int main(int argc, char **argv) {
       mzed_t *A0 = mzed_init(ff,m,n);
       mzed_randomize(A0);
       mzed_t *A1 = mzed_copy(NULL, A0);
+      mzed_t *A2 = mzed_copy(NULL, A0);
       mzed_echelonize_travolta(A0,1);
       mzed_echelonize_naive(A1,1);
+      mzed_echelonize(A2,1);
       printf("k: %2d, m: %3d, n: %3d ",k,m,n);
-      if (mzed_cmp(A0,A1) == 0) {
+      if (!mzed_cmp(A0,A1) && !mzed_cmp(A1,A2)) {
         printf("pass\n");
       } else {
         printf("FAIL\n");
@@ -27,6 +29,7 @@ int main(int argc, char **argv) {
       }
       mzed_free(A0);
       mzed_free(A1);
+      mzed_free(A2);
     }
     gf2e_free(ff);
   }

@@ -8,6 +8,7 @@ using namespace M4RIE;
 
 int main(int argc, char **argv) {
   double wt = 0.0;
+  char *algorithm;
   size_t r; 
 
   if (argc < 4)
@@ -15,21 +16,24 @@ int main(int argc, char **argv) {
   int k = atoi(argv[1]);
   int m = atoi(argv[2]);
   int n = atoi(argv[3]);
-  char *algorithm = argv[4];
+  if (argc == 5)
+    algorithm = argv[4];
+  else
+    algorithm = "default";
   FiniteField *F = (FiniteField*)(new GFqDom<int>(2,k));
   gf2e *ff = gf2e_init_givgfq(F);
 
   mzed_t *A = mzed_init(ff,m,n);
   mzed_randomize(A);
 
-  mzed_echelonize_travolta(A,1);
-
   wt = walltime(&wt);
   unsigned long long t = cpucycles();
   if(strcmp(algorithm,"travolta")==0)
-   r=  mzed_echelonize_travolta(A, 1);
+    r=  mzed_echelonize_travolta(A, 1);
   else if(strcmp(algorithm,"naive")==0)
     r = mzed_echelonize_naive(A, 1);
+  else
+    r = mzed_echelonize(A, 1);
   printf("m: %5d, n: %5d, r: %5d, cpu cycles: %llu wall time: %lf\n",m, n, r, cpucycles() - t, walltime(&wt));
 
   mzed_free(A);

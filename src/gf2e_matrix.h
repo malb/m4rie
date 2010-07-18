@@ -305,6 +305,9 @@ static inline void mzed_add_multiple_of_row(mzed_t *A, size_t ar, mzed_t *B, siz
     /*   _t[j] ^= ((word)X[(int)((tmp & 0x00000000000000FFULL)>> 0)])<< 0; */
     /* } */
 
+    /**
+     * TODO: revert this and benchmark which is faster
+     */
     for(j=startblock; j<to_x->width -1; j++) {
       __f = _f[j], __t = _t[j];
       __t ^= (X[((__f)& 0x00000000000000FFULL)])<<0;  __f >>= 8;
