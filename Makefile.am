@@ -7,7 +7,7 @@ lib_LTLIBRARIES = libm4rie.la
 libm4rie_la_SOURCES = src/finite_field.c src/gf2e_matrix.c src/travolta.c
 
 pkgincludesubdir = $(includedir)/m4rie
-pkgincludesub_HEADERS = src/finite_field.h  src/gf2e_matrix.h  src/m4rie.h  src/m4ri_functions.h  src/travolta.h
+pkgincludesub_HEADERS = src/finite_field.h  src/gf2e_matrix.h  src/m4rie.h  src/m4ri_functions.h  src/travolta.h gf2e_cxx/finite_field_givaro.h
 
 libm4rie_la_LDFLAGS = -release 0.0.19780616
 

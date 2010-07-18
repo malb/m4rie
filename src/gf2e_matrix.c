@@ -82,6 +82,11 @@ mzed_t *mzed_add(mzed_t *C, const mzed_t *A, const mzed_t *B) {
   return C;
 }
 
+mzed_t *_mzed_add(mzed_t *C, const mzed_t *A, const mzed_t *B) {
+  mzd_add(C->x, A->x, B->x);
+  return C;
+}
+
 mzed_t *mzed_copy(mzed_t *A, const mzed_t *B) {
   if (A == B)
     return A;
