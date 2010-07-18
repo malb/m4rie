@@ -35,7 +35,7 @@
  * for inclusion.
  */
 
-static inline int _mzed_gauss_submatrix_full(mzed_t *A, size_t r, size_t c, size_t end_row, int k) {
+int _mzed_gauss_submatrix_full(mzed_t *A, size_t r, size_t c, size_t end_row, int k) {
   size_t i,j,l;
   size_t start_row = r;
   int found;

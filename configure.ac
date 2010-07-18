@@ -1,6 +1,6 @@
 AC_INIT(libm4rie,1.0.1)
 
-AC_PREREQ([2.64])
+dnl AC_PREREQ([2.64])
 
 AC_CANONICAL_HOST
 
