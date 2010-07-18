@@ -352,6 +352,16 @@ static inline void mzed_add_multiple_of_row(mzed_t *A, size_t ar, mzed_t *B, siz
 
 size_t mzed_echelonize_naive(mzed_t *A, int full);
 
+
+static inline void mzed_rescale_row(mzed_t *A, size_t r, size_t c, word x) {
+  gf2e *ff = A->finite_field;
+  /* rescale row */
+  word *X = ff->mul[x];
+  for(size_t l=c; l<A->ncols; l++) {
+    mzed_write_elem(A, r, l, X[mzed_read_elem(A, r, l)]);
+  }
+}
+
 /**************** TODO: *****************/
 
 /**

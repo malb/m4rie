@@ -102,7 +102,7 @@ mzed_t *mzed_copy(mzed_t *A, const mzed_t *B) {
 
 size_t mzed_echelonize_naive(mzed_t *A, int full) {
   size_t start_row,r,c,i,elim_start;
-  int x,x_inverse = 0;
+  word x = 0;
 
   size_t nr = A->nrows;
   size_t nc = A->ncols;
@@ -115,12 +115,7 @@ size_t mzed_echelonize_naive(mzed_t *A, int full) {
     for(r=start_row; r<nr; r++) {
       x = mzed_read_elem(A, r, c);
       if (x) {
-        x_inverse = ff->inv[x];
-        /* rescale row */
-        for(i=c; i<nc; i++) {
-          x = ff->mul[x_inverse][mzed_read_elem(A, r, i)];
-          mzed_write_elem(A, r, i, x);
-        }
+        mzed_rescale_row(A, r, c, ff->inv[x]);
         mzd_row_swap(A->x, r, start_row);
         if (full)
           elim_start = 0;

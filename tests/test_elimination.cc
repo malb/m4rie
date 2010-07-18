@@ -8,7 +8,7 @@ int main(int argc, char **argv) {
   for(size_t k=2; k<=10; k++) {
     FiniteField *F = (FiniteField*)(new GFqDom<int>(2,k));
     gf2e *ff = gf2e_init_givgfq(F);
-    for(size_t i=0; i<(8192/(1<<k)); i++) {
+    for(size_t i=0; i<(2048/(1<<k)); i++) {
       size_t m = random() & 255;
       size_t n = random() & 255;
       m = m ? (m) : 1;
@@ -17,7 +17,7 @@ int main(int argc, char **argv) {
       mzed_randomize(A0);
       mzed_t *A1 = mzed_copy(NULL, A0);
       mzed_echelonize_travolta(A0,1);
-      mzed_echelonize_travolta(A1,1);
+      mzed_echelonize_naive(A1,1);
       printf("k: %2d, m: %3d, n: %3d ",k,m,n);
       if (mzed_cmp(A0,A1) == 0) {
         printf("pass\n");
