@@ -632,14 +632,20 @@ static inline void mzed_free_window(mzed_t *A) {
   m4ri_mm_free(A);
 }
 
+/**
+ * \brief Compute C such that C == AB.
+ *
+ * \param C Preallocated return matrix, may be NULL for automatic creation.
+ * \param A Input matrix A.
+ * \param B Input matrix B.
+ *
+ */
 
-/**************** TODO: *****************/
+#define mzed_mul mzed_mul_travolta
 
 
 /**
- * \brief Naive cubic matrix multiplication and addition
- *
- * That is, compute C such that C == C + AB.
+ * \brief Compute C such that C == C + AB.
  *
  * \param C Preallocated product matrix.
  * \param A Input matrix A.
@@ -650,7 +656,10 @@ static inline void mzed_free_window(mzed_t *A) {
  * function called _mzed_mul_naive
  */
 
-mzed_t *mzed_addmul_naive(mzed_t *C, const mzed_t *A, const mzed_t *B);
+#define mzed_addmul mzed_addmul_travolta
+
+/**************** TODO: *****************/
+
 
 /**
  * \brief Naive cubic matrix multiplication with the pre-transposed B.
