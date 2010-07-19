@@ -18,7 +18,79 @@
 *                  http://www.gnu.org/licenses/
 ******************************************************************************/
 
+#include "config.h"
+
+#include <m4ri/misc.h>
+#include <m4ri/packedmatrix.h>
+#include <m4ri/brilliantrussian.h>
+#include <m4ri/xor.h>
+
 #include "travolta.h"
+
+/**
+ * Compute C[rc,i] = C[rc,i] + T0[r0,i] + ... + T3[r3,i] for 0 <= i < ncols
+ *
+ * \param C Matrix
+ * \apram rc Row index
+ * \param T0 Matrix
+ * \param r0 Row index
+ * \param T1 Matrix
+ * \param r1 Row index
+ * \param T2 Matrix
+ * \param r2 Row index
+ * \param T3 Matrix
+ * \param r3 Row index
+ *
+ * \wordoffset
+ */
+
+static inline void mzed_combine4(mzed_t *C, size_t rc, 
+                                 mzed_t *T0, size_t r0, mzed_t *T1, size_t r1, mzed_t *T2, size_t r2, mzed_t *T3, size_t r3) {
+#ifndef HAVE_SSE2
+  size_t ii=0;
+#endif
+  _mzd_combine4(C->x->rows[rc], 
+                T0->x->rows[r0], T1->x->rows[r1], T2->x->rows[r2], T3->x->rows[r3], 
+                C->x->width);
+}
+
+/**
+ * Compute C[rc,i] = C[rc,i] + T0[r0,i] + ... + T7[r7,i] for 0 <= i < ncols
+ *
+ * \param C Matrix
+ * \apram rc Row index
+ * \param T0 Matrix
+ * \param r0 Row index
+ * \param T1 Matrix
+ * \param r1 Row index
+ * \param T2 Matrix
+ * \param r2 Row index
+ * \param T3 Matrix
+ * \param r3 Row index
+ * \param T4 Matrix
+ * \param r4 Row index
+ * \param T5 Matrix
+ * \param r5 Row index
+ * \param T6 Matrix
+ * \param r6 Row index
+ * \param T7 Matrix
+ * \param r7 Row index
+ *
+ * \wordoffset
+ */
+
+static inline void mzed_combine8(mzed_t *C, size_t rc, 
+                                 mzed_t *T0, size_t r0, mzed_t *T1, size_t r1, mzed_t *T2, size_t r2, mzed_t *T3, size_t r3,
+                                 mzed_t *T4, size_t r4, mzed_t *T5, size_t r5, mzed_t *T6, size_t r6, mzed_t *T7, size_t r7) {
+#ifndef HAVE_SSE2
+  size_t ii=0;
+#endif
+  _mzd_combine8(C->x->rows[rc], 
+                T0->x->rows[r0], T1->x->rows[r1], T2->x->rows[r2], T3->x->rows[r3], 
+                T4->x->rows[r4], T5->x->rows[r5], T6->x->rows[r6], T7->x->rows[r7], 
+                C->x->width);
+}
+
 
 /**
  * \brief Perform Gaussian reduction to reduced row echelon form on a
@@ -230,13 +302,21 @@ mzed_t *_mzed_mul_travolta1(mzed_t *C, mzed_t *A, mzed_t *B) {
   mzed_t *T1 = mzed_init(C->finite_field, TWOPOW(A->finite_field->degree), B->ncols);
   mzed_t *T2 = mzed_init(C->finite_field, TWOPOW(A->finite_field->degree), B->ncols);
   mzed_t *T3 = mzed_init(C->finite_field, TWOPOW(A->finite_field->degree), B->ncols);
+  mzed_t *T4 = mzed_init(C->finite_field, TWOPOW(A->finite_field->degree), B->ncols);
+  mzed_t *T5 = mzed_init(C->finite_field, TWOPOW(A->finite_field->degree), B->ncols);
+  mzed_t *T6 = mzed_init(C->finite_field, TWOPOW(A->finite_field->degree), B->ncols);
+  mzed_t *T7 = mzed_init(C->finite_field, TWOPOW(A->finite_field->degree), B->ncols);
 
   size_t *L0 = (size_t*)m4ri_mm_calloc(TWOPOW(A->finite_field->degree), sizeof(size_t));
   size_t *L1 = (size_t*)m4ri_mm_calloc(TWOPOW(A->finite_field->degree), sizeof(size_t));
   size_t *L2 = (size_t*)m4ri_mm_calloc(TWOPOW(A->finite_field->degree), sizeof(size_t));
   size_t *L3 = (size_t*)m4ri_mm_calloc(TWOPOW(A->finite_field->degree), sizeof(size_t));
+  size_t *L4 = (size_t*)m4ri_mm_calloc(TWOPOW(A->finite_field->degree), sizeof(size_t));
+  size_t *L5 = (size_t*)m4ri_mm_calloc(TWOPOW(A->finite_field->degree), sizeof(size_t));
+  size_t *L6 = (size_t*)m4ri_mm_calloc(TWOPOW(A->finite_field->degree), sizeof(size_t));
+  size_t *L7 = (size_t*)m4ri_mm_calloc(TWOPOW(A->finite_field->degree), sizeof(size_t));
   
-  const size_t kk = 4;
+  const size_t kk = 8;
   const size_t end = A->ncols/kk;
 
   for(size_t i=0; i < end; i++) {
@@ -244,12 +324,20 @@ mzed_t *_mzed_mul_travolta1(mzed_t *C, mzed_t *A, mzed_t *B) {
     mzed_make_table( B, kk*i+1, 0, T1, L1, A->finite_field);
     mzed_make_table( B, kk*i+2, 0, T2, L2, A->finite_field);
     mzed_make_table( B, kk*i+3, 0, T3, L3, A->finite_field);
+    mzed_make_table( B, kk*i+4, 0, T4, L4, A->finite_field);
+    mzed_make_table( B, kk*i+5, 0, T5, L5, A->finite_field);
+    mzed_make_table( B, kk*i+6, 0, T6, L6, A->finite_field);
+    mzed_make_table( B, kk*i+7, 0, T7, L7, A->finite_field);
     for(size_t j=0; j<A->nrows; j++) {
-      size_t x0 = L0[ mzed_read_elem(A, j, kk*  i) ];
-      size_t x1 = L1[ mzed_read_elem(A, j, kk*i+1) ];
-      size_t x2 = L2[ mzed_read_elem(A, j, kk*i+2) ];
-      size_t x3 = L3[ mzed_read_elem(A, j, kk*i+3) ];
-      mzed_combine4(C, j, T0, x0, T1, x1, T2, x2, T3, x3);
+      const size_t x0 = mzed_read_elem(A, j, kk*  i);
+      const size_t x1 = mzed_read_elem(A, j, kk*i+1);
+      const size_t x2 = mzed_read_elem(A, j, kk*i+2);
+      const size_t x3 = mzed_read_elem(A, j, kk*i+3);
+      const size_t x4 = mzed_read_elem(A, j, kk*i+4);
+      const size_t x5 = mzed_read_elem(A, j, kk*i+5);
+      const size_t x6 = mzed_read_elem(A, j, kk*i+6);
+      const size_t x7 = mzed_read_elem(A, j, kk*i+7);
+      mzed_combine8(C, j, T0, x0, T1, x1, T2, x2, T3, x3, T4, x4, T5, x5, T6, x6, T7, x7);
     }
   }
   if (A->ncols%kk) {
@@ -260,7 +348,10 @@ mzed_t *_mzed_mul_travolta1(mzed_t *C, mzed_t *A, mzed_t *B) {
     }
   }
 
-  mzed_free(T0);
+  mzed_free(T0); mzed_free(T1);  mzed_free(T2); mzed_free(T3);
+  mzed_free(T4); mzed_free(T5);  mzed_free(T6); mzed_free(T7);
+  m4ri_mm_free(L0); m4ri_mm_free(L1); m4ri_mm_free(L2); m4ri_mm_free(L3);
+  m4ri_mm_free(L4); m4ri_mm_free(L5); m4ri_mm_free(L6); m4ri_mm_free(L7);
   return C;
 }
 

@@ -651,28 +651,49 @@ static inline void mzed_free_window(mzed_t *A) {
  * \param A Input matrix A.
  * \param B Input matrix B.
  *
- * \note Normally, if you will multiply several times by b, it is
- * smarter to calculate bT yourself, and keep it, and then use the
- * function called _mzed_mul_naive
  */
 
 #define mzed_addmul mzed_addmul_travolta
 
-/**************** TODO: *****************/
-
 
 /**
- * \brief Naive cubic matrix multiplication with the pre-transposed B.
+ * \brief Compute C such that C == C + AB using naive cubic multiplication.
  *
- * That is, compute C such that C == AB^t.
+ * \param C Preallocated product matrix, may be NULL for automatic creation.
+ * \param A Input matrix A.
+ * \param B Input matrix B.
+ *
+ */
+
+mzed_t *mzed_addmul_naive(mzed_t *C, mzed_t *A, mzed_t *B);
+
+/**
+ * \brief Compute C such that C == AB using naive cubic multiplication.
+ *
+ * \param C Preallocated product matrix, may be NULL for automatic creation.
+ * \param A Input matrix A.
+ * \param B Input matrix B.
+ *
+ */
+
+mzed_t *mzed_mul_maive(mzed_t *C, mzed_t *A, mzed_t *B);
+
+/**
+ * \brief C such that C == AB.
  *
  * \param C Preallocated product matrix.
  * \param A Input matrix A.
- * \param B Pre-transposed input matrix B.
+ * \param B Input matrix B.
  * \param clear Whether to clear C before accumulating AB
  */
 
 mzed_t *_mzed_mul_naive(mzed_t *C, const mzed_t *A, const mzed_t *B, const int clear);
+
+
+
+/**************** TODO: *****************/
+
+
 
 /**
  * \brief Transpose a matrix.
@@ -700,34 +721,6 @@ mzed_t *mzed_transpose(mzed_t *DST, const mzed_t *A );
 
 void mzed_print(const mzed_t *M);
  
-/**
- * \brief Naive cubic matrix multiplication and addition
- *
- * That is, compute C such that C == C + AB.
- *
- * \param C Preallocated product matrix.
- * \param A Input matrix A.
- * \param B Input matrix B.
- *
- * \note Normally, if you will multiply several times by b, it is
- * smarter to calculate bT yourself, and keep it, and then use the
- * function called _mzed_mul_naive
- */
-
-mzed_t *mzed_addmul_naive(mzed_t *C, const mzed_t *A, const mzed_t *B);
-
-/**
- * \brief Naive cubic matrix multiplication with the pre-transposed B.
- *
- * That is, compute C such that C == AB^t.
- *
- * \param C Preallocated product matrix.
- * \param A Input matrix A.
- * \param B Pre-transposed input matrix B.
- * \param clear Whether to clear C before accumulating AB
- */
-
-mzed_t *_mzed_mul_naive(mzed_t *C, const mzed_t *A, const mzed_t *B, const int clear);
 
 /**
  * \brief Matrix multiplication optimized for v*A where v is a vector.

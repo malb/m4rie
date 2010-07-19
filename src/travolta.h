@@ -22,7 +22,6 @@
 
 #include "finite_field.h"
 #include "gf2e_matrix.h"
-#include <m4ri/xor.h>
 
 void mzed_make_table(mzed_t *A, size_t r, size_t c, mzed_t *T, size_t *L, gf2e *ff);
 
@@ -107,7 +106,6 @@ static inline void mzed_process_rows3(mzed_t *M, size_t startrow, size_t endrow,
  * \param startrow top row which is operated on
  * \param endrow bottom row which is operated on
  * \param startcol Starting column for addition
- * \param k M4RI parameter
  * \param T0 contains the correct row to be added
  * \param L0 Contains row number to be added
  * \param T1 contains the correct row to be added
@@ -135,7 +133,6 @@ static inline void mzed_process_rows4(mzed_t *M, size_t startrow, size_t endrow,
  * \param startrow top row which is operated on
  * \param endrow bottom row which is operated on
  * \param startcol Starting column for addition
- * \param k M4RI parameter
  * \param T0 contains the correct row to be added
  * \param L0 Contains row number to be added
  * \param T1 contains the correct row to be added
@@ -166,7 +163,6 @@ static inline void mzed_process_rows5(mzed_t *M, size_t startrow, size_t endrow,
  * \param startrow top row which is operated on
  * \param endrow bottom row which is operated on
  * \param startcol Starting column for addition
- * \param k M4RI parameter
  * \param T0 contains the correct row to be added
  * \param L0 Contains row number to be added
  * \param T1 contains the correct row to be added
@@ -190,9 +186,6 @@ static inline void mzed_process_rows6(mzed_t *M, size_t startrow, size_t endrow,
   mzd_process_rows6(M->x, startrow, endrow, startcol*M->w, 6*M->w, T0->x, L0, T1->x, L1, T2->x, L2, T3->x, L3, T4->x, L4, T5->x, L5);
 }
 
-static inline void mzed_combine4(mzed_t *C, size_t rc, mzed_t *T0, size_t r0, mzed_t *T1, size_t r1, mzed_t *T2, size_t r2, mzed_t *T3, size_t r3) {
-  _mzd_combine4(C->x->rows[rc], T0->x->rows[r0], T1->x->rows[r1], T2->x->rows[r2], T3->x->rows[r3], C->x->width);
-}
 
 
 #endif //TRAVOLTA_H

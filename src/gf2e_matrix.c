@@ -117,6 +117,42 @@ size_t mzed_echelonize_naive(mzed_t *A, int full) {
 }
 
 
+mzed_t *_mzed_mul_naive(mzed_t *C, const mzed_t *A, const mzed_t *B, const int clear) {
+  if(clear)
+    mzd_set_ui(C->x, 0);
+  gf2e* ff = C->finite_field;
+  for (size_t i=0; i<C->nrows; ++i) {
+    for (size_t j=0; j<C->ncols; ++j) {
+      for (size_t k=0; k<A->ncols; ++k) {
+        mzed_add_elem(C, i, j, ff->mul[mzed_read_elem(A,i, k)][mzed_read_elem(B, k, j)]);
+      }
+    }
+  }
+  return C;
+}
+
+mzed_t *mzed_addmul_naive(mzed_t *C, mzed_t *A, mzed_t *B) {
+  if (C->nrows != A->nrows || C->ncols != B->ncols || C->finite_field != A->finite_field) {
+    m4ri_die("mzed_mul_naive: Provided return matrix has wrong dimensions or wrong base field.\n");
+  }
+  return _mzed_mul_naive(C, A, B, 0);
+}
+
+mzed_t *mzed_mul_maive(mzed_t *C, mzed_t *A, mzed_t *B) {
+  if (C==NULL) {
+    C = mzed_init(A->finite_field, A->nrows, B->ncols);
+  } else {
+    if (C->nrows != A->nrows || C->ncols != B->ncols || C->finite_field != A->finite_field) {
+      m4ri_die("mzed_mul_naive: Provided return matrix has wrong dimensions or wrong base field.\n");
+    }
+    mzd_set_ui(C->x, 0);
+  }
+  return _mzed_mul_naive(C, A, B, 1);
+}
+
+
+
+
 void mzed_print(const mzed_t *A) {
   for (size_t i=0; i < A->nrows; ++i) {
     printf("[");
