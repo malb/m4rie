@@ -1,3 +1,4 @@
+
 /******************************************************************************
 *
 *            M4RIE: Linear Algebra over GF(2^e)
@@ -90,9 +91,21 @@ size_t mzed_echelonize_travolta(mzed_t *A, int full) {
   size_t r,c,i;
 
   size_t k = ff->degree;
-  size_t kk = 1;
-  while( ((kk * TWOPOW(k) * A->x->width) < CPU_L1_CACHE) && kk <= 5) 
-    kk += 1;
+
+  /** cf. mzd_echelonize_m4ri **/
+  size_t kk = m4ri_opt_k(A->x->nrows, A->x->ncols, 0);
+  if (kk>=7) 
+    kk = 7;
+  if ( (6*(1<<kk)*A->ncols / 8.0) > CPU_L2_CACHE / 2.0 )
+    kk -= 1;
+  kk = (6*kk)/k;
+
+  /** enforcing bounds **/
+  if (kk == 0)
+    kk = 1;
+  else if (kk > 6)
+    kk = 6;
+
   size_t kbar = 0;
 
   mzed_t *T0 = mzed_init(ff, TWOPOW(k), A->ncols);
