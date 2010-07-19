@@ -55,7 +55,7 @@ int _mzed_gauss_submatrix_full(mzed_t *A, size_t r, size_t c, size_t end_row, in
       /* pivot? */
       const word x = mzed_read_elem(A, i, j);
       if (x) {
-        mzed_rescale_row(A, i, j, ff->inv[x]);
+        mzed_rescale_row(A, i, j, ff->mul[ff->inv[x]]);
         mzd_row_swap(A->x, i, start_row);
 
         /* clear above */
@@ -132,9 +132,9 @@ size_t mzed_echelonize_travolta(mzed_t *A, int full) {
       mzed_make_table(T4, A, r+4, c+4, ff);
       mzed_make_table(T5, A, r+5, c+5, ff);
       if(kbar == kk)
-        mzd_process_rows6(A->x, r+6, A->nrows, c*A->width, kbar*A->width, T0->x, L, T1->x, L, T2->x, L, T3->x, L, T4->x, L, T5->x, L);
+        mzd_process_rows6(A->x, r+6, A->nrows, c*A->w, kbar*A->w, T0->x, L, T1->x, L, T2->x, L, T3->x, L, T4->x, L, T5->x, L);
       if(full)
-        mzd_process_rows6(A->x, 0, r, c*A->width, kbar*A->width, T0->x, L, T1->x, L, T2->x, L, T3->x, L, T4->x, L, T5->x, L);
+        mzd_process_rows6(A->x, 0, r, c*A->w, kbar*A->w, T0->x, L, T1->x, L, T2->x, L, T3->x, L, T4->x, L, T5->x, L);
     } else if(kbar == 5) {
       mzed_make_table(T0, A, r, c, ff);
       mzed_make_table(T1, A, r+1, c+1, ff);
@@ -142,39 +142,39 @@ size_t mzed_echelonize_travolta(mzed_t *A, int full) {
       mzed_make_table(T3, A, r+3, c+3, ff);
       mzed_make_table(T4, A, r+4, c+4, ff);
       if(kbar == kk)
-        mzd_process_rows5(A->x, r+5, A->nrows, c*A->width, kbar*A->width, T0->x, L, T1->x, L, T2->x, L, T3->x, L, T4->x, L);
+        mzd_process_rows5(A->x, r+5, A->nrows, c*A->w, kbar*A->w, T0->x, L, T1->x, L, T2->x, L, T3->x, L, T4->x, L);
       if(full)
-        mzd_process_rows5(A->x, 0, r, c*A->width, kbar*A->width, T0->x, L, T1->x, L, T2->x, L, T3->x, L, T4->x, L);
+        mzd_process_rows5(A->x, 0, r, c*A->w, kbar*A->w, T0->x, L, T1->x, L, T2->x, L, T3->x, L, T4->x, L);
     } else if(kbar == 4) {
       mzed_make_table(T0, A, r, c, ff);
       mzed_make_table(T1, A, r+1, c+1, ff);
       mzed_make_table(T2, A, r+2, c+2, ff);
       mzed_make_table(T3, A, r+3, c+3, ff);
       if(kbar == kk)
-        mzd_process_rows4(A->x, r+4, A->nrows, c*A->width, kbar*A->width, T0->x, L, T1->x, L, T2->x, L, T3->x, L);
+        mzd_process_rows4(A->x, r+4, A->nrows, c*A->w, kbar*A->w, T0->x, L, T1->x, L, T2->x, L, T3->x, L);
       if(full)
-        mzd_process_rows4(A->x, 0, r, c*A->width, kbar*A->width, T0->x, L, T1->x, L, T2->x, L, T3->x, L);
+        mzd_process_rows4(A->x, 0, r, c*A->w, kbar*A->w, T0->x, L, T1->x, L, T2->x, L, T3->x, L);
     } else if(kbar == 3) {
       mzed_make_table(T0, A, r, c, ff);
       mzed_make_table(T1, A, r+1, c+1, ff);
       mzed_make_table(T2, A, r+2, c+2, ff);
       if(kbar == kk)
-        mzd_process_rows3(A->x, r+3, A->nrows, c*A->width, kbar*A->width, T0->x, L, T1->x, L, T2->x, L);
+        mzd_process_rows3(A->x, r+3, A->nrows, c*A->w, kbar*A->w, T0->x, L, T1->x, L, T2->x, L);
       if(full)
-        mzd_process_rows3(A->x, 0, r, c*A->width, kbar*A->width, T0->x, L, T1->x, L, T2->x, L);
+        mzd_process_rows3(A->x, 0, r, c*A->w, kbar*A->w, T0->x, L, T1->x, L, T2->x, L);
     } else if(kbar == 2) {
       mzed_make_table(T0, A, r, c, ff);
       mzed_make_table(T1, A, r+1, c+1, ff);
       if(kbar == kk)
-        mzd_process_rows2(A->x, r+2, A->nrows, c*A->width, 2*A->width, T0->x, L, T1->x, L);
+        mzd_process_rows2(A->x, r+2, A->nrows, c*A->w, 2*A->w, T0->x, L, T1->x, L);
       if(full)
-        mzd_process_rows2(A->x, 0, r, c*A->width, 2*A->width, T0->x, L, T1->x, L);
+        mzd_process_rows2(A->x, 0, r, c*A->w, 2*A->w, T0->x, L, T1->x, L);
     } else if (kbar == 1) {
       mzed_make_table(T0, A, r, c, ff);
       if(kbar == kk)
-        mzd_process_rows(A->x, r+1, A->nrows, c*A->width, kbar*A->width, T0->x, L);
+        mzd_process_rows(A->x, r+1, A->nrows, c*A->w, kbar*A->w, T0->x, L);
       if(full)
-        mzd_process_rows(A->x, 0, r, c*A->width, kbar*A->width, T0->x, L);
+        mzd_process_rows(A->x, 0, r, c*A->w, kbar*A->w, T0->x, L);
     } else {
       c++;
     }

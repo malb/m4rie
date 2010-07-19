@@ -19,7 +19,7 @@ int main(int argc, char **argv) {
   if (argc == 5)
     algorithm = argv[4];
   else
-    algorithm = "default";
+    algorithm = (char*)"default";
   FiniteField *F = (FiniteField*)(new GFqDom<int>(2,k));
   gf2e *ff = gf2e_init_givgfq(F);
 

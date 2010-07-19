@@ -50,14 +50,14 @@ static inline gf2e *gf2e_init_givgfq(M4RIE::FiniteField *givgfq) {
 }
  
 static inline int mzed_read_elem_log(const mzed_t *a, const size_t row, const size_t col, M4RIE::FiniteField *ff) {
-  return ff->pol2log((int)__mzd_read_bits(a->x, row, a->width*col, a->width));
+  return ff->pol2log((int)__mzd_read_bits(a->x, row, a->w*col, a->w));
 };
 
 static inline void mzed_write_elem_log(mzed_t *a, const size_t row, const size_t col, const int elem, M4RIE::FiniteField *ff) {
-  __mzd_clear_bits(a->x, row, a->width*col, a->width);
-  __mzd_xor_bits(a->x, row, a->width*col, a->width, ff->log2pol(elem));
+  __mzd_clear_bits(a->x, row, a->w*col, a->w);
+  __mzd_xor_bits(a->x, row, a->w*col, a->w, ff->log2pol(elem));
 };
 
 static inline void mzed_add_elem_log(mzed_t *a, const size_t row, const size_t col, const int elem, M4RIE::FiniteField *ff) {
-  __mzd_xor_bits(a->x, row, a->width*col, a->width, ff->log2pol(elem));
+  __mzd_xor_bits(a->x, row, a->w*col, a->w, ff->log2pol(elem));
 };

@@ -25,31 +25,10 @@ mzed_t *mzed_init(gf2e* k, size_t m, size_t n) {
 
   A->finite_field = k;
   
-  switch(k->degree) {
-  case 2: 
-    A->width = 2; 
-    break;
-  case 3: 
-  case 4: 
-    A->width = 4;
-    break;
-  case 5: 
-  case 6: 
-  case 7: 
-  case 8: 
-    A->width = 8;
-    break;
-  case 9: 
-  case 10: 
-    A->width = 16;
-    break;
-  default:
-    m4ri_die("degree %d not supported.\n",k->degree);
-  }
-
+  A->w = gf2e_degree_to_w(A->finite_field);
   A->nrows = m;
   A->ncols = n;
-  A->x = mzd_init(m, A->width*n);
+  A->x = mzd_init(m, A->w*n);
   return A;
 }
 
@@ -115,7 +94,7 @@ size_t mzed_echelonize_naive(mzed_t *A, int full) {
     for(r=start_row; r<nr; r++) {
       x = mzed_read_elem(A, r, c);
       if (x) {
-        mzed_rescale_row(A, r, c, ff->inv[x]);
+        mzed_rescale_row(A, r, c, ff->mul[ff->inv[x]]);
         mzd_row_swap(A->x, r, start_row);
         if (full)
           elim_start = 0;
@@ -137,4 +116,38 @@ size_t mzed_echelonize_naive(mzed_t *A, int full) {
   return start_row;
 }
 
+
+void mzed_print(const mzed_t *A) {
+  for (size_t i=0; i < A->nrows; ++i) {
+    printf("[");
+    for (size_t j=0; j < A->ncols; j++) {
+      word tmp = mzed_read_elem(A,i,j);
+      printf("[");
+      switch(A->finite_field->degree) {
+      case 16:  (tmp&(1ULL<<15)) ? printf("1") : printf("0");
+      case 15:  (tmp&(1ULL<<14)) ? printf("1") : printf("0");
+      case 14:  (tmp&(1ULL<<13)) ? printf("1") : printf("0");
+      case 13:  (tmp&(1ULL<<12)) ? printf("1") : printf("0");
+      case 12:  (tmp&(1ULL<<11)) ? printf("1") : printf("0");
+      case 11:  (tmp&(1ULL<<10)) ? printf("1") : printf("0");
+      case 10:  (tmp&(1ULL<< 9)) ? printf("1") : printf("0");
+      case  9:  (tmp&(1ULL<< 8)) ? printf("1") : printf("0");
+      case  8:  (tmp&(1ULL<< 7)) ? printf("1") : printf("0");
+      case  7:  (tmp&(1ULL<< 6)) ? printf("1") : printf("0");
+      case  6:  (tmp&(1ULL<< 5)) ? printf("1") : printf("0");
+      case  5:  (tmp&(1ULL<< 4)) ? printf("1") : printf("0");
+      case  4:  (tmp&(1ULL<< 3)) ? printf("1") : printf("0");
+      case  3:  (tmp&(1ULL<< 2)) ? printf("1") : printf("0");
+      case  2:  (tmp&(1ULL<< 1)) ? printf("1") : printf("0");
+      case  1:  (tmp&(1ULL<< 0)) ? printf("1") : printf("0");
+        break;
+      default: m4ri_die("degree %lz too big\n", A->finite_field->degree);
+      }
+      printf("]");
+      if(j<A->ncols-1)
+        printf(" ");
+    }
+    printf("]\n");
+  }
+}
 

@@ -66,7 +66,7 @@ typedef struct {
    * The internal width of elements (must divide 64)
    */
 
-  size_t width;
+  size_t w;
 
 } mzed_t;
 
@@ -191,7 +191,7 @@ static inline int mzed_cmp(mzed_t *l, mzed_t *r) {
  */ 
 
 static inline int mzed_read_elem(const mzed_t *A, const size_t row, const size_t col) {
-  return (int)__mzd_read_bits(A->x, row, A->width*col, A->width);
+  return (int)__mzd_read_bits(A->x, row, A->w*col, A->w);
 }
 
 /**
@@ -205,7 +205,7 @@ static inline int mzed_read_elem(const mzed_t *A, const size_t row, const size_t
 
 
 static inline void mzed_add_elem(mzed_t *a, const size_t row, const size_t col, const int elem) {
-  __mzd_xor_bits(a->x, row, a->width*col, a->width, elem);
+  __mzd_xor_bits(a->x, row, a->w*col, a->w, elem);
 }
 
 /**
@@ -218,8 +218,8 @@ static inline void mzed_add_elem(mzed_t *a, const size_t row, const size_t col, 
  */ 
 
 static inline void mzed_write_elem(mzed_t *a, const size_t row, const size_t col, const int elem) {
-  __mzd_clear_bits(a->x, row, a->width*col, a->width);
-  __mzd_xor_bits(a->x, row, a->width*col, a->width, elem);
+  __mzd_clear_bits(a->x, row, a->w*col, a->w);
+  __mzd_xor_bits(a->x, row, a->w*col, a->w, elem);
 }
 
 /**
@@ -236,7 +236,7 @@ static inline void mzed_write_elem(mzed_t *a, const size_t row, const size_t col
 static inline void mzed_add_multiple_of_row(mzed_t *A, size_t ar, mzed_t *B, size_t br, word *X, size_t start_col) {
   assert(A->ncols == B->ncols && A->finite_field == B->finite_field);
   assert(A->x->offset == 0 && B->x->offset == 0);
-  if(A->width == 4) {
+  if(A->w == 4) {
     size_t startblock = start_col/RADIX;
     mzd_t *from_x = B->x;
     mzd_t *to_x = A->x;
@@ -284,41 +284,49 @@ static inline void mzed_add_multiple_of_row(mzed_t *A, size_t ar, mzed_t *B, siz
     case  4: _t[j] ^= ((word)X[(int)((_f[j] & 0xF000000000000000ULL)>>60)])<<60;
     };
 
-  } else if (A->width == 8) {
+  } else if (A->w == 8) {
     size_t startblock = start_col/RADIX;
     mzd_t *from_x = B->x;
     mzd_t *to_x = A->x;
     word *_f = from_x->rows[br];
     word *_t = to_x->rows[ar];
     size_t j;
-    register word __t, __f;
+    register word __t0 ,__t1, __f0, __f1;
 
-    /* for(j=startblock; j<to_x->width -1; j++) { */
-    /*   tmp = _f[j]; */
-    /*   _t[j] ^= ((word)X[(int)((tmp & 0xFF00000000000000ULL)>>56)])<<56; */
-    /*   _t[j] ^= ((word)X[(int)((tmp & 0x00FF000000000000ULL)>>48)])<<48; */
-    /*   _t[j] ^= ((word)X[(int)((tmp & 0x0000FF0000000000ULL)>>40)])<<40; */
-    /*   _t[j] ^= ((word)X[(int)((tmp & 0x000000FF00000000ULL)>>32)])<<32; */
-    /*   _t[j] ^= ((word)X[(int)((tmp & 0x00000000FF000000ULL)>>24)])<<24; */
-    /*   _t[j] ^= ((word)X[(int)((tmp & 0x0000000000FF0000ULL)>>16)])<<16; */
-    /*   _t[j] ^= ((word)X[(int)((tmp & 0x000000000000FF00ULL)>> 8)])<< 8; */
-    /*   _t[j] ^= ((word)X[(int)((tmp & 0x00000000000000FFULL)>> 0)])<< 0; */
-    /* } */
+    for(j=startblock; j+2 < to_x->width; j+=2) {
+      __f0 = _f[j], __t0 = _t[j];
+      __f1 = _f[j+1], __t1 = _t[j+1];
+      __t0 ^= (X[((__f0)& 0x00000000000000FFULL)])<<0;  __f0 >>= 8;
+      __t1 ^= (X[((__f1)& 0x00000000000000FFULL)])<<0;  __f1 >>= 8;
+      __t0 ^= (X[((__f0)& 0x00000000000000FFULL)])<<8;  __f0 >>= 8;
+      __t1 ^= (X[((__f1)& 0x00000000000000FFULL)])<<8;  __f1 >>= 8;
+      __t0 ^= (X[((__f0)& 0x00000000000000FFULL)])<<16; __f0 >>= 8;
+      __t1 ^= (X[((__f1)& 0x00000000000000FFULL)])<<16; __f1 >>= 8;
+      __t0 ^= (X[((__f0)& 0x00000000000000FFULL)])<<24; __f0 >>= 8;
+      __t1 ^= (X[((__f1)& 0x00000000000000FFULL)])<<24; __f1 >>= 8;
+      __t0 ^= (X[((__f0)& 0x00000000000000FFULL)])<<32; __f0 >>= 8;
+      __t1 ^= (X[((__f1)& 0x00000000000000FFULL)])<<32; __f1 >>= 8;
+      __t0 ^= (X[((__f0)& 0x00000000000000FFULL)])<<40; __f0 >>= 8;
+      __t1 ^= (X[((__f1)& 0x00000000000000FFULL)])<<40; __f1 >>= 8;
+      __t0 ^= (X[((__f0)& 0x00000000000000FFULL)])<<48; __f0 >>= 8;
+      __t1 ^= (X[((__f1)& 0x00000000000000FFULL)])<<48; __f1 >>= 8;
+      __t0 ^= (X[((__f0)& 0x00000000000000FFULL)])<<56; __f0 >>= 8;
+      __t1 ^= (X[((__f1)& 0x00000000000000FFULL)])<<56; __f1 >>= 8;
+      _t[j] = __t0;
+      _t[j+1] = __t1;
+    }
 
-    /**
-     * TODO: revert this and benchmark which is faster
-     */
-    for(j=startblock; j<to_x->width -1; j++) {
-      __f = _f[j], __t = _t[j];
-      __t ^= (X[((__f)& 0x00000000000000FFULL)])<<0;  __f >>= 8;
-      __t ^= (X[((__f)& 0x00000000000000FFULL)])<<8;  __f >>= 8;
-      __t ^= (X[((__f)& 0x00000000000000FFULL)])<<16; __f >>= 8;
-      __t ^= (X[((__f)& 0x00000000000000FFULL)])<<24; __f >>= 8;
-      __t ^= (X[((__f)& 0x00000000000000FFULL)])<<32; __f >>= 8;
-      __t ^= (X[((__f)& 0x00000000000000FFULL)])<<40; __f >>= 8;
-      __t ^= (X[((__f)& 0x00000000000000FFULL)])<<48; __f >>= 8;
-      __t ^= (X[((__f)& 0x00000000000000FFULL)])<<56; __f >>= 8;
-      _t[j] = __t;
+    for(; j < to_x->width-1; j++) {
+      __f0 = _f[j], __t0 = _t[j];
+      __t0 ^= (X[((__f0)& 0x00000000000000FFULL)])<<0;  __f0 >>= 8;
+      __t0 ^= (X[((__f0)& 0x00000000000000FFULL)])<<8;  __f0 >>= 8;
+      __t0 ^= (X[((__f0)& 0x00000000000000FFULL)])<<16; __f0 >>= 8;
+      __t0 ^= (X[((__f0)& 0x00000000000000FFULL)])<<24; __f0 >>= 8;
+      __t0 ^= (X[((__f0)& 0x00000000000000FFULL)])<<32; __f0 >>= 8;
+      __t0 ^= (X[((__f0)& 0x00000000000000FFULL)])<<40; __f0 >>= 8;
+      __t0 ^= (X[((__f0)& 0x00000000000000FFULL)])<<48; __f0 >>= 8;
+      __t0 ^= (X[((__f0)& 0x00000000000000FFULL)])<<56; __f0 >>= 8;
+      _t[j] = __t0;
     }
     
     switch(to_x->ncols % RADIX) {
@@ -332,7 +340,7 @@ static inline void mzed_add_multiple_of_row(mzed_t *A, size_t ar, mzed_t *B, siz
     case  8: _t[j] ^= ((word)X[(int)((_f[j] & 0xFF00000000000000ULL)>>56)])<<56;
     };
 
-  } else if (A->width == 16) {
+  } else if (A->w == 16) {
     size_t startblock = start_col/RADIX;
     mzd_t *from_x = B->x;
     mzd_t *to_x = A->x;
@@ -411,16 +419,176 @@ static inline void mzed_add_multiple_of_row(mzed_t *A, size_t ar, mzed_t *B, siz
 size_t mzed_echelonize_naive(mzed_t *A, int full);
 
 
-static inline void mzed_rescale_row(mzed_t *A, size_t r, size_t c, word x) {
-  gf2e *ff = A->finite_field;
-  /* rescale row */
-  word *X = ff->mul[x];
+static inline void mzed_rescale_row(mzed_t *A, size_t r, size_t c, word *X) {
   for(size_t l=c; l<A->ncols; l++) {
     mzed_write_elem(A, r, l, X[mzed_read_elem(A, r, l)]);
   }
 }
 
-/**************** TODO: *****************/
+/**
+ * \brief Swap the two rows rowa and rowb.
+ * 
+ * \param M Matrix
+ * \param rowa Row index.
+ * \param rowb Row index.
+ */
+
+static inline void mzed_row_swap(mzed_t *M, const size_t rowa, const size_t rowb) {
+  mzd_row_swap(M->x, rowa, rowb);
+}
+
+/**
+ * \brief copy row j from A to row i from B.
+ *
+ * The offsets of A and B must match and the number of columns of A
+ * must be less than or equal to the number of columns of B.
+ *
+ * \param B Target matrix.
+ * \param i Target row index.
+ * \param A Source matrix.
+ * \param j Source row index.
+ */
+
+static inline void mzed_copy_row(mzed_t* B, size_t i, const mzed_t* A, size_t j) {
+  mzd_copy_row(B->x, i, A->x, j);
+}
+
+/**
+ * \brief Swap the two columns cola and colb.
+ * 
+ * \param M Matrix.
+ * \param cola Column index.
+ * \param colb Column index.
+ */
+ 
+static inline void mzed_col_swap(mzed_t *M, const size_t cola, const size_t colb) {
+  for(size_t i=0; i<M->w; i++)
+    mzd_col_swap(M->x,M->w*cola+i, M->w*colb+i);
+}
+
+
+/**
+ * \brief Add the rows sourcerow and destrow and stores the total in
+ * the row destrow.
+ *
+ * \param M Matrix
+ * \param sourcerow Index of source row
+ * \param destrow Index of target row
+ *
+ * \note this can be done much faster with mzed_combine.
+ */
+
+static inline void mzed_row_add(mzed_t *M, const size_t sourcerow, const size_t destrow) {
+  mzd_row_add(M->x, sourcerow, destrow);
+}
+
+/**
+ * \brief Return the first row with all zero entries.
+ *
+ * If no such row can be found returns nrows.
+ *
+ * \param A Matrix
+ */
+
+static inline size_t mzed_first_zero_row(mzed_t *A) {
+  return mzd_first_zero_row(A->x);
+}
+
+/**
+ * \brief Zero test for matrix.
+ *
+ * \param A Input matrix.
+ *
+ */
+static inline int mzed_is_zero(mzed_t *A) {
+  return mzd_is_zero(A->x);
+}
+
+/**
+ * \brief Clear the given row, but only begins at the column coloffset.
+ *
+ * \param M Matrix
+ * \param row Index of row
+ * \param coloffset Column offset
+ */
+
+static inline void mzed_row_clear_offset(mzed_t *M, const size_t row, const size_t coloffset) {
+  mzd_row_clear_offset(M->x, row, coloffset*M->w);
+}
+
+/**
+ * \brief Concatenate B to A and write the result to C.
+ * 
+ * That is,
+ *
+ \verbatim
+ [ A ], [ B ] -> [ A  B ] = C
+ \endverbatim
+ *
+ * The inputs are not modified but a new matrix is created.
+ *
+ * \param C Matrix, may be NULL for automatic creation
+ * \param A Matrix
+ * \param B Matrix
+ *
+ * \note This is sometimes called augment.
+ *
+ * \wordoffset
+ */
+
+static inline mzed_t *mzed_concat(mzed_t *C, const mzed_t *A, const mzed_t *B) {
+  if(C==NULL)
+    C = mzed_init(A->finite_field, A->nrows, A->ncols + B->ncols);
+  mzd_concat(C->x, A->x, B->x);
+  return C;
+}
+
+/**
+ * \brief Stack A on top of B and write the result to C.
+ *
+ * That is, 
+ *
+ \verbatim
+ [ A ], [ B ] -> [ A ] = C
+                 [ B ]
+ \endverbatim
+ *
+ * The inputs are not modified but a new matrix is created.
+ *
+ * \param C Matrix, may be NULL for automatic creation
+ * \param A Matrix
+ * \param B Matrix
+ *
+ * \wordoffset
+ */
+
+static inline mzed_t *mzed_stack(mzed_t *C, const mzed_t *A, const mzed_t *B) {
+  if(C==NULL)
+    C = mzed_init(A->finite_field, A->nrows + B->nrows, A->ncols);
+  mzd_stack(C->x, A->x, B->x);
+  return C;
+}
+
+
+/**
+ * \brief Copy a submatrix.
+ * 
+ * Note that the upper bounds are not included.
+ *
+ * \param S Preallocated space for submatrix, may be NULL for automatic creation.
+ * \param M Matrix
+ * \param lowr start rows
+ * \param lowc start column
+ * \param highr stop row (this row is \em not included)
+ * \param highc stop column (this column is \em not included)
+ */
+static inline mzed_t *mzed_submatrix(mzed_t *S, const mzed_t *M, const size_t lowr, const size_t lowc, const size_t highr, const size_t highc) {
+  if(S==NULL)
+    S = mzed_init(M->finite_field, highr - lowr, highc - lowc);
+
+  mzd_submatrix(S->x, M->x, lowr, lowc*M->w, highr, highc*M->w);
+  return S;
+}
 
 /**
  * \brief Create a window/view into the matrix M.
@@ -443,7 +611,15 @@ static inline void mzed_rescale_row(mzed_t *A, size_t r, size_t c, word x) {
  *
  */
 
-mzed_t *mzed_init_window(const mzed_t *M, const size_t lowr, const size_t lowc, const size_t highr, const size_t highc);
+static inline mzed_t *mzed_init_window(const mzed_t *A, const size_t lowr, const size_t lowc, const size_t highr, const size_t highc) {
+  mzed_t *B = (mzed_t *)m4ri_mm_malloc(sizeof(mzed_t));
+  B->finite_field = A->finite_field;
+  B->w = gf2e_degree_to_w(A->finite_field);
+  B->nrows = highr - lowr;
+  B->ncols = highc - lowc;
+  B->x = mzd_init_window(A->x, lowr, B->w*lowc, highr, B->w*highc);
+  return B;
+}
 
 /**
  * \brief Free a matrix window created with mzed_init_window.
@@ -451,64 +627,43 @@ mzed_t *mzed_init_window(const mzed_t *M, const size_t lowr, const size_t lowc, 
  * \param A Matrix
  */
 
-void mzed_free_window(mzed_t *A);
- 
-/**
- * \brief Swap the two rows rowa and rowb.
- * 
- * \param M Matrix
- * \param rowa Row index.
- * \param rowb Row index.
- */
+static inline void mzed_free_window(mzed_t *A) {
+  mzd_free_window(A->x);
+  m4ri_mm_free(A);
+}
 
-void mzed_row_swap(mzed_t *M, const size_t rowa, const size_t rowb);
+
+/**************** TODO: *****************/
+
 
 /**
- * \brief copy row j from A to row i from B.
+ * \brief Naive cubic matrix multiplication and addition
  *
- * The offsets of A and B must match and the number of columns of A
- * must be less than or equal to the number of columns of B.
+ * That is, compute C such that C == C + AB.
  *
- * \param B Target matrix.
- * \param i Target row index.
- * \param A Source matrix.
- * \param j Source row index.
+ * \param C Preallocated product matrix.
+ * \param A Input matrix A.
+ * \param B Input matrix B.
+ *
+ * \note Normally, if you will multiply several times by b, it is
+ * smarter to calculate bT yourself, and keep it, and then use the
+ * function called _mzed_mul_naive
  */
 
-void mzed_copy_row(mzed_t* B, size_t i, const mzed_t* A, size_t j);
+mzed_t *mzed_addmul_naive(mzed_t *C, const mzed_t *A, const mzed_t *B);
 
 /**
- * \brief Swap the two columns cola and colb.
- * 
- * \param M Matrix.
- * \param cola Column index.
- * \param colb Column index.
- */
- 
-void mzed_col_swap(mzed_t *M, const size_t cola, const size_t colb);
-
-/**
- * \brief Print a matrix to stdout. 
+ * \brief Naive cubic matrix multiplication with the pre-transposed B.
  *
- * The output will contain colons between every 4-th column.
+ * That is, compute C such that C == AB^t.
  *
- * \param M Matrix
+ * \param C Preallocated product matrix.
+ * \param A Input matrix A.
+ * \param B Pre-transposed input matrix B.
+ * \param clear Whether to clear C before accumulating AB
  */
 
-void mzed_print(const mzed_t *M);
-
-/**
- * \brief Add the rows sourcerow and destrow and stores the total in
- * the row destrow.
- *
- * \param M Matrix
- * \param sourcerow Index of source row
- * \param destrow Index of target row
- *
- * \note this can be done much faster with mzed_combine.
- */
-
-void mzed_row_add(mzed_t *M, const size_t sourcerow, const size_t destrow);
+mzed_t *_mzed_mul_naive(mzed_t *C, const mzed_t *A, const mzed_t *B, const int clear);
 
 /**
  * \brief Transpose a matrix.
@@ -526,6 +681,16 @@ void mzed_row_add(mzed_t *M, const size_t sourcerow, const size_t destrow);
 
 mzed_t *mzed_transpose(mzed_t *DST, const mzed_t *A );
 
+/**
+ * \brief Print a matrix to stdout. 
+ *
+ * The output will contain colons between every 4-th column.
+ *
+ * \param M Matrix
+ */
+
+void mzed_print(const mzed_t *M);
+ 
 /**
  * \brief Naive cubic matrix multiplication and addition
  *
@@ -567,63 +732,6 @@ mzed_t *_mzed_mul_naive(mzed_t *C, const mzed_t *A, const mzed_t *B, const int c
 mzed_t *_mzed_mul_va(mzed_t *C, const mzed_t *v, const mzed_t *A, const int clear);
 
 /**
- * \brief Concatenate B to A and write the result to C.
- * 
- * That is,
- *
- \verbatim
- [ A ], [ B ] -> [ A  B ] = C
- \endverbatim
- *
- * The inputs are not modified but a new matrix is created.
- *
- * \param C Matrix, may be NULL for automatic creation
- * \param A Matrix
- * \param B Matrix
- *
- * \note This is sometimes called augment.
- *
- * \wordoffset
- */
-
-mzed_t *mzed_concat(mzed_t *C, const mzed_t *A, const mzed_t *B);
-
-/**
- * \brief Stack A on top of B and write the result to C.
- *
- * That is, 
- *
- \verbatim
- [ A ], [ B ] -> [ A ] = C
-                 [ B ]
- \endverbatim
- *
- * The inputs are not modified but a new matrix is created.
- *
- * \param C Matrix, may be NULL for automatic creation
- * \param A Matrix
- * \param B Matrix
- *
- * \wordoffset
- */
-
-mzed_t *mzed_stack(mzed_t *C, const mzed_t *A, const mzed_t *B);
-
-/**
- * \brief Copy a submatrix.
- * 
- * Note that the upper bounds are not included.
- *
- * \param S Preallocated space for submatrix, may be NULL for automatic creation.
- * \param M Matrix
- * \param lowr start rows
- * \param lowc start column
- * \param highr stop row (this row is \em not included)
- * \param highc stop column (this column is \em not included)
- */
-mzed_t *mzed_submatrix(mzed_t *S, const mzed_t *M, const size_t lowr, const size_t lowc, const size_t highr, const size_t highc);
-
-/**
  * \brief Invert the matrix target using Gaussian elimination. 
  *
  * To avoid recomputing the identity matrix over and over again, I may
@@ -637,24 +745,6 @@ mzed_t *mzed_submatrix(mzed_t *S, const mzed_t *M, const size_t lowr, const size
  */
 
 mzed_t *mzed_invert_naive(mzed_t *INV, mzed_t *A, const mzed_t *I);
-
-/**
- * \brief Zero test for matrix.
- *
- * \param A Input matrix.
- *
- */
-int mzed_is_zero(mzed_t *A);
-
-/**
- * \brief Clear the given row, but only begins at the column coloffset.
- *
- * \param M Matrix
- * \param row Index of row
- * \param coloffset Column offset
- */
-
-void mzed_row_clear_offset(mzed_t *M, const size_t row, const size_t coloffset);
 
 /**
  * \brief Find the next nonzero entry in M starting at start_row and start_col. 
@@ -704,17 +794,5 @@ double mzed_density(mzed_t *A, int res);
  */
 
 double _mzed_density(mzed_t *A, int res, size_t r, size_t c);
-
-
-/**
- * \brief Return the first row with all zero entries.
- *
- * If no such row can be found returns nrows.
- *
- * \param A Matrix
- */
-
-size_t mzed_first_zero_row(mzed_t *A);
-
 
 #endif //MATRIX_H
