@@ -3,6 +3,7 @@ syntax: glob
 Makefile.in
 aclocal.m4
 config.guess
+configure
 config.sub
 depcomp
 install-sh
