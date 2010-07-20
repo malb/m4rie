@@ -1,6 +1,6 @@
 /**
  * \file gf2e_matrix.h
- * \brief Dense matrices over GF(2^n) represented by M4RI matrices.
+ * \brief Dense matrices over GF(2^k) (2<= k <= 16) represented by M4RI matrices.
  *
  * \author Martin Albrecht <martinralbrecht@googlemail.com>
  */
@@ -32,7 +32,7 @@
 #include "m4ri_functions.h"
 
 /**
- * \brief Dense matrices over GF(2^n). 
+ * \brief Dense matrices over GF(2^k). 
  * 
  * The most fundamental data type in this library.
  */
@@ -40,12 +40,12 @@
 typedef struct {
 
   /**
-   * The internal representation of our matrices.
+   * m x n matrices over GF(2^k) are represented as m x (kn) matrices over GF(2).
    */
   mzd_t *x;
 
   /**
-   * A finite field GF(2^n).
+   * A finite field GF(2^k).
    */
 
   gf2e *finite_field;
@@ -155,15 +155,15 @@ mzed_t *_mzed_add(mzed_t *C, const mzed_t *A, const mzed_t *B);
 
 
 /**
- * \brief Copy matrix  A to DST.
+ * \brief Copy matrix A to B.
  *
- * \param DST May be NULL for automatic creation.
+ * \param B May be NULL for automatic creation.
  * \param A Source matrix.
  *
  * \wordoffset
  */
 
-mzed_t *mzed_copy(mzed_t *o, const mzed_t *i);
+mzed_t *mzed_copy(mzed_t *B, const mzed_t *A);
 
 /**
  * \brief Return -1,0,1 if if A < B, A == B or A > B respectively.
@@ -172,14 +172,14 @@ mzed_t *mzed_copy(mzed_t *o, const mzed_t *i);
  * \param B Matrix.
  *
  * \note This comparison is not well defined mathematically and
- * relatively arbitrary since elements of GF(2) don't have an
+ * relatively arbitrary since elements of GF(2^k) don't have an
  * ordering.
  *
  * \wordoffset
  */
 
-static inline int mzed_cmp(mzed_t *l, mzed_t *r) {
-  return mzd_cmp(l->x,r->x);
+static inline int mzed_cmp(mzed_t *A, mzed_t *B) {
+  return mzd_cmp(A->x,B->x);
 }
 
 /**
@@ -190,8 +190,8 @@ static inline int mzed_cmp(mzed_t *l, mzed_t *r) {
  * \param col Starting column.
  */ 
 
-static inline int mzed_read_elem(const mzed_t *A, const size_t row, const size_t col) {
-  return (int)__mzd_read_bits(A->x, row, A->w*col, A->w);
+static inline word mzed_read_elem(const mzed_t *A, const size_t row, const size_t col) {
+  return __mzd_read_bits(A->x, row, A->w*col, A->w);
 }
 
 /**
@@ -204,7 +204,7 @@ static inline int mzed_read_elem(const mzed_t *A, const size_t row, const size_t
  */ 
 
 
-static inline void mzed_add_elem(mzed_t *a, const size_t row, const size_t col, const int elem) {
+static inline void mzed_add_elem(mzed_t *a, const size_t row, const size_t col, const word elem) {
   __mzd_xor_bits(a->x, row, a->w*col, a->w, elem);
 }
 
@@ -217,7 +217,7 @@ static inline void mzed_add_elem(mzed_t *a, const size_t row, const size_t col, 
  * \param elem finite field element.
  */ 
 
-static inline void mzed_write_elem(mzed_t *a, const size_t row, const size_t col, const int elem) {
+static inline void mzed_write_elem(mzed_t *a, const size_t row, const size_t col, const word elem) {
   __mzd_clear_bits(a->x, row, a->w*col, a->w);
   __mzd_xor_bits(a->x, row, a->w*col, a->w, elem);
 }
@@ -233,7 +233,7 @@ static inline void mzed_write_elem(mzed_t *a, const size_t row, const size_t col
  * \param start_col Column index.
  */
 
-static inline void mzed_add_multiple_of_row(mzed_t *A, size_t ar, mzed_t *B, size_t br, word *X, size_t start_col) {
+static inline void mzed_add_multiple_of_row(mzed_t *A, size_t ar, const mzed_t *B, size_t br, word *X, size_t start_col) {
   assert(A->ncols == B->ncols && A->finite_field == B->finite_field);
   assert(A->x->offset == 0 && B->x->offset == 0);
   if(A->w == 4) {
@@ -640,20 +640,30 @@ static inline void mzed_free_window(mzed_t *A) {
  * \param B Input matrix B.
  *
  */
-
-#define mzed_mul mzed_mul_travolta
-
+ 
+mzed_t *mzed_mul(mzed_t *C, const mzed_t *A, const mzed_t *B);
 
 /**
  * \brief Compute C such that C == C + AB.
  *
- * \param C Preallocated product matrix.
+ * \param C Preallocated product matrix, may be NULL for automatic creation.
  * \param A Input matrix A.
  * \param B Input matrix B.
  *
  */
 
-#define mzed_addmul mzed_addmul_travolta
+mzed_t *mzed_addmul(mzed_t *C, const mzed_t *A, const mzed_t *B);
+
+/**
+ * \brief C such that C == AB.
+ *
+ * \param C Preallocated product matrix.
+ * \param A Input matrix A.
+ * \param B Input matrix B.
+ * \param clear Whether to clear C before accumulating AB
+ */
+
+mzed_t *_mzed_mul(mzed_t *C, const mzed_t *A, const mzed_t *B);
 
 
 /**
@@ -665,18 +675,19 @@ static inline void mzed_free_window(mzed_t *A) {
  *
  */
 
-mzed_t *mzed_addmul_naive(mzed_t *C, mzed_t *A, mzed_t *B);
+mzed_t *mzed_addmul_naive(mzed_t *C, const mzed_t *A, const mzed_t *B);
 
 /**
  * \brief Compute C such that C == AB using naive cubic multiplication.
  *
- * \param C Preallocated product matrix, may be NULL for automatic creation.
+ * \param C Preallocated product matrix, may be NULL for automatic
+ * creation.
  * \param A Input matrix A.
  * \param B Input matrix B.
  *
  */
 
-mzed_t *mzed_mul_maive(mzed_t *C, mzed_t *A, mzed_t *B);
+mzed_t *mzed_mul_naive(mzed_t *C, const mzed_t *A, const mzed_t *B);
 
 /**
  * \brief C such that C == AB.
@@ -684,32 +695,22 @@ mzed_t *mzed_mul_maive(mzed_t *C, mzed_t *A, mzed_t *B);
  * \param C Preallocated product matrix.
  * \param A Input matrix A.
  * \param B Input matrix B.
- * \param clear Whether to clear C before accumulating AB
  */
 
-mzed_t *_mzed_mul_naive(mzed_t *C, const mzed_t *A, const mzed_t *B, const int clear);
-
-
-
-/**************** TODO: *****************/
-
-
+mzed_t *_mzed_mul_naive(mzed_t *C, const mzed_t *A, const mzed_t *B);
 
 /**
- * \brief Transpose a matrix.
+ * \brief Set the matrix A to the value equivalent to the finite field
+ * value provided.
  *
- * This function uses the fact that:
-\verbatim
-   [ A B ]T    [AT CT]
-   [ C D ]  =  [BT DT] 
- \endverbatim 
- * and thus rearranges the blocks recursively. 
+ * If the matrix is not square then the largest possible square
+ * submatrix is set to the identity matrix.
  *
- * \param DST Preallocated return matrix, may be NULL for automatic creation.
- * \param A Matrix
+ * \param M Matrix
+ * \param value Finite Field element
  */
 
-mzed_t *mzed_transpose(mzed_t *DST, const mzed_t *A );
+void mzed_set_ui(mzed_t *A, word value);
 
 /**
  * \brief Print a matrix to stdout. 
@@ -720,81 +721,72 @@ mzed_t *mzed_transpose(mzed_t *DST, const mzed_t *A );
  */
 
 void mzed_print(const mzed_t *M);
+
+/**************** TODO: *****************/
+
+
+/* /\** */
+/*  * \brief Transpose a matrix. */
+/*  * */
+/*  * This function uses the fact that: */
+/* \verbatim */
+/*    [ A B ]T    [AT CT] */
+/*    [ C D ]  =  [BT DT]  */
+/*  \endverbatim  */
+/*  * and thus rearranges the blocks recursively.  */
+/*  * */
+/*  * \param DST Preallocated return matrix, may be NULL for automatic creation. */
+/*  * \param A Matrix */
+/*  *\/ */
+
+/* mzed_t *mzed_transpose(mzed_t *DST, const mzed_t *A ); */
  
+/* /\** */
+/*  * \brief Find the next nonzero entry in M starting at start_row and start_col.  */
+/*  * */
+/*  * This function walks down rows in the inner loop and columns in the */
+/*  * outer loop. If a nonzero entry is found this function returns 1 and */
+/*  * zero otherwise. */
+/*  * */
+/*  * If and only if a nonzero entry is found r and c are updated. */
+/*  * */
+/*  * \param M Matrix */
+/*  * \param start_row Index of row where to start search */
+/*  * \param start_col Index of column where to start search */
+/*  * \param r Row index updated if pivot is found */
+/*  * \param c Column index updated if pivot is found */
+/*  *\/ */
 
-/**
- * \brief Matrix multiplication optimized for v*A where v is a vector.
- *
- * \param C Preallocated product matrix.
- * \param v Input matrix v.
- * \param A Input matrix A.
- * \param clear If set clear C first, otherwise add result to C.
- *
- */
-mzed_t *_mzed_mul_va(mzed_t *C, const mzed_t *v, const mzed_t *A, const int clear);
+/* int mzed_find_pivot(mzed_t *M, size_t start_row, size_t start_col, size_t *r, size_t *c); */
 
-/**
- * \brief Invert the matrix target using Gaussian elimination. 
- *
- * To avoid recomputing the identity matrix over and over again, I may
- * be passed in as identity parameter.
- *
- * \param INV Preallocated space for inversion matrix, may be NULL for automatic creation.
- * \param A Matrix to be reduced.
- * \param I Identity matrix.
- *
- * \wordoffset
- */
+/* /\** */
+/*  * \brief Return the number of nonzero entries divided by nrows * */
+/*  * ncols */
+/*  * */
+/*  * If res = 0 then 100 samples per row are made, if res > 0 the */
+/*  * function takes res sized steps within each row (res = 1 uses every */
+/*  * word). */
+/*  * */
+/*  * \param A Matrix */
+/*  * \param res Resolution of sampling */
+/*  *\/ */
 
-mzed_t *mzed_invert_naive(mzed_t *INV, mzed_t *A, const mzed_t *I);
+/* double mzed_density(mzed_t *A, int res); */
 
-/**
- * \brief Find the next nonzero entry in M starting at start_row and start_col. 
- *
- * This function walks down rows in the inner loop and columns in the
- * outer loop. If a nonzero entry is found this function returns 1 and
- * zero otherwise.
- *
- * If and only if a nonzero entry is found r and c are updated.
- *
- * \param M Matrix
- * \param start_row Index of row where to start search
- * \param start_col Index of column where to start search
- * \param r Row index updated if pivot is found
- * \param c Column index updated if pivot is found
- */
+/* /\** */
+/*  * \brief Return the number of nonzero entries divided by nrows * */
+/*  * ncols considering only the submatrix starting at (r,c). */
+/*  * */
+/*  * If res = 0 then 100 samples per row are made, if res > 0 the */
+/*  * function takes res sized steps within each row (res = 1 uses every */
+/*  * word). */
+/*  * */
+/*  * \param A Matrix */
+/*  * \param res Resolution of sampling */
+/*  * \param r Row to start counting */
+/*  * \param c Column to start counting */
+/*  *\/ */
 
-int mzed_find_pivot(mzed_t *M, size_t start_row, size_t start_col, size_t *r, size_t *c);
-
-
-/**
- * \brief Return the number of nonzero entries divided by nrows *
- * ncols
- *
- * If res = 0 then 100 samples per row are made, if res > 0 the
- * function takes res sized steps within each row (res = 1 uses every
- * word).
- *
- * \param A Matrix
- * \param res Resolution of sampling
- */
-
-double mzed_density(mzed_t *A, int res);
-
-/**
- * \brief Return the number of nonzero entries divided by nrows *
- * ncols considering only the submatrix starting at (r,c).
- *
- * If res = 0 then 100 samples per row are made, if res > 0 the
- * function takes res sized steps within each row (res = 1 uses every
- * word).
- *
- * \param A Matrix
- * \param res Resolution of sampling
- * \param r Row to start counting
- * \param c Column to start counting
- */
-
-double _mzed_density(mzed_t *A, int res, size_t r, size_t c);
+/* double _mzed_density(mzed_t *A, int res, size_t r, size_t c); */
 
 #endif //MATRIX_H

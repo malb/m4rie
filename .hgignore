@@ -15,5 +15,7 @@ m4/ltversion.m4
 m4/lt~obsolete.m4
 missing
 src/config.h.in~
+src/cscope.out
+src/cscope.files
 (END) 
 

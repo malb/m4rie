@@ -17,8 +17,11 @@
 *                  http://www.gnu.org/licenses/
 ******************************************************************************/
 
-#include "gf2e_matrix.h"
 #include <stdlib.h>
+
+#include "config.h"
+#include "gf2e_matrix.h"
+#include "travolta.h"
 
 mzed_t *mzed_init(gf2e* k, size_t m, size_t n) {
   mzed_t *A = (mzed_t *)m4ri_mm_malloc(sizeof(mzed_t));
@@ -65,6 +68,47 @@ mzed_t *_mzed_add(mzed_t *C, const mzed_t *A, const mzed_t *B) {
   mzd_add(C->x, A->x, B->x);
   return C;
 }
+
+
+mzed_t *mzed_mul(mzed_t *C, const mzed_t *A, const mzed_t *B) {
+  if (A->ncols != B->nrows || A->finite_field != B->finite_field) {
+    m4ri_die("mzed_mul: rows, columns and fields must match.\n");
+  }
+  if (C == NULL) {
+    C = mzed_init(A->finite_field, A->nrows, B->ncols);
+  } else {
+    if (C->finite_field != A->finite_field || C->nrows != A->nrows || C->ncols != B->ncols) {
+      m4ri_die("mzed_mul: rows and columns of returned matrix must match.\n");
+    }
+  }
+  _mzed_mul(C, A, B);
+  return C;
+}
+
+mzed_t *mzed_addmul(mzed_t *C, const mzed_t *A, const mzed_t *B) {
+  if (A->ncols != B->nrows || A->finite_field != B->finite_field) {
+    m4ri_die("mzed_addmul: rows, columns and fields must match.\n");
+  }
+  if (C == NULL) {
+    C = mzed_init(A->finite_field, A->nrows, B->ncols);
+  } else {
+    if (C->finite_field != A->finite_field || C->nrows != A->nrows || C->ncols != B->ncols) {
+      m4ri_die("mzed_addmul: rows and columns of returned matrix must match.\n");
+    }
+  }
+  _mzed_mul(C, A, B);
+  return C;
+}
+
+
+mzed_t *_mzed_mul(mzed_t *C, const mzed_t *A, const mzed_t *B) {
+  if (A->finite_field->degree > A->nrows/2) {
+    return _mzed_mul_naive(C, A, B);
+  } else {
+    return _mzed_mul_travolta1(C, A, B);
+  }
+}
+
 
 mzed_t *mzed_copy(mzed_t *A, const mzed_t *B) {
   if (A == B)
@@ -116,10 +160,16 @@ size_t mzed_echelonize_naive(mzed_t *A, int full) {
   return start_row;
 }
 
+void mzed_set_ui(mzed_t *A, word value) {
+  mzd_set_ui(A->x, 0);
+  if(!value)
+    return;
+  for(size_t i=0; i< MIN(A->ncols,A->nrows); i++) {
+    mzed_write_elem(A, i, i, value);
+  }
+}
 
-mzed_t *_mzed_mul_naive(mzed_t *C, const mzed_t *A, const mzed_t *B, const int clear) {
-  if(clear)
-    mzd_set_ui(C->x, 0);
+mzed_t *_mzed_mul_naive(mzed_t *C, const mzed_t *A, const mzed_t *B) {
   gf2e* ff = C->finite_field;
   for (size_t i=0; i<C->nrows; ++i) {
     for (size_t j=0; j<C->ncols; ++j) {
@@ -131,14 +181,14 @@ mzed_t *_mzed_mul_naive(mzed_t *C, const mzed_t *A, const mzed_t *B, const int c
   return C;
 }
 
-mzed_t *mzed_addmul_naive(mzed_t *C, mzed_t *A, mzed_t *B) {
+mzed_t *mzed_addmul_naive(mzed_t *C, const mzed_t *A, const mzed_t *B) {
   if (C->nrows != A->nrows || C->ncols != B->ncols || C->finite_field != A->finite_field) {
     m4ri_die("mzed_mul_naive: Provided return matrix has wrong dimensions or wrong base field.\n");
   }
-  return _mzed_mul_naive(C, A, B, 0);
+  return _mzed_mul_naive(C, A, B);
 }
 
-mzed_t *mzed_mul_maive(mzed_t *C, mzed_t *A, mzed_t *B) {
+mzed_t *mzed_mul_naive(mzed_t *C, const mzed_t *A, const mzed_t *B) {
   if (C==NULL) {
     C = mzed_init(A->finite_field, A->nrows, B->ncols);
   } else {
@@ -147,11 +197,8 @@ mzed_t *mzed_mul_maive(mzed_t *C, mzed_t *A, mzed_t *B) {
     }
     mzd_set_ui(C->x, 0);
   }
-  return _mzed_mul_naive(C, A, B, 1);
+  return _mzed_mul_naive(C, A, B);
 }
-
-
-
 
 void mzed_print(const mzed_t *A) {
   for (size_t i=0; i < A->nrows; ++i) {

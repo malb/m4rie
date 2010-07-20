@@ -108,7 +108,7 @@ static inline void mzed_combine8(mzed_t *C, size_t rc,
  * for inclusion.
  */
 
-int _mzed_gauss_submatrix_full(mzed_t *A, size_t r, size_t c, size_t end_row, int k) {
+size_t _mzed_gauss_submatrix_full(mzed_t *A, size_t r, size_t c, size_t end_row, int k) {
   size_t i,j,l;
   size_t start_row = r;
   int found;
@@ -148,7 +148,7 @@ int _mzed_gauss_submatrix_full(mzed_t *A, size_t r, size_t c, size_t end_row, in
 }
 
 
-void mzed_make_table(mzed_t *A, size_t r, size_t c, mzed_t *T,  size_t *L, gf2e *ff) {
+void mzed_make_table(const mzed_t *A, size_t r, size_t c, mzed_t *T,  size_t *L, gf2e *ff) {
   mzd_set_ui(T->x,0);
 
   for(size_t i=0; i< TWOPOW(ff->degree); i++) {
@@ -166,7 +166,7 @@ size_t mzed_echelonize_travolta(mzed_t *A, int full) {
   size_t k = ff->degree;
 
   /** cf. mzd_echelonize_m4ri **/
-  size_t kk = m4ri_opt_k(A->x->nrows, A->x->ncols, 0);
+  size_t kk = (size_t)m4ri_opt_k(A->x->nrows, A->x->ncols, 0);
   if (kk>=7) 
     kk = 7;
   if ( (6*(1<<kk)*A->ncols / 8.0) > CPU_L2_CACHE / 2.0 )
@@ -283,7 +283,7 @@ size_t mzed_echelonize_travolta(mzed_t *A, int full) {
   return r;
 }
 
-mzed_t *_mzed_mul_travolta0(mzed_t *C, mzed_t *A, mzed_t *B) {
+mzed_t *_mzed_mul_travolta0(mzed_t *C, const mzed_t *A, const mzed_t *B) {
   mzed_t *T0 = mzed_init(C->finite_field, TWOPOW(A->finite_field->degree), B->ncols);
   size_t *L0 = (size_t*)m4ri_mm_calloc(TWOPOW(A->finite_field->degree), sizeof(size_t));
 
@@ -297,7 +297,7 @@ mzed_t *_mzed_mul_travolta0(mzed_t *C, mzed_t *A, mzed_t *B) {
   return C;
 }
 
-mzed_t *_mzed_mul_travolta1(mzed_t *C, mzed_t *A, mzed_t *B) {
+mzed_t *_mzed_mul_travolta1(mzed_t *C, const mzed_t *A, const mzed_t *B) {
   mzed_t *T0 = mzed_init(C->finite_field, TWOPOW(A->finite_field->degree), B->ncols);
   mzed_t *T1 = mzed_init(C->finite_field, TWOPOW(A->finite_field->degree), B->ncols);
   mzed_t *T2 = mzed_init(C->finite_field, TWOPOW(A->finite_field->degree), B->ncols);
@@ -355,14 +355,14 @@ mzed_t *_mzed_mul_travolta1(mzed_t *C, mzed_t *A, mzed_t *B) {
   return C;
 }
 
-mzed_t *mzed_addmul_travolta(mzed_t *C, mzed_t *A, mzed_t *B) {
+mzed_t *mzed_addmul_travolta(mzed_t *C, const mzed_t *A, const mzed_t *B) {
   if (C->nrows != A->nrows || C->ncols != B->ncols || C->finite_field != A->finite_field) {
     m4ri_die("mzd_mul_naive: Provided return matrix has wrong dimensions or wrong base field.\n");
   }
   return _mzed_mul_travolta1(C, A, B);
 }
 
-mzed_t *mzed_mul_travolta(mzed_t *C, mzed_t *A, mzed_t *B) {
+mzed_t *mzed_mul_travolta(mzed_t *C, const mzed_t *A, const mzed_t *B) {
   if (C==NULL) {
     C = mzed_init(A->finite_field, A->nrows, B->ncols);
   } else {
@@ -374,4 +374,17 @@ mzed_t *mzed_mul_travolta(mzed_t *C, mzed_t *A, mzed_t *B) {
   return _mzed_mul_travolta1(C, A, B);
 }
 
+mzed_t *mzed_invert_travolta(mzed_t *B, const mzed_t *A) {
+  assert(A->nrows == A->ncols);
+  mzed_t *I = mzed_init(A->finite_field, A->nrows, A->ncols);
+  mzed_set_ui(I, 1);
+  mzed_t *T = mzed_concat(NULL, A, I);
+  mzed_free(I);
 
+  size_t r = mzed_echelonize_travolta(T, 1);
+  if (r != A->nrows) 
+    m4ri_die("mzed_invert_travolta: input matrix does not have full rank.");
+  B = mzed_submatrix(B, T, 0, A->ncols, A->nrows, T->ncols);
+  mzed_free(T);
+  return B;
+}

@@ -23,15 +23,84 @@
 #include "finite_field.h"
 #include "gf2e_matrix.h"
 
-void mzed_make_table(mzed_t *A, size_t r, size_t c, mzed_t *T, size_t *L, gf2e *ff);
+void mzed_make_table(const mzed_t *A, size_t r, size_t c, mzed_t *T, size_t *L, gf2e *ff);
+
+/**
+ * \brief Compute C such that C == AB using Travolta tables.
+ *
+ * \param C Preallocated return matrix, may be NULL for automatic creation.
+ * \param A Input matrix A.
+ * \param B Input matrix B.
+ *
+ * \sa mzed_mul_travolta1 mzed_mul
+ */
+
+mzed_t *mzed_mul_travolta(mzed_t *C, const mzed_t *A, const mzed_t *B);
+
+/**
+ * \brief Compute C such that C == C + AB using Travolta tables.
+ *
+ * \param C Preallocated product matrix, may be NULL for automatic creation.
+ * \param A Input matrix A.
+ * \param B Input matrix B.
+ *
+ * \sa mzed_mul_travolta1 mzed_addmul
+ */
+
+mzed_t *mzed_addmul_travolta(mzed_t *C, const mzed_t *A, const mzed_t *B);
+
+/**
+ * \brief Compute C such that C == C + AB using Travolta tables.
+ *
+ * This is a simple implementation.
+ *
+ * \param C Preallocated product matrix.
+ * \param A Input matrix A.
+ * \param B Input matrix B.
+ *
+ * \sa mzed_mul_travolta1 mzed_addmul
+ */
+
+mzed_t *_mzed_mul_travolta0(mzed_t *C, const mzed_t *A, const mzed_t *B);
+
+/**
+ * \brief Compute C such that C == C + AB using Travolta tables.
+ *
+ * This is an optimised implementation.
+ *
+ * \param C Preallocated product matrix.
+ * \param A Input matrix A.
+ * \param B Input matrix B.
+ *
+ * \sa mzed_mul_travolta1 mzed_addmul
+ */
+
+mzed_t *_mzed_mul_travolta1(mzed_t *C, const mzed_t *A, const mzed_t *B);
+
+/**
+ * \brief Reduce matrix A to row echelon form using Gauss-Travolta
+ * elimination.
+ *
+ * \param A Matrix to be reduced.
+ * \param full If set to true, the reduced row echelon form will be
+ * computed.
+
+ * \wordoffset
+ */
 
 size_t mzed_echelonize_travolta(mzed_t *A, int full);
 
-mzed_t *mzed_mul_travolta(mzed_t *C, mzed_t *A, mzed_t *B);
+/**
+ * \brief Invert the matrix A using Gauss-Travolta elimination. 
+ *
+ * \param B Preallocated space for inversion matrix, may be NULL for
+ * automatic creation.
+ * \param A Matrix to be inverted.
+ *
+ * \wordoffset
+ */
 
-mzed_t *mzed_addmul_travolta(mzed_t *C, mzed_t *A, mzed_t *B);
-
-mzed_t *_mzed_mul_travolta(mzed_t *C, mzed_t *A, mzed_t *B);
+mzed_t *mzed_invert_travolta(mzed_t *B, const mzed_t *A);
 
 /**
  * \brief The function looks up 6 entries from position i,startcol in
@@ -185,7 +254,5 @@ static inline void mzed_process_rows6(mzed_t *M, size_t startrow, size_t endrow,
                                       mzed_t* T4, size_t *L4, mzed_t *T5, size_t *L5) {
   mzd_process_rows6(M->x, startrow, endrow, startcol*M->w, 6*M->w, T0->x, L0, T1->x, L1, T2->x, L2, T3->x, L3, T4->x, L4, T5->x, L5);
 }
-
-
 
 #endif //TRAVOLTA_H

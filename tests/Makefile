@@ -1,2 +1,12 @@
-test_elimination: 	test_elimination.cc
-	g++ -O2 -ggdb -DNDEBUG -I$(SAGE_ROOT)/local/include  -L/$(SAGE_ROOT)/local/lib -I.. -lm4rie -lm4ri -lgivaro -lntl -lgmpxx -lgmp -lm -lstdc++ $< -o $@
+CXXFLAGS=-O2 -ggdb -I$(SAGE_ROOT)/local/include  -I.. 
+LDFLAGS=-lm4rie -lm4ri -lgivaro -lntl -lgmpxx -lgmp -lm -lstdc++ -L/$(SAGE_ROOT)/local/lib
+
+PRGS = test_elimination test_multiplication
+
+all:	$(PRGS)
+
+.cc:	
+	$(CXX) $(CXXFLAGS) $@.cc $(LDFLAGS) -o $@
+
+clean:
+	rm -f $(PRGS)
