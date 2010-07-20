@@ -1,12 +1,17 @@
-BENCH_PRGS=bench_elimination 
+BENCH_PRGS=bench_elimination bench_multiplication
 
 CPUCYCLES_DIR=./cpucycles-20060326
 
 all: $(BENCH_PRGS)
 
+CXXFLAGS=-I$(SAGE_ROOT)/local/include  -I../ -O2 -DNDEBUG
+LDFLAGS=-L/$(SAGE_ROOT)/local/lib -I../ -lm4rie -lm4ri -lgivaro -lntl -lgmpxx -lgmp -lm -lstdc++
 
 bench_elimination: cpucycles.o	bench_elimination.cc
-	g++ -O2 -DNDEBUG -I$(SAGE_ROOT)/local/include  -L/$(SAGE_ROOT)/local/lib -I../ -lm4rie -lm4ri -lgivaro -lntl -lgmpxx -lgmp -lm -lstdc++ cpucycles.o bench_elimination.cc -o $@
+	g++ $(CXXFLAGS) $(LDFLAGS) cpucycles.o bench_elimination.cc -o $@
+
+bench_multiplication: cpucycles.o bench_multiplication.cc
+	g++ $(CXXFLAGS) $(LDFLAGS) cpucycles.o bench_multiplication.cc -o $@
 
 clean:
 	rm -f $(BENCH_PRGS)
