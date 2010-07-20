@@ -38,7 +38,7 @@ int main(int argc, char **argv) {
     C = mzed_mul_naive(NULL, A, B);
   else
     C = mzed_mul(NULL, A, B);
-  printf("m: %5d, n: %5d, cpu cycles: %llu wall time: %lf\n",m, n, r, cpucycles() - t, walltime(&wt));
+  printf("k: %2d, m: %5d, n: %5d, cpu cycles: %15llu, wall time: %8.4lf s\n",k, m, n, cpucycles() - t, walltime(&wt));
 
   mzed_free(A);
 

@@ -319,6 +319,46 @@ mzed_t *_mzed_mul_travolta1(mzed_t *C, const mzed_t *A, const mzed_t *B) {
   const size_t kk = 8;
   const size_t end = A->ncols/kk;
 
+  /* we are effectively disabling the cache optimisation since table
+     creation is so expensive in this context. 
+  */
+  size_t blocksize = 1ULL<<31;
+
+  /*
+   * it seems to give some advantage for larger matrices over GF(2^2)
+   * though
+   */
+   if (A->w == 2 && A->nrows >= 2*MZD_MUL_BLOCKSIZE) 
+     blocksize = MZD_MUL_BLOCKSIZE/A->w; 
+
+  size_t giantstep, babystep;
+
+  for (giantstep=0; giantstep + blocksize <= A->nrows; giantstep += blocksize) {
+    for(size_t i=0; i < end; i++) {
+      mzed_make_table( B, kk*i  , 0, T0, L0, A->finite_field);
+      mzed_make_table( B, kk*i+1, 0, T1, L1, A->finite_field);
+      mzed_make_table( B, kk*i+2, 0, T2, L2, A->finite_field);
+      mzed_make_table( B, kk*i+3, 0, T3, L3, A->finite_field);
+      mzed_make_table( B, kk*i+4, 0, T4, L4, A->finite_field);
+      mzed_make_table( B, kk*i+5, 0, T5, L5, A->finite_field);
+      mzed_make_table( B, kk*i+6, 0, T6, L6, A->finite_field);
+      mzed_make_table( B, kk*i+7, 0, T7, L7, A->finite_field);
+      for(babystep = 0; babystep < blocksize; babystep++) {
+        const size_t j = giantstep + babystep;
+        const size_t x0 = mzed_read_elem(A, j, kk*  i);
+        const size_t x1 = mzed_read_elem(A, j, kk*i+1);
+        const size_t x2 = mzed_read_elem(A, j, kk*i+2);
+        const size_t x3 = mzed_read_elem(A, j, kk*i+3);
+        const size_t x4 = mzed_read_elem(A, j, kk*i+4);
+        const size_t x5 = mzed_read_elem(A, j, kk*i+5);
+        const size_t x6 = mzed_read_elem(A, j, kk*i+6);
+        const size_t x7 = mzed_read_elem(A, j, kk*i+7);
+        mzed_combine8(C, j, T0, x0, T1, x1, T2, x2, T3, x3, T4, x4, T5, x5, T6, x6, T7, x7);
+      }
+    }
+  }
+
+  /* last giant step */
   for(size_t i=0; i < end; i++) {
     mzed_make_table( B, kk*i  , 0, T0, L0, A->finite_field);
     mzed_make_table( B, kk*i+1, 0, T1, L1, A->finite_field);
@@ -328,7 +368,8 @@ mzed_t *_mzed_mul_travolta1(mzed_t *C, const mzed_t *A, const mzed_t *B) {
     mzed_make_table( B, kk*i+5, 0, T5, L5, A->finite_field);
     mzed_make_table( B, kk*i+6, 0, T6, L6, A->finite_field);
     mzed_make_table( B, kk*i+7, 0, T7, L7, A->finite_field);
-    for(size_t j=0; j<A->nrows; j++) {
+    for(babystep = 0; babystep < A->nrows - giantstep; babystep++) {
+      const size_t j = giantstep + babystep;
       const size_t x0 = mzed_read_elem(A, j, kk*  i);
       const size_t x1 = mzed_read_elem(A, j, kk*i+1);
       const size_t x2 = mzed_read_elem(A, j, kk*i+2);
@@ -340,6 +381,7 @@ mzed_t *_mzed_mul_travolta1(mzed_t *C, const mzed_t *A, const mzed_t *B) {
       mzed_combine8(C, j, T0, x0, T1, x1, T2, x2, T3, x3, T4, x4, T5, x5, T6, x6, T7, x7);
     }
   }
+  
   if (A->ncols%kk) {
     for(size_t i=kk*end; i < A->ncols; i++) {
       mzed_make_table(B, i, 0, T0, L0, A->finite_field);
