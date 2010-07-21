@@ -18,6 +18,7 @@ clean:
 	rm -f *.o cpucycles.h
 	rm -f $(CPUCYCLES_DIR)/cpucycles.o
 	rm -f $(CPUCYCLES_DIR)/cpucycles.h
+	rm -rf callgrind.*
 
 
 
