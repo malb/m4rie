@@ -32,6 +32,7 @@ int main(int argc, char **argv) {
       mzed_free(A2);
     }
     gf2e_free(ff);
+    delete F;
   }
   return pass;
 }

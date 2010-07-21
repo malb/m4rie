@@ -29,7 +29,7 @@
 
 using namespace M4RIE;
 
-int addmul() {
+int test_addmul() {
   int pass = 0;
   for(size_t k=2; k<=10; k++) {
     FiniteField *F = (FiniteField*)(new GFqDom<int>(2,k));
@@ -62,16 +62,19 @@ int addmul() {
         printf("FAIL\n");
         pass = 0;
       }
+      mzed_free(A);
+      mzed_free(B);
       mzed_free(C0);
       mzed_free(C1);
       mzed_free(C2);
     }
     gf2e_free(ff);
+    delete F;
   }
   return pass;
 }
 
-int mul() {
+int test_mul() {
   int pass = 0;
   for(size_t k=2; k<=10; k++) {
     FiniteField *F = (FiniteField*)(new GFqDom<int>(2,k));
@@ -100,15 +103,18 @@ int mul() {
         printf("FAIL\n");
         pass = 0;
       }
+      mzed_free(A);
+      mzed_free(B);
       mzed_free(C0);
       mzed_free(C1);
       mzed_free(C2);
     }
     gf2e_free(ff);
+    delete F;
   }
   return pass;
 }
 
 int main(int argc, char **argv) {
-  return mul() + addmul();
+  return test_mul() + test_addmul();
 }
