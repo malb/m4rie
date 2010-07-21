@@ -150,8 +150,10 @@ size_t _mzed_gauss_submatrix_full(mzed_t *A, size_t r, size_t c, size_t end_row,
 
 void mzed_make_table(const mzed_t *A, size_t r, size_t c, mzed_t *T,  size_t *L, gf2e *ff) {
   mzd_set_ui(T->x,0);
+  L[0] = 0;
 
   mzed_copy_row(T, 1, A, r);
+  L[1] = 1;
 
   for(size_t i=2; i< TWOPOW(ff->degree); i++) {
     word *X = ff->mul[i];
