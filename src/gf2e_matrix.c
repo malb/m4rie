@@ -22,12 +22,12 @@
 #include "config.h"
 #include "gf2e_matrix.h"
 #include "travolta.h"
+#include "strassen.h"
 
 mzed_t *mzed_init(gf2e* k, size_t m, size_t n) {
   mzed_t *A = (mzed_t *)m4ri_mm_malloc(sizeof(mzed_t));
 
   A->finite_field = k;
-  
   A->w = gf2e_degree_to_w(A->finite_field);
   A->nrows = m;
   A->ncols = n;
@@ -70,7 +70,7 @@ mzed_t *_mzed_add(mzed_t *C, const mzed_t *A, const mzed_t *B) {
 }
 
 
-mzed_t *mzed_mul(mzed_t *C, const mzed_t *A, const mzed_t *B) {
+mzed_t *_mzed_mul_init(mzed_t *C, const mzed_t *A, const mzed_t *B, int clear) {
   if (A->ncols != B->nrows || A->finite_field != B->finite_field) {
     m4ri_die("mzed_mul: rows, columns and fields must match.\n");
   }
@@ -80,22 +80,21 @@ mzed_t *mzed_mul(mzed_t *C, const mzed_t *A, const mzed_t *B) {
     if (C->finite_field != A->finite_field || C->nrows != A->nrows || C->ncols != B->ncols) {
       m4ri_die("mzed_mul: rows and columns of returned matrix must match.\n");
     }
+    if (clear)
+      mzed_set_ui(C,0);
   }
+  return C;
+}
+
+
+mzed_t *mzed_mul(mzed_t *C, const mzed_t *A, const mzed_t *B) {
+  C = _mzed_mul_init(C,A,B, TRUE);
   _mzed_mul(C, A, B);
   return C;
 }
 
 mzed_t *mzed_addmul(mzed_t *C, const mzed_t *A, const mzed_t *B) {
-  if (A->ncols != B->nrows || A->finite_field != B->finite_field) {
-    m4ri_die("mzed_addmul: rows, columns and fields must match.\n");
-  }
-  if (C == NULL) {
-    C = mzed_init(A->finite_field, A->nrows, B->ncols);
-  } else {
-    if (C->finite_field != A->finite_field || C->nrows != A->nrows || C->ncols != B->ncols) {
-      m4ri_die("mzed_addmul: rows and columns of returned matrix must match.\n");
-    }
-  }
+  C = _mzed_mul_init(C,A,B, FALSE);
   _mzed_mul(C, A, B);
   return C;
 }
@@ -105,10 +104,32 @@ mzed_t *_mzed_mul(mzed_t *C, const mzed_t *A, const mzed_t *B) {
   if (A->finite_field->degree > A->nrows/2) {
     return _mzed_mul_naive(C, A, B);
   } else {
-    return _mzed_mul_travolta1(C, A, B);
+    size_t cutoff = _mzed_strassen_cutoff(C, A, B);
+    return _mzed_mul_strassen(C, A, B, cutoff);
   }
 }
 
+mzed_t *mzed_mul_naive(mzed_t *C, const mzed_t *A, const mzed_t *B) {
+  C = _mzed_mul_init(C,A,B, TRUE);
+  return _mzed_mul_naive(C, A, B);
+}
+
+mzed_t *mzed_addmul_naive(mzed_t *C, const mzed_t *A, const mzed_t *B) {
+  C = _mzed_mul_init(C,A,B, FALSE);
+  return _mzed_mul_naive(C, A, B);
+}
+
+mzed_t *_mzed_mul_naive(mzed_t *C, const mzed_t *A, const mzed_t *B) {
+  gf2e* ff = C->finite_field;
+  for (size_t i=0; i<C->nrows; ++i) {
+    for (size_t j=0; j<C->ncols; ++j) {
+      for (size_t k=0; k<A->ncols; ++k) {
+        mzed_add_elem(C, i, j, ff->mul[mzed_read_elem(A,i, k)][mzed_read_elem(B, k, j)]);
+      }
+    }
+  }
+  return C;
+}
 
 mzed_t *mzed_copy(mzed_t *A, const mzed_t *B) {
   if (A == B)
@@ -167,37 +188,6 @@ void mzed_set_ui(mzed_t *A, word value) {
   for(size_t i=0; i< MIN(A->ncols,A->nrows); i++) {
     mzed_write_elem(A, i, i, value);
   }
-}
-
-mzed_t *_mzed_mul_naive(mzed_t *C, const mzed_t *A, const mzed_t *B) {
-  gf2e* ff = C->finite_field;
-  for (size_t i=0; i<C->nrows; ++i) {
-    for (size_t j=0; j<C->ncols; ++j) {
-      for (size_t k=0; k<A->ncols; ++k) {
-        mzed_add_elem(C, i, j, ff->mul[mzed_read_elem(A,i, k)][mzed_read_elem(B, k, j)]);
-      }
-    }
-  }
-  return C;
-}
-
-mzed_t *mzed_addmul_naive(mzed_t *C, const mzed_t *A, const mzed_t *B) {
-  if (C->nrows != A->nrows || C->ncols != B->ncols || C->finite_field != A->finite_field) {
-    m4ri_die("mzed_mul_naive: Provided return matrix has wrong dimensions or wrong base field.\n");
-  }
-  return _mzed_mul_naive(C, A, B);
-}
-
-mzed_t *mzed_mul_naive(mzed_t *C, const mzed_t *A, const mzed_t *B) {
-  if (C==NULL) {
-    C = mzed_init(A->finite_field, A->nrows, B->ncols);
-  } else {
-    if (C->nrows != A->nrows || C->ncols != B->ncols || C->finite_field != A->finite_field) {
-      m4ri_die("mzed_mul_naive: Provided return matrix has wrong dimensions or wrong base field.\n");
-    }
-    mzd_set_ui(C->x, 0);
-  }
-  return _mzed_mul_naive(C, A, B);
 }
 
 void mzed_print(const mzed_t *A) {

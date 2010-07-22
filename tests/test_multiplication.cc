@@ -53,7 +53,7 @@ int test_addmul() {
       
       mzed_addmul_travolta(C0, A, B);
       mzed_addmul_naive(C1, A, B);
-      mzed_addmul(C2, A, B);
+      mzed_addmul_strassen(C2, A, B, 64);
       printf("addmul: m: %5d, l: %5d, n: %5d, k: %2d ... ",m,l,n,k);
 
       if (!mzed_cmp(C0,C1) && !mzed_cmp(C1,C2)) {
@@ -94,7 +94,7 @@ int test_mul() {
       
       mzed_t *C0 = mzed_mul_travolta(NULL, A, B);
       mzed_t *C1 = mzed_mul_naive(NULL, A, B);
-      mzed_t *C2 = mzed_mul(NULL, A, B);
+      mzed_t *C2 = mzed_mul_strassen(NULL, A, B, 64);
       printf("mul: m: %5d, l: %5d, n: %5d, k: %2d ... ",m,l,n,k);
 
       if (!mzed_cmp(C0,C1) && !mzed_cmp(C1,C2)) {

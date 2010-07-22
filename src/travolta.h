@@ -33,6 +33,8 @@ void mzed_make_table(const mzed_t *A, size_t r, size_t c, mzed_t *T, size_t *L, 
  * \param B Input matrix B.
  *
  * \sa mzed_mul_travolta1 mzed_mul
+ *
+ * \wordoffset
  */
 
 mzed_t *mzed_mul_travolta(mzed_t *C, const mzed_t *A, const mzed_t *B);
@@ -44,7 +46,9 @@ mzed_t *mzed_mul_travolta(mzed_t *C, const mzed_t *A, const mzed_t *B);
  * \param A Input matrix A.
  * \param B Input matrix B.
  *
- * \sa mzed_mul_travolta1 mzed_addmul
+ * \sa _mzed_mul_travolta mzed_mul
+ *
+ * \wordoffset
  */
 
 mzed_t *mzed_addmul_travolta(mzed_t *C, const mzed_t *A, const mzed_t *B);
@@ -58,7 +62,9 @@ mzed_t *mzed_addmul_travolta(mzed_t *C, const mzed_t *A, const mzed_t *B);
  * \param A Input matrix A.
  * \param B Input matrix B.
  *
- * \sa mzed_mul_travolta1 mzed_addmul
+ * \sa mzed_mul_travolta mzed_mul
+ *
+ * \wordoffset
  */
 
 mzed_t *_mzed_mul_travolta0(mzed_t *C, const mzed_t *A, const mzed_t *B);
@@ -72,10 +78,12 @@ mzed_t *_mzed_mul_travolta0(mzed_t *C, const mzed_t *A, const mzed_t *B);
  * \param A Input matrix A.
  * \param B Input matrix B.
  *
- * \sa mzed_mul_travolta1 mzed_addmul
+ * \sa mzed_mul_travolta0 mzed_mul
+ *
+ * \wordoffset
  */
 
-mzed_t *_mzed_mul_travolta1(mzed_t *C, const mzed_t *A, const mzed_t *B);
+mzed_t *_mzed_mul_travolta(mzed_t *C, const mzed_t *A, const mzed_t *B);
 
 /**
  * \brief Reduce matrix A to row echelon form using Gauss-Travolta
@@ -84,7 +92,7 @@ mzed_t *_mzed_mul_travolta1(mzed_t *C, const mzed_t *A, const mzed_t *B);
  * \param A Matrix to be reduced.
  * \param full If set to true, the reduced row echelon form will be
  * computed.
-
+ *
  * \wordoffset
  */
 

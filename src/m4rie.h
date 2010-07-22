@@ -28,7 +28,16 @@
  * and used by the Sage mathematics software and the PolyBoRi
  * library.
  *
- * \example testsuite/test_elimination.cc
+ * \defgroup Definitions        Type definitions 
+ * \defgroup Construction       Constructions
+ * \defgroup Assignment         Assignment and basic manipulation 
+ * \defgroup Addition           Addition and subtraction 
+ * \defgroup Multiplication     Multiplication 
+ * \defgroup Echelon            Echelon forms
+ * \defgroup StringConversions  String conversions and I/O 
+ * \defgroup RowOperations      Operations on rows
+ *
+ * \example test/test_elimination.cc test/test_multiplication.cc
  */
 
  
@@ -40,6 +49,7 @@ extern "C" {
 #include "gf2e_matrix.h"
 #include "travolta.h"
 #include "echelonform.h"
+#include "strassen.h"
 
 #ifdef __cplusplus
 }

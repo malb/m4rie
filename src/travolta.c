@@ -301,7 +301,10 @@ mzed_t *_mzed_mul_travolta0(mzed_t *C, const mzed_t *A, const mzed_t *B) {
   return C;
 }
 
-mzed_t *_mzed_mul_travolta1(mzed_t *C, const mzed_t *A, const mzed_t *B) {
+mzed_t *_mzed_mul_travolta(mzed_t *C, const mzed_t *A, const mzed_t *B) {
+  if (A->finite_field->degree > A->nrows/2)
+    return _mzed_mul_naive(C, A, B);
+
   mzed_t *T0 = mzed_init(C->finite_field, TWOPOW(A->finite_field->degree), B->ncols);
   mzed_t *T1 = mzed_init(C->finite_field, TWOPOW(A->finite_field->degree), B->ncols);
   mzed_t *T2 = mzed_init(C->finite_field, TWOPOW(A->finite_field->degree), B->ncols);
@@ -401,23 +404,15 @@ mzed_t *_mzed_mul_travolta1(mzed_t *C, const mzed_t *A, const mzed_t *B) {
   return C;
 }
 
-mzed_t *mzed_addmul_travolta(mzed_t *C, const mzed_t *A, const mzed_t *B) {
-  if (C->nrows != A->nrows || C->ncols != B->ncols || C->finite_field != A->finite_field) {
-    m4ri_die("mzd_mul_naive: Provided return matrix has wrong dimensions or wrong base field.\n");
-  }
-  return _mzed_mul_travolta1(C, A, B);
-}
 
 mzed_t *mzed_mul_travolta(mzed_t *C, const mzed_t *A, const mzed_t *B) {
-  if (C==NULL) {
-    C = mzed_init(A->finite_field, A->nrows, B->ncols);
-  } else {
-    if (C->nrows != A->nrows || C->ncols != B->ncols || C->finite_field != A->finite_field) {
-      m4ri_die("mzd_mul_naive: Provided return matrix has wrong dimensions or wrong base field.\n");
-    }
-    mzd_set_ui(C->x, 0);
-  }
-  return _mzed_mul_travolta1(C, A, B);
+  C = _mzed_mul_init(C,A,B, TRUE);
+  return _mzed_mul_travolta(C, A, B);
+}
+
+mzed_t *mzed_addmul_travolta(mzed_t *C, const mzed_t *A, const mzed_t *B) {
+  C = _mzed_mul_init(C,A,B, FALSE);
+  return _mzed_mul_travolta(C, A, B);
 }
 
 mzed_t *mzed_invert_travolta(mzed_t *B, const mzed_t *A) {
