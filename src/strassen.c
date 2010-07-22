@@ -199,16 +199,33 @@ mzed_t *_mzed_mul_strassen_even(mzed_t *C, const mzed_t *A, const mzed_t *B, int
 }
 
 size_t _mzed_strassen_cutoff(const mzed_t *C, const mzed_t *A, const mzed_t *B) {
-  /* 
-   * 2^2: 2048
-   * 2^3: 1024
-   * 2^4: 1024
-   * 2^5: 1024
-   * 2^6: 1024
-   * 2^7: 1024
-   * 2^8: 1024
-   */
-  size_t cutoff = STRASSEN_MUL_CUTOFF/C->w;
+  size_t cutoff;
+
+  switch(A->finite_field->degree) {
+  case 2:
+    /* it seems 2^2 is cache bound: 2 matrix * (n^2 *2 / 8 ) <= L2  */
+    cutoff = MIN(((int)sqrt((double)(2*CPU_L2_CACHE))),4096);
+    break;
+  case  3:
+  case  4:
+  case  5:
+  case  6:
+  case  7:
+    cutoff = 1024;
+    break;
+  case  8:
+  case  9:
+    /* on redhawk 2048 is much better, sage.math 1204 wins **/
+    cutoff = 2048; 
+    break;
+  case 10:
+    cutoff = 4096; 
+    break;
+  default:
+    cutoff = 1024; 
+    break;
+  }
+
   if (cutoff < 2*TWOPOW(C->finite_field->degree))
     cutoff = 2*TWOPOW(C->finite_field->degree);
   return cutoff;
