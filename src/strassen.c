@@ -201,26 +201,40 @@ mzed_t *_mzed_mul_strassen_even(mzed_t *C, const mzed_t *A, const mzed_t *B, int
 size_t _mzed_strassen_cutoff(const mzed_t *C, const mzed_t *A, const mzed_t *B) {
   size_t cutoff;
 
+  /* it seems most of it is cache bound: 2 matrix * (n^2 *w / 8 ) <= L2  */
+
   switch(A->finite_field->degree) {
+
   case 2:
-    /* it seems 2^2 is cache bound: 2 matrix * (n^2 *2 / 8 ) <= L2  */
-    cutoff = MIN(((int)sqrt((double)(2*CPU_L2_CACHE))),4096);
+    /* TODO: Our base case code for GF(2^2) is inefficient since we
+       didn't implement enough tables yet. Thus, we choose a smaller
+       cutoff here for now. */
+
+    // cutoff = MIN(((int)sqrt((double)(2*CPU_L2_CACHE))),4096);
+    cutoff = MIN(((int)sqrt((double)(CPU_L2_CACHE))),4096);
     break;
+
   case  3:
   case  4:
+    cutoff = MIN(((int)sqrt((double)(CPU_L2_CACHE))),4096);
+    break;
+
   case  5:
   case  6:
   case  7:
-    cutoff = 1024;
-    break;
   case  8:
+    cutoff = MIN(((int)sqrt((double)(CPU_L2_CACHE))),4096);
+    break;
+
   case  9:
     /* on redhawk 2048 is much better, sage.math 1204 wins **/
     cutoff = 2048; 
     break;
+
   case 10:
     cutoff = 4096; 
     break;
+
   default:
     cutoff = 1024; 
     break;
