@@ -9,7 +9,8 @@ void _mzed_cling2(mzed_t *A, const mzd_t *A0, const mzd_t *A1) {
     word *a0 = A0->rows[i];
     word *a  = A->x->rows[i];
     for(j=0, j2=0; j+2 < A->x->width; j+=2, j2++) {
-
+      if (!a0[j2] )
+        continue;
       aw0 = a[j+0];
       aw1 = a[j+1];
       aw0 |= (a0[j2] & ONE<<(RADIX -  0 - 1))>> 0;    aw1 |= (a0[j2] & ONE<<(RADIX - 32 - 1))<<32;
@@ -159,6 +160,8 @@ void _mzed_cling2(mzed_t *A, const mzd_t *A0, const mzd_t *A1) {
     word *a1 = A1->rows[i];
     word *a  = A->x->rows[i];    
     for(j=0, j2=0; j+2 < A->x->width; j+=2, j2++) {
+      if (!a1[j2] )
+        continue;
       aw0 = a[j+0];
       aw1 = a[j+1];
       aw0 |= (a1[j2] & ONE<<(RADIX -  0 - 1))>> 1;    aw1 |= (a1[j2] & ONE<<(RADIX - 32 - 1))<<31;
@@ -315,6 +318,8 @@ void _mzed_slice2(mzd_t *A0, mzd_t *A1, const mzed_t *A) {
 
     /* bulk of work */
     for(j=0, j2=0; j+2 < A->x->width; j+=2,j2++) {
+      if ( !(a[j+0] | a[j+1]) )
+        continue;
       tmp =0;
       tmp |= (a[j+0] & ONE<<(RADIX -  0 - 1))<< 0, tmp |= (a[j+1] & ONE<<(RADIX -  0 - 1))>>32,
       tmp |= (a[j+0] & ONE<<(RADIX -  2 - 1))<< 1, tmp |= (a[j+1] & ONE<<(RADIX -  2 - 1))>>31,
@@ -467,6 +472,8 @@ void _mzed_slice2(mzd_t *A0, mzd_t *A1, const mzed_t *A) {
     const word *a  = A->x->rows[i];    
 
     for(j=0, j2=0; j+2 < A->x->width; j+=2, j2++) {
+      if ( !(a[j+0] | a[j+1]) )
+        continue;
       tmp = 0;
       tmp |= (a[j+1] & ONE<<(RADIX -  0 - 2))>>31,   tmp |= (a[j+0] & ONE<<(RADIX -  0 - 2))<< 1,
       tmp |= (a[j+1] & ONE<<(RADIX -  2 - 2))>>30,   tmp |= (a[j+0] & ONE<<(RADIX -  2 - 2))<< 2,
