@@ -50,6 +50,7 @@ extern "C" {
 #include "travolta.h"
 #include "echelonform.h"
 #include "strassen.h"
+#include "bitslice.h"
 
 #ifdef __cplusplus
 }

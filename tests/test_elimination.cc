@@ -4,7 +4,7 @@
 using namespace M4RIE;
 
 int main(int argc, char **argv) {
-  int pass = 0;
+  int fail = 0;
   for(size_t k=2; k<=10; k++) {
     FiniteField *F = (FiniteField*)(new GFqDom<int>(2,k));
     gf2e *ff = gf2e_init_givgfq(F);
@@ -25,7 +25,7 @@ int main(int argc, char **argv) {
         printf("pass\n");
       } else {
         printf("FAIL\n");
-        pass = 0;
+        fail = 1;
       }
       mzed_free(A0);
       mzed_free(A1);
@@ -34,5 +34,5 @@ int main(int argc, char **argv) {
     gf2e_free(ff);
     delete F;
   }
-  return pass;
+  return fail;
 }

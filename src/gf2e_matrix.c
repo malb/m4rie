@@ -21,7 +21,6 @@
 
 #include "config.h"
 #include "gf2e_matrix.h"
-#include "travolta.h"
 #include "strassen.h"
 
 mzed_t *mzed_init(gf2e* k, size_t m, size_t n) {

@@ -4,7 +4,7 @@ CPUCYCLES_DIR=./cpucycles-20060326
 
 all: $(BENCH_PRGS)
 
-CXXFLAGS=-I$(SAGE_ROOT)/local/include  -I../ -O2 -DNDEBUG
+CXXFLAGS=-I$(SAGE_ROOT)/local/include  -I../ -O2 -DNDEBUG 
 LDFLAGS=-L/$(SAGE_ROOT)/local/lib -I../ -lm4rie -lm4ri -lgivaro -lntl -lgmpxx -lgmp -lm -lstdc++
 
 bench_elimination: cpucycles.o	bench_elimination.cc

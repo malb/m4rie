@@ -41,6 +41,8 @@ int main(int argc, char **argv) {
   printf("k: %2d, m: %5d, n: %5d, cpu cycles: %15llu, wall time: %8.4lf s\n",k, m, n, cpucycles() - t, walltime(&wt));
 
   mzed_free(A);
+  mzed_free(B);
+  mzed_free(C);
 
   gf2e_free(ff);
   delete F;
