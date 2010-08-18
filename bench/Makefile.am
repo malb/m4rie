@@ -1,5 +1,5 @@
 CPUCYCLES_DIR=./cpucycles-20060326
-MYLDFLAGS=-lm4rie -lm4ri -lgivaro -lntl -lgmpxx -lgmp -lm -lstdc++
+MYLDFLAGS=-L../.libs -lm4rie -lm4ri -lgivaro -lntl -lgmpxx -lgmp -lm -lstdc++
 BUILT_SOURCES =cpucycles.o cpucycles.h
 
 cpucycles.h: cpucycles.o

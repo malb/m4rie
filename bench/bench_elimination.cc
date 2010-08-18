@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
     r = mzed_echelonize_naive(A, 1);
   else
     r = mzed_echelonize(A, 1);
-  printf("m: %5d, n: %5d, r: %5d, cpu cycles: %llu wall time: %lf\n",m, n, r, cpucycles() - t, walltime(&wt));
+  printf("m: %5d, n: %5d, r: %5zu, cpu cycles: %llu wall time: %lf\n",m, n, r, cpucycles() - t, walltime(&wt));
 
   mzed_free(A);
 
