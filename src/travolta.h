@@ -23,7 +23,7 @@
 #include "finite_field.h"
 #include "gf2e_matrix.h"
 
-void mzed_make_table(const mzed_t *A, size_t r, size_t c, mzed_t *T, size_t *L, gf2e *ff);
+void mzed_make_table(const mzed_t *A, rci_t r, rci_t c, mzed_t *T, rci_t *L, gf2e *ff);
 
 /**
  * \brief Compute C such that C == AB using Travolta tables.
@@ -127,7 +127,7 @@ mzed_t *mzed_invert_travolta(mzed_t *B, const mzed_t *A);
  * \wordoffset
  */
 
-static inline void mzed_process_rows(mzed_t *M, size_t startrow, size_t endrow, size_t startcol, mzed_t *T, size_t *L) {
+static inline void mzed_process_rows(mzed_t *M, rci_t startrow, rci_t endrow, rci_t startcol, mzed_t *T, rci_t *L) {
   mzd_process_rows(M->x, startrow, endrow, startcol*M->w, M->w, T->x, L);
 }
 
@@ -147,7 +147,7 @@ static inline void mzed_process_rows(mzed_t *M, size_t startrow, size_t endrow, 
  * \wordoffset
  */
 
-static inline void mzed_process_rows2(mzed_t *M, size_t startrow, size_t endrow, size_t startcol, mzed_t *T0, size_t *L0, mzed_t *T1, size_t *L1) {
+static inline void mzed_process_rows2(mzed_t *M, rci_t startrow, rci_t endrow, rci_t startcol, mzed_t *T0, rci_t *L0, mzed_t *T1, rci_t *L1) {
   mzd_process_rows2(M->x, startrow, endrow, startcol*M->w, 2*M->w, T0->x, L0, T1->x, L1);
 }
 
@@ -169,9 +169,9 @@ static inline void mzed_process_rows2(mzed_t *M, size_t startrow, size_t endrow,
  * \wordoffset
  */
 
-static inline void mzed_process_rows3(mzed_t *M, size_t startrow, size_t endrow, size_t startcol, 
-                                      mzed_t *T0, size_t *L0, mzed_t *T1, size_t *L1,
-                                      mzed_t *T2, size_t *L2) {
+static inline void mzed_process_rows3(mzed_t *M, rci_t startrow, rci_t endrow, rci_t startcol, 
+                                      mzed_t *T0, rci_t *L0, mzed_t *T1, rci_t *L1,
+                                      mzed_t *T2, rci_t *L2) {
   mzd_process_rows3(M->x, startrow, endrow, startcol*M->w, 3*M->w, T0->x, L0, T1->x, L1, T2->x, L2);
 }
 
@@ -195,9 +195,9 @@ static inline void mzed_process_rows3(mzed_t *M, size_t startrow, size_t endrow,
  * \wordoffset
  */
 
-static inline void mzed_process_rows4(mzed_t *M, size_t startrow, size_t endrow, size_t startcol,
-                                      mzed_t *T0, size_t *L0, mzed_t *T1, size_t *L1,
-                                      mzed_t *T2, size_t *L2, mzed_t *T3, size_t *L3) {
+static inline void mzed_process_rows4(mzed_t *M, rci_t startrow, rci_t endrow, rci_t startcol,
+                                      mzed_t *T0, rci_t *L0, mzed_t *T1, rci_t *L1,
+                                      mzed_t *T2, rci_t *L2, mzed_t *T3, rci_t *L3) {
   mzd_process_rows4(M->x, startrow, endrow, startcol*M->w, 4*M->w, T0->x, L0, T1->x, L1, T2->x, L2, T3->x, L3);
 }
 
@@ -224,10 +224,10 @@ static inline void mzed_process_rows4(mzed_t *M, size_t startrow, size_t endrow,
  * \wordoffset
  */
 
-static inline void mzed_process_rows5(mzed_t *M, size_t startrow, size_t endrow, size_t startcol,
-                                      mzed_t *T0, size_t *L0, mzed_t *T1, size_t *L1,
-                                      mzed_t *T2, size_t *L2, mzed_t *T3, size_t *L3,
-                                      mzed_t* T4, size_t *L4) {
+static inline void mzed_process_rows5(mzed_t *M, rci_t startrow, rci_t endrow, rci_t startcol,
+                                      mzed_t *T0, rci_t *L0, mzed_t *T1, rci_t *L1,
+                                      mzed_t *T2, rci_t *L2, mzed_t *T3, rci_t *L3,
+                                      mzed_t* T4, rci_t *L4) {
   mzd_process_rows5(M->x, startrow, endrow, startcol*M->w, 5*M->w, T0->x, L0, T1->x, L1, T2->x, L2, T3->x, L3, T4->x, L4);
 }
 
@@ -256,10 +256,10 @@ static inline void mzed_process_rows5(mzed_t *M, size_t startrow, size_t endrow,
  * \wordoffset
  */
 
-static inline void mzed_process_rows6(mzed_t *M, size_t startrow, size_t endrow, size_t startcol,
-                                      mzed_t *T0, size_t *L0, mzed_t *T1, size_t *L1,
-                                      mzed_t *T2, size_t *L2, mzed_t *T3, size_t *L3,
-                                      mzed_t* T4, size_t *L4, mzed_t *T5, size_t *L5) {
+static inline void mzed_process_rows6(mzed_t *M, rci_t startrow, rci_t endrow, rci_t startcol,
+                                      mzed_t *T0, rci_t *L0, mzed_t *T1, rci_t *L1,
+                                      mzed_t *T2, rci_t *L2, mzed_t *T3, rci_t *L3,
+                                      mzed_t* T4, rci_t *L4, mzed_t *T5, rci_t *L5) {
   mzd_process_rows6(M->x, startrow, endrow, startcol*M->w, 6*M->w, T0->x, L0, T1->x, L1, T2->x, L2, T3->x, L3, T4->x, L4, T5->x, L5);
 }
 

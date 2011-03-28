@@ -37,12 +37,12 @@
  * of x^2 + x + 1. A0 contains the coefficients for x while A1
  * contains the coefficients for y.
  *
+ * \param A1 Matrix over GF(2), must be zero 
  * \param A0 Matrix over GF(2), must be zero
- * \param A1 Matrix over GF(2) 
  * \param A Matrix over GF(2^2)
  */
 
-void _mzed_slice2(mzd_t *A0, mzd_t *A1, const mzed_t *A);
+void _mzed_slice2(mzd_t *A1, mzd_t *A0, const mzed_t *A);
 
 
 /**
@@ -52,12 +52,12 @@ void _mzed_slice2(mzd_t *A0, mzd_t *A1, const mzed_t *A);
  * of x^2 + x + 1. A0 contains the coefficients for x while A1
  * contains the coefficients for y.
  *
- * \param A0 Matrix over GF(2)
  * \param A1 Matrix over GF(2) 
+ * \param A0 Matrix over GF(2)
  * \param A Matrix over GF(2^2)
  */
 
-static inline void mzed_slice2(mzd_t *A0, mzd_t *A1, const mzed_t *A) {
+static inline void mzed_slice2(mzd_t *A1, mzd_t *A0, const mzed_t *A) {
   mzd_set_ui(A0, 0);
   mzd_set_ui(A1, 0);
   _mzed_slice2(A0, A1, A);
@@ -66,30 +66,30 @@ static inline void mzed_slice2(mzd_t *A0, mzd_t *A1, const mzed_t *A) {
 /**
  * \brief Pack the matrices A0 and A1 over GF(2) to A over GF(2^2).
  *
- * Elements in GF(2^2) can be represented as x*a + y where a is a root
- * of x^2 + x + 1. A0 contains the coefficients for x while A1
- * contains the coefficients for y.
+ * Elements in GF(2^2) can be represented as c_1*a + c_0 where a is a
+ * root of x^2 + x + 1. A1 contains the coefficients for c_1 while A0
+ * contains the coefficients for c_0.
  *
  * \param A Matrix over GF(2^2), must be zero
- * \param A0 Matrix over GF(2)
- * \param A1 Matrix over GF(2) 
+ * \param A1 Matrix over GF(2)
+ * \param A0 Matrix over GF(2) 
  */
 
-void _mzed_cling2(mzed_t *A, const mzd_t *A0, const mzd_t *A1);
+void _mzed_cling2(mzed_t *A, const mzd_t *A1, const mzd_t *A0);
 
 /**
  * \brief Pack the matrices A0 and A1 over GF(2) to A over GF(2^2).
  *
- * Elements in GF(2^2) can be represented as x*a + y where a is a root
- * of x^2 + x + 1. A0 contains the coefficients for x while A1
- * contains the coefficients for y.
+ * Elements in GF(2^2) can be represented as c_1*a + c_0 where a is a root
+ * of x^2 + x + 1. A0 contains the coefficients for c_0 while A1
+ * contains the coefficients for c_1.
  *
  * \param A Matrix over GF(2^2)
- * \param A0 Matrix over GF(2)
  * \param A1 Matrix over GF(2) 
+ * \param A0 Matrix over GF(2)
  */
 
-static inline void mzed_cling2(mzed_t *A, const mzd_t *A0, const mzd_t *A1) {
+static inline void mzed_cling2(mzed_t *A, const mzd_t *A1, const mzd_t *A0) {
   mzed_set_ui(A, 0);
   _mzed_cling2(A, A0, A1);
 }

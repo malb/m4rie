@@ -12,7 +12,7 @@
 *
 *            M4RIE: Linear Algebra over GF(2^e)
 *
-*    Copyright (C) 2010 Martin Albrecht <martinralbrecht@googlemail.com>
+*    Copyright (C) 2010,2011 Martin Albrecht <martinralbrecht@googlemail.com>
 *
 *  Distributed under the terms of the GNU General Public License (GEL)
 *  version 2 or higher.
@@ -40,7 +40,6 @@
  */
 
 
- 
 typedef struct {
 
   /**
@@ -58,19 +57,19 @@ typedef struct {
    * Number of rows.
    */
 
-  size_t nrows;
+  rci_t nrows;
 
   /**
    * Number of columns.
    */
 
-  size_t ncols;
+  rci_t ncols;
 
   /**
    * The internal width of elements (must divide 64)
    */
 
-  size_t w;
+  wi_t w;
 
 } mzed_t;
 
@@ -556,38 +555,38 @@ static inline void mzed_add_multiple_of_row(mzed_t *A, size_t ar, const mzed_t *
     }
 
     switch(to_x->ncols % RADIX) {
-    case  0: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000000000000003ULL)>> 0)])<< 0;
-    case 62: _t[j] ^= ((word)X[(int)((_f[j] & 0x000000000000000CULL)>> 2)])<< 2;
-    case 60: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000000000000030ULL)>> 4)])<< 4;
-    case 58: _t[j] ^= ((word)X[(int)((_f[j] & 0x00000000000000C0ULL)>> 6)])<< 6;
-    case 56: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000000000000300ULL)>> 8)])<< 8;
-    case 54: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000000000000C00ULL)>>10)])<<10;
-    case 52: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000000000003000ULL)>>12)])<<12;
-    case 50: _t[j] ^= ((word)X[(int)((_f[j] & 0x000000000000C000ULL)>>14)])<<14;
-    case 48: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000000000030000ULL)>>16)])<<16;
-    case 46: _t[j] ^= ((word)X[(int)((_f[j] & 0x00000000000C0000ULL)>>18)])<<18;
-    case 44: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000000000300000ULL)>>20)])<<20;
-    case 42: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000000000C00000ULL)>>22)])<<22;
-    case 40: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000000003000000ULL)>>24)])<<24;
-    case 38: _t[j] ^= ((word)X[(int)((_f[j] & 0x000000000C000000ULL)>>26)])<<26;
-    case 36: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000000030000000ULL)>>28)])<<28;
-    case 34: _t[j] ^= ((word)X[(int)((_f[j] & 0x00000000C0000000ULL)>>30)])<<30;
-    case 32: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000000300000000ULL)>>32)])<<32;
-    case 30: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000000C00000000ULL)>>34)])<<34;
-    case 28: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000003000000000ULL)>>36)])<<36;
-    case 26: _t[j] ^= ((word)X[(int)((_f[j] & 0x000000C000000000ULL)>>38)])<<38;
-    case 24: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000030000000000ULL)>>40)])<<40;
-    case 22: _t[j] ^= ((word)X[(int)((_f[j] & 0x00000C0000000000ULL)>>42)])<<42;
-    case 20: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000300000000000ULL)>>44)])<<44;
-    case 18: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000C00000000000ULL)>>46)])<<46;
-    case 16: _t[j] ^= ((word)X[(int)((_f[j] & 0x0003000000000000ULL)>>48)])<<48;
-    case 14: _t[j] ^= ((word)X[(int)((_f[j] & 0x000C000000000000ULL)>>50)])<<50;
-    case 12: _t[j] ^= ((word)X[(int)((_f[j] & 0x0030000000000000ULL)>>52)])<<52;
-    case 10: _t[j] ^= ((word)X[(int)((_f[j] & 0x00C0000000000000ULL)>>54)])<<54;
-    case  8: _t[j] ^= ((word)X[(int)((_f[j] & 0x0300000000000000ULL)>>56)])<<56;
-    case  6: _t[j] ^= ((word)X[(int)((_f[j] & 0x0C00000000000000ULL)>>58)])<<58;
-    case  4: _t[j] ^= ((word)X[(int)((_f[j] & 0x3000000000000000ULL)>>60)])<<60;
-    case  2: _t[j] ^= ((word)X[(int)((_f[j] & 0xC000000000000000ULL)>>62)])<<62;
+    case  0: _t[j] ^= ((word)X[(int)((_f[j] & 0xC000000000000000ULL)>>62)])<<62;
+    case 62: _t[j] ^= ((word)X[(int)((_f[j] & 0x3000000000000000ULL)>>60)])<<60;
+    case 60: _t[j] ^= ((word)X[(int)((_f[j] & 0x0C00000000000000ULL)>>58)])<<58;
+    case 58: _t[j] ^= ((word)X[(int)((_f[j] & 0x0300000000000000ULL)>>56)])<<56;
+    case 56: _t[j] ^= ((word)X[(int)((_f[j] & 0x00C0000000000000ULL)>>54)])<<54;
+    case 54: _t[j] ^= ((word)X[(int)((_f[j] & 0x0030000000000000ULL)>>52)])<<52;
+    case 52: _t[j] ^= ((word)X[(int)((_f[j] & 0x000C000000000000ULL)>>50)])<<50;
+    case 50: _t[j] ^= ((word)X[(int)((_f[j] & 0x0003000000000000ULL)>>48)])<<48;
+    case 48: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000C00000000000ULL)>>46)])<<46;
+    case 46: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000300000000000ULL)>>44)])<<44;
+    case 44: _t[j] ^= ((word)X[(int)((_f[j] & 0x00000C0000000000ULL)>>42)])<<42;
+    case 42: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000030000000000ULL)>>40)])<<40;
+    case 40: _t[j] ^= ((word)X[(int)((_f[j] & 0x000000C000000000ULL)>>38)])<<38;
+    case 38: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000003000000000ULL)>>36)])<<36;
+    case 36: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000000C00000000ULL)>>34)])<<34;
+    case 34: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000000300000000ULL)>>32)])<<32;
+    case 32: _t[j] ^= ((word)X[(int)((_f[j] & 0x00000000C0000000ULL)>>30)])<<30;
+    case 30: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000000030000000ULL)>>28)])<<28;
+    case 28: _t[j] ^= ((word)X[(int)((_f[j] & 0x000000000C000000ULL)>>26)])<<26;
+    case 26: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000000003000000ULL)>>24)])<<24;
+    case 24: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000000000C00000ULL)>>22)])<<22;
+    case 22: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000000000300000ULL)>>20)])<<20;
+    case 20: _t[j] ^= ((word)X[(int)((_f[j] & 0x00000000000C0000ULL)>>18)])<<18;
+    case 18: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000000000030000ULL)>>16)])<<16;
+    case 16: _t[j] ^= ((word)X[(int)((_f[j] & 0x000000000000C000ULL)>>14)])<<14;
+    case 14: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000000000003000ULL)>>12)])<<12;
+    case 12: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000000000000C00ULL)>>10)])<<10;
+    case 10: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000000000000300ULL)>> 8)])<< 8;
+    case  8: _t[j] ^= ((word)X[(int)((_f[j] & 0x00000000000000C0ULL)>> 6)])<< 6;
+    case  6: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000000000000030ULL)>> 4)])<< 4;
+    case  4: _t[j] ^= ((word)X[(int)((_f[j] & 0x000000000000000CULL)>> 2)])<< 2;
+    case  2: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000000000000003ULL)>> 0)])<< 0;
     };
 
   } else if(A->w == 4) {
@@ -620,22 +619,22 @@ static inline void mzed_add_multiple_of_row(mzed_t *A, size_t ar, const mzed_t *
     }
 
     switch(to_x->ncols % RADIX) {
-    case  0: _t[j] ^= ((word)X[(int)((_f[j] & 0x000000000000000FULL)>> 0)])<< 0;
-    case 60: _t[j] ^= ((word)X[(int)((_f[j] & 0x00000000000000F0ULL)>> 4)])<< 4;
-    case 56: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000000000000F00ULL)>> 8)])<< 8;
-    case 52: _t[j] ^= ((word)X[(int)((_f[j] & 0x000000000000F000ULL)>>12)])<<12;
-    case 48: _t[j] ^= ((word)X[(int)((_f[j] & 0x00000000000F0000ULL)>>16)])<<16;
-    case 44: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000000000F00000ULL)>>20)])<<20;
-    case 40: _t[j] ^= ((word)X[(int)((_f[j] & 0x000000000F000000ULL)>>24)])<<24;
-    case 36: _t[j] ^= ((word)X[(int)((_f[j] & 0x00000000F0000000ULL)>>28)])<<28;
-    case 32: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000000F00000000ULL)>>32)])<<32;
-    case 28: _t[j] ^= ((word)X[(int)((_f[j] & 0x000000F000000000ULL)>>36)])<<36;
-    case 24: _t[j] ^= ((word)X[(int)((_f[j] & 0x00000F0000000000ULL)>>40)])<<40;
-    case 20: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000F00000000000ULL)>>44)])<<44;
-    case 16: _t[j] ^= ((word)X[(int)((_f[j] & 0x000F000000000000ULL)>>48)])<<48;
-    case 12: _t[j] ^= ((word)X[(int)((_f[j] & 0x00F0000000000000ULL)>>52)])<<52;
-    case  8: _t[j] ^= ((word)X[(int)((_f[j] & 0x0F00000000000000ULL)>>56)])<<56;
-    case  4: _t[j] ^= ((word)X[(int)((_f[j] & 0xF000000000000000ULL)>>60)])<<60;
+    case  0: _t[j] ^= ((word)X[(int)((_f[j] & 0xF000000000000000ULL)>>60)])<<60;
+    case 60: _t[j] ^= ((word)X[(int)((_f[j] & 0x0F00000000000000ULL)>>56)])<<56;
+    case 56: _t[j] ^= ((word)X[(int)((_f[j] & 0x00F0000000000000ULL)>>52)])<<52;
+    case 52: _t[j] ^= ((word)X[(int)((_f[j] & 0x000F000000000000ULL)>>48)])<<48;
+    case 48: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000F00000000000ULL)>>44)])<<44;
+    case 44: _t[j] ^= ((word)X[(int)((_f[j] & 0x00000F0000000000ULL)>>40)])<<40;
+    case 40: _t[j] ^= ((word)X[(int)((_f[j] & 0x000000F000000000ULL)>>36)])<<36;
+    case 36: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000000F00000000ULL)>>32)])<<32;
+    case 32: _t[j] ^= ((word)X[(int)((_f[j] & 0x00000000F0000000ULL)>>28)])<<28;
+    case 28: _t[j] ^= ((word)X[(int)((_f[j] & 0x000000000F000000ULL)>>24)])<<24;
+    case 24: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000000000F00000ULL)>>20)])<<20;
+    case 20: _t[j] ^= ((word)X[(int)((_f[j] & 0x00000000000F0000ULL)>>16)])<<16;
+    case 16: _t[j] ^= ((word)X[(int)((_f[j] & 0x000000000000F000ULL)>>12)])<<12;
+    case 12: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000000000000F00ULL)>> 8)])<< 8;
+    case  8: _t[j] ^= ((word)X[(int)((_f[j] & 0x00000000000000F0ULL)>> 4)])<< 4;
+    case  4: _t[j] ^= ((word)X[(int)((_f[j] & 0x000000000000000FULL)>> 0)])<< 0;
     };
 
   } else if (A->w == 8) {
@@ -684,14 +683,14 @@ static inline void mzed_add_multiple_of_row(mzed_t *A, size_t ar, const mzed_t *
     }
     
     switch(to_x->ncols % RADIX) {
-    case  0: _t[j] ^= ((word)X[(int)((_f[j] & 0x00000000000000FFULL)>> 0)])<< 0;
-    case 56: _t[j] ^= ((word)X[(int)((_f[j] & 0x000000000000FF00ULL)>> 8)])<< 8;
-    case 48: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000000000FF0000ULL)>>16)])<<16;
-    case 40: _t[j] ^= ((word)X[(int)((_f[j] & 0x00000000FF000000ULL)>>24)])<<24;
-    case 32: _t[j] ^= ((word)X[(int)((_f[j] & 0x000000FF00000000ULL)>>32)])<<32;
-    case 24: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000FF0000000000ULL)>>40)])<<40;
-    case 16: _t[j] ^= ((word)X[(int)((_f[j] & 0x00FF000000000000ULL)>>48)])<<48;
-    case  8: _t[j] ^= ((word)X[(int)((_f[j] & 0xFF00000000000000ULL)>>56)])<<56;
+    case  0: _t[j] ^= ((word)X[(int)((_f[j] & 0xFF00000000000000ULL)>>56)])<<56;
+    case 56: _t[j] ^= ((word)X[(int)((_f[j] & 0x00FF000000000000ULL)>>48)])<<48;
+    case 48: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000FF0000000000ULL)>>40)])<<40;
+    case 40: _t[j] ^= ((word)X[(int)((_f[j] & 0x000000FF00000000ULL)>>32)])<<32;
+    case 32: _t[j] ^= ((word)X[(int)((_f[j] & 0x00000000FF000000ULL)>>24)])<<24;
+    case 24: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000000000FF0000ULL)>>16)])<<16;
+    case 16: _t[j] ^= ((word)X[(int)((_f[j] & 0x000000000000FF00ULL)>> 8)])<< 8;
+    case  8: _t[j] ^= ((word)X[(int)((_f[j] & 0x00000000000000FFULL)>> 0)])<< 0;
     };
 
   } else if (A->w == 16) {
@@ -743,10 +742,10 @@ static inline void mzed_add_multiple_of_row(mzed_t *A, size_t ar, const mzed_t *
     }
 
     switch(to_x->ncols % RADIX) {
-    case  0: _t[j] ^= ((word)X[(int)((_f[j] & 0x000000000000FFFFULL)>> 0)])<< 0;
-    case 48: _t[j] ^= ((word)X[(int)((_f[j] & 0x00000000FFFF0000ULL)>>16)])<<16;
-    case 32: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000FFFF00000000ULL)>>32)])<<32;
-    case 16: _t[j] ^= ((word)X[(int)((_f[j] & 0xFFFF000000000000ULL)>>48)])<<48;
+    case  0: _t[j] ^= ((word)X[(int)((_f[j] & 0xFFFF000000000000ULL)>>48)])<<48;
+    case 48: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000FFFF00000000ULL)>>32)])<<32;
+    case 32: _t[j] ^= ((word)X[(int)((_f[j] & 0x00000000FFFF0000ULL)>>16)])<<16;
+    case 16: _t[j] ^= ((word)X[(int)((_f[j] & 0x000000000000FFFFULL)>> 0)])<< 0;
     };
 
   }  else {
