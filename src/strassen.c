@@ -76,9 +76,9 @@ mzed_t *_mzed_mul_strassen_even(mzed_t *C, const mzed_t *A, const mzed_t *B, int
   size_t kkk = k/2;
   size_t nnn = n/2;
     
-  mmm = (mmm - mmm%(RADIX/A->w));
-  kkk = (kkk - kkk%(RADIX/A->w));
-  nnn = (nnn - nnn%(RADIX/A->w));
+  mmm = (mmm - mmm%(m4ri_radix/A->w));
+  kkk = (kkk - kkk%(m4ri_radix/A->w));
+  nnn = (nnn - nnn%(m4ri_radix/A->w));
 
   /*         |A |   |B |   |C |
    * Compute |  | x |  | = |  | */
@@ -249,7 +249,7 @@ size_t _mzed_strassen_cutoff(const mzed_t *C, const mzed_t *A, const mzed_t *B) 
     break;
   }
 
-  if (cutoff < 2*TWOPOW(C->finite_field->degree))
-    cutoff = 2*TWOPOW(C->finite_field->degree);
+  if (cutoff < 2*__M4RI_TWOPOW(C->finite_field->degree))
+    cutoff = 2*__M4RI_TWOPOW(C->finite_field->degree);
   return cutoff;
 }

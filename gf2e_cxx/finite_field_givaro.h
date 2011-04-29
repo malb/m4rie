@@ -33,16 +33,16 @@ static inline gf2e *gf2e_init_givgfq(M4RIE::FiniteField *givgfq) {
   gf2e *ff = (gf2e*)m4ri_mm_malloc(sizeof(gf2e));
   ff->degree = givgfq->exponent();
 
-  ff->mul = (word **)m4ri_mm_calloc(TWOPOW(givgfq->exponent()), sizeof(word *));
-  for(size_t i = 0; i<TWOPOW(givgfq->exponent()); i++) {
-    ff->mul[i] = (word *)m4ri_mm_calloc(TWOPOW(givgfq->exponent()),sizeof(word));
-    for(size_t j=0; j<TWOPOW(givgfq->exponent()); j++) {
+  ff->mul = (word **)m4ri_mm_calloc(__M4RI_TWOPOW(givgfq->exponent()), sizeof(word *));
+  for(size_t i = 0; i<__M4RI_TWOPOW(givgfq->exponent()); i++) {
+    ff->mul[i] = (word *)m4ri_mm_calloc(__M4RI_TWOPOW(givgfq->exponent()),sizeof(word));
+    for(size_t j=0; j<__M4RI_TWOPOW(givgfq->exponent()); j++) {
       int prod = givgfq->mul(prod, givgfq->pol2log(i) , givgfq->pol2log(j));
       ff->mul[i][j] = givgfq->log2pol(prod);
     }
   }
-  ff->inv = (word*)m4ri_mm_calloc(TWOPOW(givgfq->exponent()), sizeof(word));
-  for(size_t i = 0; i<TWOPOW(givgfq->exponent()); i++) {
+  ff->inv = (word*)m4ri_mm_calloc(__M4RI_TWOPOW(givgfq->exponent()), sizeof(word));
+  for(size_t i = 0; i<__M4RI_TWOPOW(givgfq->exponent()); i++) {
     int tmp = givgfq->inv(tmp, givgfq->pol2log(i));
     ff->inv[i] = givgfq->log2pol(tmp);
   }

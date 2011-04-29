@@ -46,9 +46,6 @@
 
 static inline void mzed_combine4(mzed_t *C, rci_t rc, 
                                  mzed_t *T0, rci_t r0, mzed_t *T1, rci_t r1, mzed_t *T2, rci_t r2, mzed_t *T3, rci_t r3) {
-#ifndef HAVE_SSE2
-  rci_t ii=0;
-#endif
   _mzd_combine4(C->x->rows[rc], 
                 T0->x->rows[r0], T1->x->rows[r1], T2->x->rows[r2], T3->x->rows[r3], 
                 C->x->width);
@@ -82,9 +79,6 @@ static inline void mzed_combine4(mzed_t *C, rci_t rc,
 static inline void mzed_combine8(mzed_t *C, rci_t rc, 
                                  mzed_t *T0, rci_t r0, mzed_t *T1, rci_t r1, mzed_t *T2, rci_t r2, mzed_t *T3, rci_t r3,
                                  mzed_t *T4, rci_t r4, mzed_t *T5, rci_t r5, mzed_t *T6, rci_t r6, mzed_t *T7, rci_t r7) {
-#ifndef HAVE_SSE2
-  rci_t ii=0;
-#endif
   _mzd_combine8(C->x->rows[rc], 
                 T0->x->rows[r0], T1->x->rows[r1], T2->x->rows[r2], T3->x->rows[r3], 
                 T4->x->rows[r4], T5->x->rows[r5], T6->x->rows[r6], T7->x->rows[r7], 
@@ -155,7 +149,7 @@ void mzed_make_table(const mzed_t *A, rci_t r, rci_t c, mzed_t *T,  rci_t *L, gf
   mzed_copy_row(T, 1, A, r);
   L[1] = 1;
 
-  for(size_t i=2; i< TWOPOW(ff->degree); i++) {
+  for(size_t i=2; i< __M4RI_TWOPOW(ff->degree); i++) {
     word *X = ff->mul[i];
     L[i] = i;
     mzed_add_multiple_of_row(T, i, A, r, X, c);
@@ -185,20 +179,20 @@ size_t mzed_echelonize_travolta(mzed_t *A, int full) {
 
   size_t kbar = 0;
 
-  mzed_t *T0 = mzed_init(ff, TWOPOW(k), A->ncols);
-  mzed_t *T1 = mzed_init(ff, TWOPOW(k), A->ncols);
-  mzed_t *T2 = mzed_init(ff, TWOPOW(k), A->ncols);
-  mzed_t *T3 = mzed_init(ff, TWOPOW(k), A->ncols);
-  mzed_t *T4 = mzed_init(ff, TWOPOW(k), A->ncols);
-  mzed_t *T5 = mzed_init(ff, TWOPOW(k), A->ncols);
+  mzed_t *T0 = mzed_init(ff, __M4RI_TWOPOW(k), A->ncols);
+  mzed_t *T1 = mzed_init(ff, __M4RI_TWOPOW(k), A->ncols);
+  mzed_t *T2 = mzed_init(ff, __M4RI_TWOPOW(k), A->ncols);
+  mzed_t *T3 = mzed_init(ff, __M4RI_TWOPOW(k), A->ncols);
+  mzed_t *T4 = mzed_init(ff, __M4RI_TWOPOW(k), A->ncols);
+  mzed_t *T5 = mzed_init(ff, __M4RI_TWOPOW(k), A->ncols);
   
   /* this is dummy, we keep it for compatibility with the M4RI functions */
-  rci_t *L0 = (rci_t *)m4ri_mm_calloc(TWOPOW(k), sizeof(rci_t));
-  rci_t *L1 = (rci_t *)m4ri_mm_calloc(TWOPOW(k), sizeof(rci_t));
-  rci_t *L2 = (rci_t *)m4ri_mm_calloc(TWOPOW(k), sizeof(rci_t));
-  rci_t *L3 = (rci_t *)m4ri_mm_calloc(TWOPOW(k), sizeof(rci_t));
-  rci_t *L4 = (rci_t *)m4ri_mm_calloc(TWOPOW(k), sizeof(rci_t));
-  rci_t *L5 = (rci_t *)m4ri_mm_calloc(TWOPOW(k), sizeof(rci_t));
+  rci_t *L0 = (rci_t *)m4ri_mm_calloc(__M4RI_TWOPOW(k), sizeof(rci_t));
+  rci_t *L1 = (rci_t *)m4ri_mm_calloc(__M4RI_TWOPOW(k), sizeof(rci_t));
+  rci_t *L2 = (rci_t *)m4ri_mm_calloc(__M4RI_TWOPOW(k), sizeof(rci_t));
+  rci_t *L3 = (rci_t *)m4ri_mm_calloc(__M4RI_TWOPOW(k), sizeof(rci_t));
+  rci_t *L4 = (rci_t *)m4ri_mm_calloc(__M4RI_TWOPOW(k), sizeof(rci_t));
+  rci_t *L5 = (rci_t *)m4ri_mm_calloc(__M4RI_TWOPOW(k), sizeof(rci_t));
 
 
   r = 0;
@@ -288,8 +282,8 @@ size_t mzed_echelonize_travolta(mzed_t *A, int full) {
 }
 
 mzed_t *_mzed_mul_travolta0(mzed_t *C, const mzed_t *A, const mzed_t *B) {
-  mzed_t *T0 = mzed_init(C->finite_field, TWOPOW(A->finite_field->degree), B->ncols);
-  rci_t *L0 = (rci_t*)m4ri_mm_calloc(TWOPOW(A->finite_field->degree), sizeof(rci_t));
+  mzed_t *T0 = mzed_init(C->finite_field, __M4RI_TWOPOW(A->finite_field->degree), B->ncols);
+  rci_t *L0 = (rci_t*)m4ri_mm_calloc(__M4RI_TWOPOW(A->finite_field->degree), sizeof(rci_t));
 
   for(size_t i=0; i < A->ncols; i++) {
     mzed_make_table(B, i, 0, T0, L0, A->finite_field);
@@ -305,23 +299,23 @@ mzed_t *_mzed_mul_travolta(mzed_t *C, const mzed_t *A, const mzed_t *B) {
   if (A->finite_field->degree > A->nrows/2)
     return _mzed_mul_naive(C, A, B);
 
-  mzed_t *T0 = mzed_init(C->finite_field, TWOPOW(A->finite_field->degree), B->ncols);
-  mzed_t *T1 = mzed_init(C->finite_field, TWOPOW(A->finite_field->degree), B->ncols);
-  mzed_t *T2 = mzed_init(C->finite_field, TWOPOW(A->finite_field->degree), B->ncols);
-  mzed_t *T3 = mzed_init(C->finite_field, TWOPOW(A->finite_field->degree), B->ncols);
-  mzed_t *T4 = mzed_init(C->finite_field, TWOPOW(A->finite_field->degree), B->ncols);
-  mzed_t *T5 = mzed_init(C->finite_field, TWOPOW(A->finite_field->degree), B->ncols);
-  mzed_t *T6 = mzed_init(C->finite_field, TWOPOW(A->finite_field->degree), B->ncols);
-  mzed_t *T7 = mzed_init(C->finite_field, TWOPOW(A->finite_field->degree), B->ncols);
+  mzed_t *T0 = mzed_init(C->finite_field, __M4RI_TWOPOW(A->finite_field->degree), B->ncols);
+  mzed_t *T1 = mzed_init(C->finite_field, __M4RI_TWOPOW(A->finite_field->degree), B->ncols);
+  mzed_t *T2 = mzed_init(C->finite_field, __M4RI_TWOPOW(A->finite_field->degree), B->ncols);
+  mzed_t *T3 = mzed_init(C->finite_field, __M4RI_TWOPOW(A->finite_field->degree), B->ncols);
+  mzed_t *T4 = mzed_init(C->finite_field, __M4RI_TWOPOW(A->finite_field->degree), B->ncols);
+  mzed_t *T5 = mzed_init(C->finite_field, __M4RI_TWOPOW(A->finite_field->degree), B->ncols);
+  mzed_t *T6 = mzed_init(C->finite_field, __M4RI_TWOPOW(A->finite_field->degree), B->ncols);
+  mzed_t *T7 = mzed_init(C->finite_field, __M4RI_TWOPOW(A->finite_field->degree), B->ncols);
 
-  rci_t *L0 = (rci_t*)m4ri_mm_calloc(TWOPOW(A->finite_field->degree), sizeof(rci_t));
-  rci_t *L1 = (rci_t*)m4ri_mm_calloc(TWOPOW(A->finite_field->degree), sizeof(rci_t));
-  rci_t *L2 = (rci_t*)m4ri_mm_calloc(TWOPOW(A->finite_field->degree), sizeof(rci_t));
-  rci_t *L3 = (rci_t*)m4ri_mm_calloc(TWOPOW(A->finite_field->degree), sizeof(rci_t));
-  rci_t *L4 = (rci_t*)m4ri_mm_calloc(TWOPOW(A->finite_field->degree), sizeof(rci_t));
-  rci_t *L5 = (rci_t*)m4ri_mm_calloc(TWOPOW(A->finite_field->degree), sizeof(rci_t));
-  rci_t *L6 = (rci_t*)m4ri_mm_calloc(TWOPOW(A->finite_field->degree), sizeof(rci_t));
-  rci_t *L7 = (rci_t*)m4ri_mm_calloc(TWOPOW(A->finite_field->degree), sizeof(rci_t));
+  rci_t *L0 = (rci_t*)m4ri_mm_calloc(__M4RI_TWOPOW(A->finite_field->degree), sizeof(rci_t));
+  rci_t *L1 = (rci_t*)m4ri_mm_calloc(__M4RI_TWOPOW(A->finite_field->degree), sizeof(rci_t));
+  rci_t *L2 = (rci_t*)m4ri_mm_calloc(__M4RI_TWOPOW(A->finite_field->degree), sizeof(rci_t));
+  rci_t *L3 = (rci_t*)m4ri_mm_calloc(__M4RI_TWOPOW(A->finite_field->degree), sizeof(rci_t));
+  rci_t *L4 = (rci_t*)m4ri_mm_calloc(__M4RI_TWOPOW(A->finite_field->degree), sizeof(rci_t));
+  rci_t *L5 = (rci_t*)m4ri_mm_calloc(__M4RI_TWOPOW(A->finite_field->degree), sizeof(rci_t));
+  rci_t *L6 = (rci_t*)m4ri_mm_calloc(__M4RI_TWOPOW(A->finite_field->degree), sizeof(rci_t));
+  rci_t *L7 = (rci_t*)m4ri_mm_calloc(__M4RI_TWOPOW(A->finite_field->degree), sizeof(rci_t));
   
   const size_t kk = 8;
   const size_t end = A->ncols/kk;
@@ -335,8 +329,8 @@ mzed_t *_mzed_mul_travolta(mzed_t *C, const mzed_t *A, const mzed_t *B) {
    * it seems to give some advantage for larger matrices over GF(2^2)
    * though
    */
-   if (A->w == 2 && A->nrows >= 2*MZD_MUL_BLOCKSIZE) 
-     blocksize = MZD_MUL_BLOCKSIZE/A->w; 
+   if (A->w == 2 && A->nrows >= 2*__M4RI_MUL_BLOCKSIZE) 
+     blocksize = __M4RI_MUL_BLOCKSIZE/A->w; 
 
   size_t giantstep, babystep;
 

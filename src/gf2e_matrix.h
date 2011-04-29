@@ -509,7 +509,7 @@ static inline void mzed_add_multiple_of_row(mzed_t *A, size_t ar, const mzed_t *
   assert(A->x->offset == 0 && B->x->offset == 0);
 
   if(A->w == 2) {
-    size_t startblock = start_col/RADIX;
+    size_t startblock = start_col/m4ri_radix;
     mzd_t *from_x = B->x;
     mzd_t *to_x = A->x;
     word *_f = from_x->rows[br];
@@ -554,7 +554,7 @@ static inline void mzed_add_multiple_of_row(mzed_t *A, size_t ar, const mzed_t *
       _t[j] = __t;
     }
 
-    switch(to_x->ncols % RADIX) {
+    switch(to_x->ncols % m4ri_radix) {
     case  0: _t[j] ^= ((word)X[(int)((_f[j] & 0xC000000000000000ULL)>>62)])<<62;
     case 62: _t[j] ^= ((word)X[(int)((_f[j] & 0x3000000000000000ULL)>>60)])<<60;
     case 60: _t[j] ^= ((word)X[(int)((_f[j] & 0x0C00000000000000ULL)>>58)])<<58;
@@ -590,7 +590,7 @@ static inline void mzed_add_multiple_of_row(mzed_t *A, size_t ar, const mzed_t *
     };
 
   } else if(A->w == 4) {
-    size_t startblock = start_col/RADIX;
+    size_t startblock = start_col/m4ri_radix;
     mzd_t *from_x = B->x;
     mzd_t *to_x = A->x;
     word *_f = from_x->rows[br];
@@ -618,7 +618,7 @@ static inline void mzed_add_multiple_of_row(mzed_t *A, size_t ar, const mzed_t *
       _t[j] = __t;
     }
 
-    switch(to_x->ncols % RADIX) {
+    switch(to_x->ncols % m4ri_radix) {
     case  0: _t[j] ^= ((word)X[(int)((_f[j] & 0xF000000000000000ULL)>>60)])<<60;
     case 60: _t[j] ^= ((word)X[(int)((_f[j] & 0x0F00000000000000ULL)>>56)])<<56;
     case 56: _t[j] ^= ((word)X[(int)((_f[j] & 0x00F0000000000000ULL)>>52)])<<52;
@@ -638,7 +638,7 @@ static inline void mzed_add_multiple_of_row(mzed_t *A, size_t ar, const mzed_t *
     };
 
   } else if (A->w == 8) {
-    size_t startblock = start_col/RADIX;
+    size_t startblock = start_col/m4ri_radix;
     mzd_t *from_x = B->x;
     mzd_t *to_x = A->x;
     word *_f = from_x->rows[br];
@@ -682,7 +682,7 @@ static inline void mzed_add_multiple_of_row(mzed_t *A, size_t ar, const mzed_t *
       _t[j] = __t0;
     }
     
-    switch(to_x->ncols % RADIX) {
+    switch(to_x->ncols % m4ri_radix) {
     case  0: _t[j] ^= ((word)X[(int)((_f[j] & 0xFF00000000000000ULL)>>56)])<<56;
     case 56: _t[j] ^= ((word)X[(int)((_f[j] & 0x00FF000000000000ULL)>>48)])<<48;
     case 48: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000FF0000000000ULL)>>40)])<<40;
@@ -694,7 +694,7 @@ static inline void mzed_add_multiple_of_row(mzed_t *A, size_t ar, const mzed_t *
     };
 
   } else if (A->w == 16) {
-    size_t startblock = start_col/RADIX;
+    size_t startblock = start_col/m4ri_radix;
     mzd_t *from_x = B->x;
     mzd_t *to_x = A->x;
     word *_f = from_x->rows[br];
@@ -741,7 +741,7 @@ static inline void mzed_add_multiple_of_row(mzed_t *A, size_t ar, const mzed_t *
       _t[j] = __t;
     }
 
-    switch(to_x->ncols % RADIX) {
+    switch(to_x->ncols % m4ri_radix) {
     case  0: _t[j] ^= ((word)X[(int)((_f[j] & 0xFFFF000000000000ULL)>>48)])<<48;
     case 48: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000FFFF00000000ULL)>>32)])<<32;
     case 32: _t[j] ^= ((word)X[(int)((_f[j] & 0x00000000FFFF0000ULL)>>16)])<<16;
