@@ -5,14 +5,14 @@
 # DESCRIPTION
 #
 #   Find L1 and L2 caches size by running some timing experiments.
-#   The results are available in the defines CPU_L1_CACHE and
-#   CPU_L2_CACHE.
+#   The results are available in the defines __M4RI_CPU_L1_CACHE and
+#   __M4RI_CPU_L2_CACHE.
 #
 #   This macro depends on AC_PROG_SED, AC_PROG_CC.
 #
 # LAST MODIFICATION
 #
-#   2009-11-01
+#   2011-04-11
 #
 # COPYLEFT
 #
@@ -98,7 +98,7 @@ double run_experiment(size_t size, size_t trials) {
 }
 
 
-#define NUMBER_OF_EXPERIMENTS 5
+#define NUMBER_OF_EXPERIMENTS 8
 
 size_t cache_size(const size_t *candidates, const size_t n, size_t trials) {
   double times[NUMBER_OF_EXPERIMENTS][n];
@@ -116,6 +116,7 @@ size_t cache_size(const size_t *candidates, const size_t n, size_t trials) {
     wt = walltime(wt);
     dtimes[j][0] = 1.0;
     printf("s: %5zu, rx: %6.2f, x: %6.2f, wt: %6.2f, dx:    NaN\n",candidates[0],times[j][0],times[j][0],wt);
+    fflush(NULL);
 
     for(i=1;i<n;i++) {
       run_experiment(candidates[i]*1024,_trials);
@@ -126,6 +127,7 @@ size_t cache_size(const size_t *candidates, const size_t n, size_t trials) {
       dtimes[j][i] = candidates[i-1]*times[j][i]/times[j][i-1]/candidates[i];
       
       printf("s: %5zu, rx: %6.2f, x: %6.2f, wt: %6.2f, dx: %6.2f\n",candidates[i],result,times[j][i],wt,dtimes[j][i]);
+      fflush(NULL);
       
       while(wt > 0.25) {
         _trials = _trials/2;
@@ -159,8 +161,8 @@ size_t cache_size(const size_t *candidates, const size_t n, size_t trials) {
 
   FILE *f;
   printf("\n");
-  size_t _l1 = cache_size(c1,  8, 1ULL<<16);
-  size_t _l2 = cache_size(c2, 10, 1ULL<<12);
+  size_t _l1 = cache_size(c1,  8, 1ULL<<15);
+  size_t _l2 = cache_size(c2, 10, 1ULL<<8);
 
   /*printf("%lu:%lu\n",(unsigned long)(_l1*1024),(unsigned long)(_l2*1024));*/
 
@@ -181,6 +183,8 @@ size_t cache_size(const size_t *candidates, const size_t n, size_t trials) {
   ax_l2_size=`echo $ax_cv_cache_sizes | $SED 's/.*\://g'`
   AC_MSG_RESULT( $ax_l2_size Bytes)
 
-  AC_DEFINE_UNQUOTED([CPU_L1_CACHE], ${ax_l1_size}, [L1 cache size (in Bytes)])
-  AC_DEFINE_UNQUOTED([CPU_L2_CACHE], ${ax_l2_size}, [L2 cache size (in Bytes)])
+  M4RI_CPU_L1_CACHE=${ax_l1_size}
+  M4RI_CPU_L2_CACHE=${ax_l2_size}
+  AC_SUBST(M4RI_CPU_L1_CACHE)
+  AC_SUBST(M4RI_CPU_L2_CACHE)
 ])
