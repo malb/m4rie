@@ -167,7 +167,7 @@ size_t mzed_echelonize_travolta(mzed_t *A, int full) {
   size_t kk = (size_t)m4ri_opt_k(A->x->nrows, A->x->ncols, 0);
   if (kk>=7) 
     kk = 7;
-  if ( (6*(1<<kk)*A->ncols / 8.0) > CPU_L2_CACHE / 2.0 )
+  if ( (6*(1<<kk)*A->ncols / 8.0) > __M4RI_CPU_L2_CACHE / 2.0 )
     kk -= 1;
   kk = (6*kk)/k;
 
