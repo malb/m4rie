@@ -15,14 +15,17 @@ libm4rie_la_LIBADD = -lm4ri
 #testing
 MYLDFLAGS=-lm4rie -lm4ri -lgivaro -lntl -lgmpxx -lgmp -lm -lstdc++
 
-check_PROGRAMS=test_elimination test_multiplication
+check_PROGRAMS=test_elimination test_multiplication test_smallops
 test_elimination_SOURCES=tests/test_elimination.cc
 test_elimination_LDFLAGS=${MYLDFLAGS}
 
 test_multiplication_SOURCES=tests/test_multiplication.cc
 test_multiplication_LDFLAGS=${MYLDFLAGS}
 
-TESTS = test_elimination test_multiplication
+test_smallops_SOURCES=tests/test_smallops.cc
+test_smallops_LDFLAGS=${MYLDFLAGS}
+
+TESTS = test_elimination test_multiplication test_smallops
 
 # benchmarketing
 

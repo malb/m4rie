@@ -1,5 +1,6 @@
 # use glob syntax.
 syntax: glob
+
 Makefile.in
 aclocal.m4
 config.guess
@@ -17,5 +18,7 @@ missing
 src/config.h.in~
 src/cscope.out
 src/cscope.files
+.deps
+autom4te.cache
 (END) 
 

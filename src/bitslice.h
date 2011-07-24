@@ -31,67 +31,316 @@
 #include "gf2e_matrix.h"
 
 /**
- * \brief Unpack the matrix A over GF(2^2) into the two matrices A0 and A1 over GF(2).
- *
- * Elements in GF(2^2) can be represented as x*a + y where a is a root
- * of x^2 + x + 1. A0 contains the coefficients for x while A1
- * contains the coefficients for y.
- *
- * \param A1 Matrix over GF(2), must be zero 
- * \param A0 Matrix over GF(2), must be zero
- * \param A Matrix over GF(2^2)
+ * Dense matrices over GF(2^k) represented as slices of matrices over GF(2).
  */
 
-void _mzed_slice2(mzd_t *A1, mzd_t *A0, const mzed_t *A);
+typedef struct {
+  /**
+   * A->x[e][i,j] is the e^th bit of the entry A[i,j].
+   */
+  mzd_t *x[16];  // We only support 10 but 16 migh help with alignment.
+  gf2e *finite_field;
+  rci_t nrows;
+  rci_t ncols;
+  int depth; // the number of slices
+} mzd_slice_t;
 
+static inline mzd_slice_t *mzd_slice_init(gf2e *ff, const size_t m, const size_t n) {
 
-/**
- * \brief Unpack the matrix A over GF(2^2) into the two matrices A0 and A1 over GF(2).
- *
- * Elements in GF(2^2) can be represented as x*a + y where a is a root
- * of x^2 + x + 1. A0 contains the coefficients for x while A1
- * contains the coefficients for y.
- *
- * \param A1 Matrix over GF(2) 
- * \param A0 Matrix over GF(2)
- * \param A Matrix over GF(2^2)
- */
+  /**
+   * @TODO: avoid all these malloc() calls and call it once only
+   */
+  mzd_slice_t *A;
 
-static inline void mzed_slice2(mzd_t *A1, mzd_t *A0, const mzed_t *A) {
-  mzd_set_ui(A0, 0);
-  mzd_set_ui(A1, 0);
-  _mzed_slice2(A0, A1, A);
+#if __M4RI_USE_MM_MALLOC
+  A = (mzd_slice_t*)_mm_malloc(sizeof(mzd_slice_t), 64);
+#elif __M4RI_USE_POSIX_MEMALIGN
+  int error = posix_memalign(&A, 64, sizeof(mzd_slice_t));
+  if (error) A = NULL;
+#else
+  A = (mzd_slice_t*)malloc(sizeof(mzd_slice_t));
+#endif  
+
+  if(__M4RI_UNLIKELY(A == NULL))
+    m4ri_die("m4ri_slice_init: could not allocate memory.\n");
+
+  A->finite_field = ff;
+  A->nrows = m;
+  A->ncols = n;
+  A->depth = ff->degree;
+
+  for(int i=0; i<A->depth; i++)
+    A->x[i] = mzd_init(m,n);
+  return A;
+
+}
+
+static inline void mzd_slice_free(mzd_slice_t *A) {
+  for(int i=0; i<A->depth; i++)
+   mzd_free(A->x[i]);
+#if __M4RI_USE_MM_MALLOC
+  _mm_free(A);
+#else
+  free(A);
+#endif
 }
 
 /**
- * \brief Pack the matrices A0 and A1 over GF(2) to A over GF(2^2).
+ * \brief Pack a bitslice matrix into a classical represenation.
+ *
+ * \param A Matrix over GF(2^k) or NULL
+ * \param Z Bitslice matrix over GF(2^k)
+ */
+
+mzed_t *mzed_cling(mzed_t *A, const mzd_slice_t *Z);
+
+/**
+ * \brief Unpack the matrix Z into bitslice representation.
+ *
+ * \param A Bitslice matrix or NULL
+ * \param Z Input matrix
+ */
+
+mzd_slice_t *mzed_slice(mzd_slice_t *A, const mzed_t *Z);
+
+static inline mzd_slice_t *mzd_slice_concat(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B) {
+  if(C == NULL)
+    C = mzd_slice_init(A->finite_field, A->nrows, A->ncols + B->ncols);
+
+  for(int i=0; i<A->depth; i++) {
+    mzd_concat(C->x[i], A->x[i], B->x[i]);
+  }
+  return C;
+}
+
+static inline mzd_slice_t *mzd_slice_stack(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B) {
+  if(C == NULL)
+    C = mzd_slice_init(A->finite_field, A->nrows + B->nrows, A->ncols);
+
+  for(int i=0; i<A->depth; i++) {
+    mzd_stack(C->x[i], A->x[i], B->x[i]);
+  }
+  return C;
+}
+
+static inline mzd_slice_t *mzd_slice_submatrix(mzd_slice_t *S, const mzd_slice_t *A, 
+                                               const size_t lowr, const size_t lowc, const size_t highr, const size_t highc) {
+  if(S==NULL)
+    S = mzd_slice_init(A->finite_field, highr - lowr, highc - lowc);
+
+  for(int i=0; i<A->depth; i++) {
+    mzd_submatrix(S->x[i], A->x[i], lowr, lowc, highr, highc);
+  }
+  return S;
+}
+
+static inline mzd_slice_t *mzd_slice_init_window(const mzd_slice_t *A, 
+                                                 const size_t lowr, const size_t lowc, const size_t highr, const size_t highc) {
+  mzd_slice_t *B = (mzd_slice_t *)m4ri_mm_malloc(sizeof(mzd_slice_t));
+  B->finite_field = A->finite_field;
+  B->depth = A->depth;
+  B->nrows = highr - lowr;
+  B->ncols = highc - lowc;
+  for(int i=0; i<A->depth; i++) {
+    B->x[i] = mzd_init_window(A->x[i], lowr, lowc, highr, highc);
+  }
+  return B;
+}
+
+static inline void mzd_slice_free_window(mzd_slice_t *A) {
+  for(int i=0; i<A->depth; i++) {
+    mzd_free_window(A->x[i]);
+  }
+  m4ri_mm_free(A);
+}
+
+static inline mzd_slice_t *_mzd_slice_add(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B) {
+  for(int i=0; i<A->depth; i++) 
+    _mzd_add(C->x[i], A->x[i], B->x[i]);
+  return C;
+}
+
+static inline mzd_slice_t *mzd_slice_add(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B) {
+  if ( (A->finite_field != B->finite_field) | (A->nrows != B->nrows) | (A->ncols != B->ncols) ) 
+    m4ri_die("mzd_slice_add: input matrices A (%d x %d) and B (%d x %d) do not match.\n",A->nrows,A->ncols, B->nrows,B->ncols);
+
+  if(C == NULL) 
+    mzd_slice_init(A->finite_field, A->nrows, A->ncols);
+  else if ( (A->finite_field != C->finite_field) | (A->nrows != C->nrows) | (A->ncols != C->ncols) )
+    m4ri_die("mzd_slice_add: input matrix A (%d x %d) and output matrix (%d x %d) do not match.\n",A->nrows,A->ncols, C->nrows, C->ncols);
+
+  return _mzd_slice_add(C,A,B);
+}
+
+#define mzd_slice_sub mzd_slice_add
+
+#define _mzd_slice_sub _mzd_slice_add
+
+static inline void mzd_slice_randomize(mzd_slice_t *A) {
+  for(int i=0; i<-A->depth; i++) {
+    mzd_randomize(A->x[i]);
+  }
+}
+ 
+static inline mzd_slice_t *mzd_slice_copy(mzd_slice_t *B, const mzd_slice_t *A) {
+  if(B == NULL)
+    B = mzd_slice_init(A->finite_field, A->nrows, A->ncols);
+  
+  for(int i=0; i<A->depth; i++) {
+    mzd_copy(B->x[i],A->x[i]);
+  }
+  return B;
+}
+
+void mzd_slice_set_ui(mzd_slice_t *A, word value);
+
+static inline word mzd_slice_read_elem(const mzd_slice_t *A, const rci_t row, const rci_t col) {
+  word ret = 0;
+  for(int i=0; i<A->depth; i++) {
+    ret |= mzd_read_bit(A->x[i], row, col)<<i;
+  }
+  return ret;
+}
+
+static inline void mzd_slice_add_elem(mzd_slice_t *A, const rci_t row, const rci_t col, word elem) {
+  for(int i=0; i<A->depth; i++) {
+    __mzd_xor_bits(A->x[i], row, col, 1, elem&1);
+    elem=elem>>1;
+  }
+}
+
+static inline void mzd_slice_write_elem(mzd_slice_t *A, const rci_t row, const rci_t col, word elem) {
+  for(int i=0; i<A->depth; i++) {
+    mzd_write_bit(A->x[i], row, col, elem&1);
+    elem=elem>>1;
+  }
+}
+
+static inline int mzd_slice_cmp(mzd_slice_t *A, mzd_slice_t *B) {
+  int r = 0;
+  if ((A->finite_field != B->finite_field) | (A->depth != B->depth) )
+    return -1;
+  for(int i=0; i<A->depth; i++)
+    r |= mzd_cmp(A->x[i],B->x[i]);
+  return r;
+}
+
+static inline int mzd_slice_is_zero(mzd_slice_t *A) {
+  for(int i=0; i<A->depth; i++) {
+    if (mzd_is_zero(A->x[i]))
+      return 1;
+  }
+  return 0;
+}
+
+static inline void mzd_slice_rescale_row(mzd_slice_t *A, rci_t r, rci_t c, word *X) {
+  mzd_slice_t *A_w = mzd_slice_init_window(A, r, 0, r+1, A->ncols);
+  mzed_t *A_we = mzed_cling(NULL, A_w);
+
+  mzed_rescale_row(A_we, r, c, X);
+
+  mzed_slice(A_w, A_we);
+  mzed_free(A_we);
+  mzd_slice_free_window(A_w);
+}
+
+static inline void mzd_slice_row_swap(mzd_slice_t *A, const rci_t rowa, const rci_t rowb) {
+  for(int i=0; i<A->depth; i++) {
+    mzd_row_swap(A->x[i], rowa, rowb);
+  }
+}
+
+static inline void mzd_slice_copy_row(mzd_slice_t* B, size_t i, const mzd_slice_t* A, size_t j) {
+  for(int ii=0; ii<A->depth; ii++)
+    mzd_copy_row(B->x[ii], i, A->x[ii], j);
+}
+ 
+static inline void mzd_slice_col_swap(mzd_slice_t *A, const rci_t cola, const rci_t colb) {
+  for(int i=0; i<A->depth; i++)
+    mzd_col_swap(A->x[i], cola, colb);
+}
+
+static inline void mzd_slice_row_add(mzd_slice_t *A, const rci_t sourcerow, const rci_t destrow) {
+  for(int i=0; i<A->depth; i++)
+    mzd_row_add(A->x[i], sourcerow, destrow);
+}
+
+static inline void mzd_slice_row_clear_offset(mzd_slice_t *A, const rci_t row, const rci_t coloffset) {
+  for(int i=0; i<A->depth; i++) 
+    mzd_row_clear_offset(A->x[i], row, coloffset);
+}
+
+static inline void mzd_slice_print(const mzd_slice_t *A) {
+  mzed_t *B = mzed_cling(NULL, A);
+  mzed_print(B);
+  mzed_free(B);
+}
+
+/**
+ * \brief Unpack the matrix Z over GF(2^2) into bitslice representation.
+ *
+ * Elements in GF(2^2) can be represented as x*a + y where a is a root
+ * of x^2 + x + 1. A0 contains the coefficients for x while A1
+ * contains the coefficients for y.
+ *
+ * \param A Zero bitslice matrix over GF(2^2)
+ * \param Z Matrix over GF(2^2)
+ */
+
+mzd_slice_t *_mzed_slice2(mzd_slice_t *A, const mzed_t *Z);
+
+/**
+ * \brief Unpack the matrix Z over GF(2^2) into bitslice representation.
+ *
+ * Elements in GF(2^2) can be represented as x*a + y where a is a root
+ * of x^2 + x + 1. A0 contains the coefficients for x while A1
+ * contains the coefficients for y.
+ *
+ * \param A Bitslice matrix over GF(2^2) or NULL
+ * \param Z Matrix over GF(2^2)
+ */
+
+static inline mzd_slice_t *mzed_slice2(mzd_slice_t *A, const mzed_t *Z) {
+  if (A == NULL)
+    A = mzd_slice_init(Z->finite_field, Z->nrows, Z->ncols);
+  else
+    mzd_slice_set_ui(A, 0);
+
+  return _mzed_slice2(A, Z);
+}
+
+/**
+ * \brief Pack a bitslice matrix into a classical represenation over GF(2^2).
  *
  * Elements in GF(2^2) can be represented as c_1*a + c_0 where a is a
  * root of x^2 + x + 1. A1 contains the coefficients for c_1 while A0
  * contains the coefficients for c_0.
  *
  * \param A Matrix over GF(2^2), must be zero
- * \param A1 Matrix over GF(2)
- * \param A0 Matrix over GF(2) 
+ * \param Z Bitslice matrix over GF(2^2)
  */
 
-void _mzed_cling2(mzed_t *A, const mzd_t *A1, const mzd_t *A0);
+mzed_t *_mzed_cling2(mzed_t *A, const mzd_slice_t *Z);
 
 /**
- * \brief Pack the matrices A0 and A1 over GF(2) to A over GF(2^2).
+ * \brief Pack a bitslice matrix into a classical represenation over GF(2^2).
  *
- * Elements in GF(2^2) can be represented as c_1*a + c_0 where a is a root
- * of x^2 + x + 1. A0 contains the coefficients for c_0 while A1
- * contains the coefficients for c_1.
+ * Elements in GF(2^2) can be represented as c_1*a + c_0 where a is a
+ * root of x^2 + x + 1. A1 contains the coefficients for c_1 while A0
+ * contains the coefficients for c_0.
  *
- * \param A Matrix over GF(2^2)
- * \param A1 Matrix over GF(2) 
- * \param A0 Matrix over GF(2)
+ * \param A Matrix over GF(2^2) or NULL
+ * \param Z Bitslice matrix over GF(2^2)
  */
 
-static inline void mzed_cling2(mzed_t *A, const mzd_t *A1, const mzd_t *A0) {
-  mzed_set_ui(A, 0);
-  _mzed_cling2(A, A0, A1);
+static inline mzed_t* mzed_cling2(mzed_t *A, const mzd_slice_t *Z) {
+  if (A == NULL) 
+    A = mzed_init(Z->finite_field, Z->nrows, Z->ncols);
+  else
+    mzed_set_ui(A, 0);
+
+  _mzed_cling2(A, Z);
+  return A;
 }
 
 /**
@@ -136,6 +385,8 @@ static inline void mzed_cling2(mzed_t *A, const mzd_t *A1, const mzd_t *A0) {
 
 mzed_t *mzed_mul_karatsuba(mzed_t *C, const mzed_t *A, const mzed_t *B);
 
+mzed_t *mzed_addmul_karatsuba(mzed_t *C, const mzed_t *A, const mzed_t *B);
+
 /**
  * \brief Compute C == A*B over GF(2^2) using Karatsuba multiplication.
  *
@@ -149,5 +400,7 @@ mzed_t *mzed_mul_karatsuba(mzed_t *C, const mzed_t *A, const mzed_t *B);
  */
 
 mzed_t *_mzed_mul_karatsuba2(mzed_t *C, const mzed_t *A, const mzed_t *B);
+
+
 
 #endif //BITSLICE_H
