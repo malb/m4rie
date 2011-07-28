@@ -1,6 +1,11 @@
 #include "bitslice.h"
 
 mzed_t *mzed_cling(mzed_t *A, const mzd_slice_t *Z) {
+  if (A == NULL)
+    A = mzed_init(Z->finite_field, Z->nrows, Z->ncols);
+  else
+    mzed_set_ui(A, 0);
+
   switch(Z->finite_field->degree) {
   case  2: return mzed_cling2(A,Z);
   case  3: 
