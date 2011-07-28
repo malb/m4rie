@@ -348,6 +348,19 @@ static inline mzed_t* mzed_cling2(mzed_t *A, const mzd_slice_t *Z) {
   return A;
 }
 
+mzed_t *_mzed_cling4(mzed_t *A, const mzd_slice_t *Z);
+
+static inline mzed_t* mzed_cling4(mzed_t *A, const mzd_slice_t *Z) {
+  if (A == NULL) 
+    A = mzed_init(Z->finite_field, Z->nrows, Z->ncols);
+  else
+    mzed_set_ui(A, 0);
+
+  _mzed_cling2(A, Z);
+  return A;
+}
+
+
 /**
  * \brief Compute C == A*B using Karatsuba multiplication of polynomials over GF(2).
  *

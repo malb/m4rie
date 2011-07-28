@@ -61,7 +61,10 @@ int test_slice_known_answers(gf2e *ff, int m, int n) {
         m4rie_check( mzd_cmp(a->x[i], one) == 0 );
       }
     }
+    mzed_t *AA = mzed_cling(NULL, a);
+    m4rie_check( mzed_cmp(AA, A) == 0 );
     mzd_slice_free(a);
+    mzed_free(AA);
   }
   mzd_free(one);
   mzed_free(A);
@@ -121,6 +124,7 @@ int test_batch(gf2e *ff, int m, int n) {
 
   m4rie_check( test_slice(ff, m, n) == 0); printf("."); 
   m4rie_check( test_add(ff, m, n) == 0) ; printf("."); 
+  m4rie_check( test_slice_known_answers(ff, m, n) == 0); printf(".");
 
   if (fail_ret == 0)
     printf(" passed\n");
@@ -140,7 +144,7 @@ int main(int argc, char **argv) {
     delete F;
   }
 
-  for(int k=2; k<=2; k++) {
+  for(int k=2; k<=4; k++) {
     for(int m=1; m<=128; m++) {
       for(int n=1; n<=128; n++) {
         fail_ret += test_batch(ff[k], m, n);
