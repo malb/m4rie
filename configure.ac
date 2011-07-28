@@ -47,6 +47,29 @@ else
    AC_DEFINE(NDEBUG,1,[Define whether debugging is enabled])
 fi
 
+AC_ARG_WITH(m4ri,
+        AS_HELP_STRING([--with-m4ri@<:@=VALUE@:>@], [Optional prefix for M4RI library]),[m4rie_config_m4riprefix=$withval])
+
+if test -n $m4rie_config_m4riprefix; then
+   M4RIE_M4RI_PREFIX=${m4rie_m4ri_prefix}
+   AC_SUBST(M4RIE_M4RI_PREFIX)
+   M4RIE_M4RI_LDFLAGS="-L${m4rie_config_m4riprefix}/lib"
+   AC_SUBST(M4RIE_M4RI_LDFLAGS)
+   M4RIE_M4RI_CFLAGS="-I${m4rie_config_m4riprefix}/include"
+   AC_SUBST(M4RIE_M4RI_CFLAGS)
+fi
+
+AC_ARG_WITH(givaro,
+        AS_HELP_STRING([--with-givaro@<:@=VALUE@:>@], [Optional prefix for Givaro library (for testing).]),[m4rie_config_givaroprefix=$withval])
+if test -n $m4rie_config_givaroprefix; then
+   M4RIE_GIVARO_PREFIX=${m4rie_givaro_prefix}
+   AC_SUBST(M4RIE_GIVARO_PREFIX)
+   M4RIE_GIVARO_LDFLAGS="-L${m4rie_config_givaroprefix}/lib"
+   AC_SUBST(M4RIE_GIVARO_LDFLAGS)
+   M4RIE_GIVARO_CXXFLAGS="-I${m4rie_config_givaroprefix}/include"
+   AC_SUBST(M4RIE_GIVARO_CXXFLAGS)
+fi
+
 AC_PROG_MAKE_SET
 
 AC_CONFIG_FILES([Makefile bench/Makefile])

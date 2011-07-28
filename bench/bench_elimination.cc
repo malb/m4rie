@@ -1,7 +1,7 @@
 #include <gf2e_cxx/finite_field_givaro.h>
 #include <m4rie/m4rie.h>
+#include <cpucycles.h>
 
-#include "cpucycles.h"
 #include "walltime.h"
 
 using namespace M4RIE;
