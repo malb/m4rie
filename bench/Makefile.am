@@ -19,13 +19,12 @@ clean-local:
 	-rm -f cpucycles.h
 	-rm -f $(EXTRA_PROGRAMS)
 
-bench_elimination_DEPENDS=cpucycles.h cpucycles.o
-bench_elimination_SOURCES=bench_elimination.cc
+bench_elimination_SOURCES=bench_elimination.cc cpucycles.h benchmarking.cc
 bench_elimination_CXXFLAGS=${BENCHCXXFLAGS}
 bench_elimination_LDFLAGS=${BENCHLDFLAGS} ${BENCHLIBADD}
 
-bench_multiplication_DEPENDS=cpucycles.h cpucycles.o
-bench_multiplication_SOURCES=bench_multiplication.cc cpucycles.h
+bench_multiplication_DEPENDS=cpucycles.h cpucycles.o 
+bench_multiplication_SOURCES=bench_multiplication.cc cpucycles.h benchmarking.cc
 bench_multiplication_CXXFLAGS=${BENCHCXXFLAGS}  -I${CPUCYCLES_DIR}
 bench_multiplication_LDFLAGS=${BENCHLDFLAGS} ${BENCHLIBADD}
 
