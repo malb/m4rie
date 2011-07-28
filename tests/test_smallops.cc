@@ -44,6 +44,30 @@ int test_slice(gf2e *ff, int m, int n) {
   return fail_ret; 
 };
 
+int test_slice_known_answers(gf2e *ff, int m, int n) {
+  int fail_ret = 0;
+  mzed_t *A = mzed_init(ff, m, n);
+
+  mzd_t *one = mzd_init(m,n);
+  mzd_set_ui(one, 1);
+
+  for(int j=0; j<ff->degree; j++) {
+    mzed_set_ui(A, 1<<j);
+    mzd_slice_t *a = mzed_slice(NULL, A);
+    for(int i=0; i<a->depth; i++) {
+      if (i!=j) {
+        m4rie_check( mzd_is_zero(a->x[i]) );
+      } else {
+        m4rie_check( mzd_cmp(a->x[i], one) == 0 );
+      }
+    }
+    mzd_slice_free(a);
+  }
+  mzd_free(one);
+  mzed_free(A);
+  return fail_ret;
+}
+
 int test_add(gf2e *ff, int m, int n) {
   int fail_ret = 0;
 
@@ -97,6 +121,7 @@ int test_batch(gf2e *ff, int m, int n) {
 
   m4rie_check( test_slice(ff, m, n) == 0); printf("."); 
   m4rie_check( test_add(ff, m, n) == 0) ; printf("."); 
+
   if (fail_ret == 0)
     printf(" passed\n");
   else
@@ -107,6 +132,7 @@ int test_batch(gf2e *ff, int m, int n) {
 int main(int argc, char **argv) {
 
   gf2e *ff[10];
+  int fail_ret = 0;
 
   for(int k=2; k<=10; k++) {
     FiniteField *F = (FiniteField*)(new GFqDom<int>(2,k));
@@ -114,13 +140,12 @@ int main(int argc, char **argv) {
     delete F;
   }
 
-  int fail = 0;
   for(int k=2; k<=2; k++) {
     for(int m=1; m<=128; m++) {
       for(int n=1; n<=128; n++) {
-        fail += test_batch(ff[k], m, n);
+        fail_ret += test_batch(ff[k], m, n);
       }
     }
   }
-  return fail;
+  return fail_ret;
 }

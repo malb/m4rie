@@ -305,9 +305,14 @@ static inline mzd_slice_t *mzed_slice2(mzd_slice_t *A, const mzed_t *Z) {
     A = mzd_slice_init(Z->finite_field, Z->nrows, Z->ncols);
   else
     mzd_slice_set_ui(A, 0);
-
+ 
   return _mzed_slice2(A, Z);
 }
+
+/**
+ */
+
+mzd_slice_t *_mzed_slice4(mzd_slice_t *A, const mzed_t *Z);
 
 /**
  * \brief Pack a bitslice matrix into a classical represenation over GF(2^2).

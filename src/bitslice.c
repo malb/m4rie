@@ -18,10 +18,15 @@ mzed_t *mzed_cling(mzed_t *A, const mzd_slice_t *Z) {
 }
 
 mzd_slice_t *mzed_slice(mzd_slice_t *A, const mzed_t *Z) {
+  if (A == NULL)
+    A = mzd_slice_init(Z->finite_field, Z->nrows, Z->ncols);
+  else
+    mzd_slice_set_ui(A, 0);
+
   switch(Z->finite_field->degree) {
-  case  2: return mzed_slice2(A,Z);
-  case  3: 
-  case  4:
+  case  2: return _mzed_slice2(A,Z);
+  case  3: return _mzed_slice4(A,Z);
+  case  4: return _mzed_slice4(A,Z);
   case  5:
   case  6:
   case  7:
@@ -352,7 +357,7 @@ mzd_slice_t *_mzed_slice2(mzd_slice_t *A, const mzed_t *Z) {
   size_t j, j2 = 0;
   register word tmp = 0;
 
-  /* Z */
+  /* A0 */
   for(size_t i=0; i<A->nrows; i++) {
     word *a0 = A->x[0]->rows[i];
     const word *z  = Z->x->rows[i];    
@@ -664,6 +669,267 @@ mzd_slice_t *_mzed_slice2(mzd_slice_t *A, const mzed_t *Z) {
   return A;
 }
 
+mzd_slice_t *_mzed_slice4(mzd_slice_t *A, const mzed_t *Z) {
+  assert(A && (A->depth == 3 || A->depth == 4) && ((Z->x->offset | A->x[0]->offset) == 0));
+  size_t j, j2 = 0;
+  register word tmp = 0;
+
+  const word one = m4ri_one;
+
+  const word mask_end = __M4RI_LEFT_BITMASK(A->ncols & m4ri_radix);
+
+  /* A0 */
+  for(size_t i=0; i<A->nrows; i++) {
+    word *a0 = A->x[0]->rows[i];
+    const word const *z  = Z->x->rows[i];
+
+    /* bulk of work */
+    for(j=0, j2=0; j+4 < Z->x->width; j+=4,j2++) {
+      if ( !(z[j+0] | z[j+1] | z[j+2] | z[j+3]) )
+        continue;
+      tmp = 0;
+      tmp |= (z[j+3] & (one<< 0)) <<48; tmp |= (z[j+3] & (one<< 4)) <<45; tmp |= (z[j+3] & (one<< 8)) <<42; tmp |= (z[j+3] & (one<<12)) <<39;
+      tmp |= (z[j+3] & (one<<16)) <<36; tmp |= (z[j+3] & (one<<20)) <<33; tmp |= (z[j+3] & (one<<24)) <<30; tmp |= (z[j+3] & (one<<28)) <<27;
+      tmp |= (z[j+3] & (one<<32)) <<24; tmp |= (z[j+3] & (one<<36)) <<21; tmp |= (z[j+3] & (one<<40)) <<18; tmp |= (z[j+3] & (one<<44)) <<15;
+      tmp |= (z[j+3] & (one<<48)) <<12; tmp |= (z[j+3] & (one<<52)) << 9; tmp |= (z[j+3] & (one<<56)) << 6; tmp |= (z[j+3] & (one<<60)) << 3;
+
+      tmp |= (z[j+2] & (one<< 0)) <<32; tmp |= (z[j+2] & (one<< 4)) <<29; tmp |= (z[j+2] & (one<< 8)) <<26; tmp |= (z[j+2] & (one<<12)) <<23; 
+      tmp |= (z[j+2] & (one<<16)) <<20; tmp |= (z[j+2] & (one<<20)) <<17; tmp |= (z[j+2] & (one<<24)) <<14; tmp |= (z[j+2] & (one<<28)) <<11; 
+      tmp |= (z[j+2] & (one<<32)) << 8; tmp |= (z[j+2] & (one<<36)) << 5; tmp |= (z[j+2] & (one<<40)) << 2; tmp |= (z[j+2] & (one<<44)) >> 1; 
+      tmp |= (z[j+2] & (one<<48)) >> 4; tmp |= (z[j+2] & (one<<52)) >> 7; tmp |= (z[j+2] & (one<<56)) >>10; tmp |= (z[j+2] & (one<<60)) >>13; 
+
+      tmp |= (z[j+1] & (one<< 0)) <<16; tmp |= (z[j+1] & (one<< 4)) <<13; tmp |= (z[j+1] & (one<< 8)) <<10; tmp |= (z[j+1] & (one<<12)) << 7; 
+      tmp |= (z[j+1] & (one<<16)) << 4; tmp |= (z[j+1] & (one<<20)) << 1; tmp |= (z[j+1] & (one<<24)) >> 2; tmp |= (z[j+1] & (one<<28)) >> 5; 
+      tmp |= (z[j+1] & (one<<32)) >> 8; tmp |= (z[j+1] & (one<<36)) >>11; tmp |= (z[j+1] & (one<<40)) >>14; tmp |= (z[j+1] & (one<<44)) >>17; 
+      tmp |= (z[j+1] & (one<<48)) >>20; tmp |= (z[j+1] & (one<<52)) >>23; tmp |= (z[j+1] & (one<<56)) >>26; tmp |= (z[j+1] & (one<<60)) >>29; 
+
+      tmp |= (z[j+0] & (one<< 0)) >> 0; tmp |= (z[j+0] & (one<< 4)) >> 3; tmp |= (z[j+0] & (one<< 8)) >> 6; tmp |= (z[j+0] & (one<<12)) >> 9; 
+      tmp |= (z[j+0] & (one<<16)) >>12; tmp |= (z[j+0] & (one<<20)) >>15; tmp |= (z[j+0] & (one<<24)) >>18; tmp |= (z[j+0] & (one<<28)) >>21; 
+      tmp |= (z[j+0] & (one<<32)) >>24; tmp |= (z[j+0] & (one<<36)) >>27; tmp |= (z[j+0] & (one<<40)) >>30; tmp |= (z[j+0] & (one<<44)) >>33; 
+      tmp |= (z[j+0] & (one<<48)) >>36; tmp |= (z[j+0] & (one<<52)) >>39; tmp |= (z[j+0] & (one<<56)) >>42; tmp |= (z[j+0] & (one<<60)) >>45; 
+      a0[j2] = tmp;
+    }
+    tmp = 0;
+    switch(Z->x->width - j) {
+    case 4:
+      tmp |= (z[j+3] & (one<< 0)) <<48; tmp |= (z[j+3] & (one<< 4)) <<45; tmp |= (z[j+3] & (one<< 8)) <<42; tmp |= (z[j+3] & (one<<12)) <<39;
+      tmp |= (z[j+3] & (one<<16)) <<36; tmp |= (z[j+3] & (one<<20)) <<33; tmp |= (z[j+3] & (one<<24)) <<30; tmp |= (z[j+3] & (one<<28)) <<27;
+      tmp |= (z[j+3] & (one<<32)) <<24; tmp |= (z[j+3] & (one<<36)) <<21; tmp |= (z[j+3] & (one<<40)) <<18; tmp |= (z[j+3] & (one<<44)) <<15;
+      tmp |= (z[j+3] & (one<<48)) <<12; tmp |= (z[j+3] & (one<<52)) << 9; tmp |= (z[j+3] & (one<<56)) << 6; tmp |= (z[j+3] & (one<<60)) << 3;
+    case 3:
+      tmp |= (z[j+2] & (one<< 0)) <<32; tmp |= (z[j+2] & (one<< 4)) <<29; tmp |= (z[j+2] & (one<< 8)) <<26; tmp |= (z[j+2] & (one<<12)) <<23; 
+      tmp |= (z[j+2] & (one<<16)) <<20; tmp |= (z[j+2] & (one<<20)) <<17; tmp |= (z[j+2] & (one<<24)) <<14; tmp |= (z[j+2] & (one<<28)) <<11; 
+      tmp |= (z[j+2] & (one<<32)) << 8; tmp |= (z[j+2] & (one<<36)) << 5; tmp |= (z[j+2] & (one<<40)) << 2; tmp |= (z[j+2] & (one<<44)) >> 1; 
+      tmp |= (z[j+2] & (one<<48)) >> 4; tmp |= (z[j+2] & (one<<52)) >> 7; tmp |= (z[j+2] & (one<<56)) >>10; tmp |= (z[j+2] & (one<<60)) >>13; 
+    case 2:
+      tmp |= (z[j+1] & (one<< 0)) <<16; tmp |= (z[j+1] & (one<< 4)) <<13; tmp |= (z[j+1] & (one<< 8)) <<10; tmp |= (z[j+1] & (one<<12)) << 7; 
+      tmp |= (z[j+1] & (one<<16)) << 4; tmp |= (z[j+1] & (one<<20)) << 1; tmp |= (z[j+1] & (one<<24)) >> 2; tmp |= (z[j+1] & (one<<28)) >> 5; 
+      tmp |= (z[j+1] & (one<<32)) >> 8; tmp |= (z[j+1] & (one<<36)) >>11; tmp |= (z[j+1] & (one<<40)) >>14; tmp |= (z[j+1] & (one<<44)) >>17; 
+      tmp |= (z[j+1] & (one<<48)) >>20; tmp |= (z[j+1] & (one<<52)) >>23; tmp |= (z[j+1] & (one<<56)) >>26; tmp |= (z[j+1] & (one<<60)) >>29; 
+    case 1:
+      tmp |= (z[j+0] & (one<< 0)) >> 0; tmp |= (z[j+0] & (one<< 4)) >> 3; tmp |= (z[j+0] & (one<< 8)) >> 6; tmp |= (z[j+0] & (one<<12)) >> 9; 
+      tmp |= (z[j+0] & (one<<16)) >>12; tmp |= (z[j+0] & (one<<20)) >>15; tmp |= (z[j+0] & (one<<24)) >>18; tmp |= (z[j+0] & (one<<28)) >>21; 
+      tmp |= (z[j+0] & (one<<32)) >>24; tmp |= (z[j+0] & (one<<36)) >>27; tmp |= (z[j+0] & (one<<40)) >>30; tmp |= (z[j+0] & (one<<44)) >>33; 
+      tmp |= (z[j+0] & (one<<48)) >>36; tmp |= (z[j+0] & (one<<52)) >>39; tmp |= (z[j+0] & (one<<56)) >>42; tmp |= (z[j+0] & (one<<60)) >>45; 
+      break;
+    default:
+      m4ri_die("impossible\n");
+    }
+    a0[j2] = tmp & mask_end;
+  }
+
+  /* A1 */
+  for(size_t i=0; i<A->nrows; i++) {
+    word *a1 = A->x[1]->rows[i];
+    const word const *z  = Z->x->rows[i];
+
+    /* bulk of work */
+    for(j=0, j2=0; j+4 < Z->x->width; j+=4,j2++) {
+      if ( !(z[j+0] | z[j+1] | z[j+2] | z[j+3]) )
+        continue;
+      tmp = 0;
+
+      tmp |= (z[j+3] & (one<< 1)) <<47; tmp |= (z[j+3] & (one<< 5)) <<44; tmp |= (z[j+3] & (one<< 9)) <<41; tmp |= (z[j+3] & (one<<13)) <<38;
+      tmp |= (z[j+3] & (one<<17)) <<35; tmp |= (z[j+3] & (one<<21)) <<32; tmp |= (z[j+3] & (one<<25)) <<29; tmp |= (z[j+3] & (one<<29)) <<26;
+      tmp |= (z[j+3] & (one<<33)) <<23; tmp |= (z[j+3] & (one<<37)) <<20; tmp |= (z[j+3] & (one<<41)) <<17; tmp |= (z[j+3] & (one<<45)) <<14;
+      tmp |= (z[j+3] & (one<<49)) <<11; tmp |= (z[j+3] & (one<<53)) << 8; tmp |= (z[j+3] & (one<<57)) << 5; tmp |= (z[j+3] & (one<<61)) << 2;
+
+      tmp |= (z[j+2] & (one<< 1)) <<31; tmp |= (z[j+2] & (one<< 5)) <<28; tmp |= (z[j+2] & (one<< 9)) <<25; tmp |= (z[j+2] & (one<<13)) <<22; 
+      tmp |= (z[j+2] & (one<<17)) <<19; tmp |= (z[j+2] & (one<<21)) <<16; tmp |= (z[j+2] & (one<<25)) <<13; tmp |= (z[j+2] & (one<<29)) <<10; 
+      tmp |= (z[j+2] & (one<<33)) << 7; tmp |= (z[j+2] & (one<<37)) << 4; tmp |= (z[j+2] & (one<<41)) << 1; tmp |= (z[j+2] & (one<<45)) >> 2;
+      tmp |= (z[j+2] & (one<<49)) >> 5; tmp |= (z[j+2] & (one<<53)) >> 8; tmp |= (z[j+2] & (one<<57)) >>11; tmp |= (z[j+2] & (one<<61)) >>14; 
+
+      tmp |= (z[j+1] & (one<< 1)) <<15; tmp |= (z[j+1] & (one<< 5)) <<12; tmp |= (z[j+1] & (one<< 9)) << 9; tmp |= (z[j+1] & (one<<13)) << 6;
+      tmp |= (z[j+1] & (one<<17)) << 3; tmp |= (z[j+1] & (one<<21)) << 0; tmp |= (z[j+1] & (one<<25)) >> 3; tmp |= (z[j+1] & (one<<29)) >> 6;
+      tmp |= (z[j+1] & (one<<33)) >> 9; tmp |= (z[j+1] & (one<<37)) >>12; tmp |= (z[j+1] & (one<<41)) >>15; tmp |= (z[j+1] & (one<<45)) >>18;
+      tmp |= (z[j+1] & (one<<49)) >>21; tmp |= (z[j+1] & (one<<53)) >>24; tmp |= (z[j+1] & (one<<57)) >>27; tmp |= (z[j+1] & (one<<61)) >>30;
+
+      tmp |= (z[j+0] & (one<< 1)) >> 1; tmp |= (z[j+0] & (one<< 5)) >> 4; tmp |= (z[j+0] & (one<< 9)) >> 7; tmp |= (z[j+0] & (one<<13)) >>10;
+      tmp |= (z[j+0] & (one<<17)) >>13; tmp |= (z[j+0] & (one<<21)) >>16; tmp |= (z[j+0] & (one<<25)) >>19; tmp |= (z[j+0] & (one<<29)) >>22;
+      tmp |= (z[j+0] & (one<<33)) >>25; tmp |= (z[j+0] & (one<<37)) >>28; tmp |= (z[j+0] & (one<<41)) >>31; tmp |= (z[j+0] & (one<<45)) >>34;
+      tmp |= (z[j+0] & (one<<49)) >>37; tmp |= (z[j+0] & (one<<53)) >>40; tmp |= (z[j+0] & (one<<57)) >>43; tmp |= (z[j+0] & (one<<61)) >>46;
+
+      a1[j2] = tmp;
+    }
+    tmp = 0;
+    switch(Z->x->width - j) {
+    case 4:
+      tmp |= (z[j+3] & (one<< 1)) <<47; tmp |= (z[j+3] & (one<< 5)) <<44; tmp |= (z[j+3] & (one<< 9)) <<41; tmp |= (z[j+3] & (one<<13)) <<38;
+      tmp |= (z[j+3] & (one<<17)) <<35; tmp |= (z[j+3] & (one<<21)) <<32; tmp |= (z[j+3] & (one<<25)) <<29; tmp |= (z[j+3] & (one<<29)) <<26;
+      tmp |= (z[j+3] & (one<<33)) <<23; tmp |= (z[j+3] & (one<<37)) <<20; tmp |= (z[j+3] & (one<<41)) <<17; tmp |= (z[j+3] & (one<<45)) <<14;
+      tmp |= (z[j+3] & (one<<49)) <<11; tmp |= (z[j+3] & (one<<53)) << 8; tmp |= (z[j+3] & (one<<57)) << 5; tmp |= (z[j+3] & (one<<61)) << 2;
+    case 3:
+      tmp |= (z[j+2] & (one<< 1)) <<31; tmp |= (z[j+2] & (one<< 5)) <<28; tmp |= (z[j+2] & (one<< 9)) <<25; tmp |= (z[j+2] & (one<<13)) <<22; 
+      tmp |= (z[j+2] & (one<<17)) <<19; tmp |= (z[j+2] & (one<<21)) <<16; tmp |= (z[j+2] & (one<<25)) <<13; tmp |= (z[j+2] & (one<<29)) <<10; 
+      tmp |= (z[j+2] & (one<<33)) << 7; tmp |= (z[j+2] & (one<<37)) << 4; tmp |= (z[j+2] & (one<<41)) << 1; tmp |= (z[j+2] & (one<<45)) >> 2;
+      tmp |= (z[j+2] & (one<<49)) >> 5; tmp |= (z[j+2] & (one<<53)) >> 8; tmp |= (z[j+2] & (one<<57)) >>11; tmp |= (z[j+2] & (one<<61)) >>14; 
+    case 2:
+      tmp |= (z[j+1] & (one<< 1)) <<15; tmp |= (z[j+1] & (one<< 5)) <<12; tmp |= (z[j+1] & (one<< 9)) << 9; tmp |= (z[j+1] & (one<<13)) << 6;
+      tmp |= (z[j+1] & (one<<17)) << 3; tmp |= (z[j+1] & (one<<21)) << 0; tmp |= (z[j+1] & (one<<25)) >> 3; tmp |= (z[j+1] & (one<<29)) >> 6;
+      tmp |= (z[j+1] & (one<<33)) >> 9; tmp |= (z[j+1] & (one<<37)) >>12; tmp |= (z[j+1] & (one<<41)) >>15; tmp |= (z[j+1] & (one<<45)) >>18;
+      tmp |= (z[j+1] & (one<<49)) >>21; tmp |= (z[j+1] & (one<<53)) >>24; tmp |= (z[j+1] & (one<<57)) >>27; tmp |= (z[j+1] & (one<<61)) >>30;
+    case 1:
+      tmp |= (z[j+0] & (one<< 1)) >> 1; tmp |= (z[j+0] & (one<< 5)) >> 4; tmp |= (z[j+0] & (one<< 9)) >> 7; tmp |= (z[j+0] & (one<<13)) >>10;
+      tmp |= (z[j+0] & (one<<17)) >>13; tmp |= (z[j+0] & (one<<21)) >>16; tmp |= (z[j+0] & (one<<25)) >>19; tmp |= (z[j+0] & (one<<29)) >>22;
+      tmp |= (z[j+0] & (one<<33)) >>25; tmp |= (z[j+0] & (one<<37)) >>28; tmp |= (z[j+0] & (one<<41)) >>31; tmp |= (z[j+0] & (one<<45)) >>34;
+      tmp |= (z[j+0] & (one<<49)) >>37; tmp |= (z[j+0] & (one<<53)) >>40; tmp |= (z[j+0] & (one<<57)) >>43; tmp |= (z[j+0] & (one<<61)) >>46;
+      break;
+    default:
+      m4ri_die("impossible");
+    }
+    a1[j2] = tmp & mask_end;
+  }
+
+  /* A2 */
+  for(size_t i=0; i<A->nrows; i++) {
+    word *a2 = A->x[2]->rows[i];
+    const word const *z  = Z->x->rows[i];
+
+    /* bulk of work */
+    for(j=0, j2=0; j+4 < Z->x->width; j+=4,j2++) {
+      if ( !(z[j+0] | z[j+1] | z[j+2] | z[j+3]) )
+        continue;
+      tmp = 0;
+
+      tmp |= (z[j+3] & (one<< 2)) <<46; tmp |= (z[j+3] & (one<< 6)) <<43; tmp |= (z[j+3] & (one<<10)) <<40; tmp |= (z[j+3] & (one<<14)) <<37;
+      tmp |= (z[j+3] & (one<<18)) <<34; tmp |= (z[j+3] & (one<<22)) <<31; tmp |= (z[j+3] & (one<<26)) <<28; tmp |= (z[j+3] & (one<<30)) <<25;
+      tmp |= (z[j+3] & (one<<34)) <<22; tmp |= (z[j+3] & (one<<38)) <<19; tmp |= (z[j+3] & (one<<42)) <<16; tmp |= (z[j+3] & (one<<46)) <<13;
+      tmp |= (z[j+3] & (one<<50)) <<10; tmp |= (z[j+3] & (one<<54)) << 7; tmp |= (z[j+3] & (one<<58)) << 4; tmp |= (z[j+3] & (one<<62)) << 1;
+                                      
+      tmp |= (z[j+2] & (one<< 2)) <<30; tmp |= (z[j+2] & (one<< 6)) <<27; tmp |= (z[j+2] & (one<<10)) <<24; tmp |= (z[j+2] & (one<<14)) <<21; 
+      tmp |= (z[j+2] & (one<<18)) <<18; tmp |= (z[j+2] & (one<<22)) <<15; tmp |= (z[j+2] & (one<<26)) <<12; tmp |= (z[j+2] & (one<<30)) << 9; 
+      tmp |= (z[j+2] & (one<<34)) << 6; tmp |= (z[j+2] & (one<<38)) << 3; tmp |= (z[j+2] & (one<<42)) << 0; tmp |= (z[j+2] & (one<<46)) >> 3;
+      tmp |= (z[j+2] & (one<<50)) >> 6; tmp |= (z[j+2] & (one<<54)) >> 9; tmp |= (z[j+2] & (one<<58)) >>12; tmp |= (z[j+2] & (one<<62)) >>15; 
+                                      
+      tmp |= (z[j+1] & (one<< 2)) <<14; tmp |= (z[j+1] & (one<< 6)) <<11; tmp |= (z[j+1] & (one<<10)) << 8; tmp |= (z[j+1] & (one<<14)) << 5;
+      tmp |= (z[j+1] & (one<<18)) << 2; tmp |= (z[j+1] & (one<<22)) >> 1; tmp |= (z[j+1] & (one<<26)) >> 4; tmp |= (z[j+1] & (one<<30)) >> 7;
+      tmp |= (z[j+1] & (one<<34)) >>10; tmp |= (z[j+1] & (one<<38)) >>13; tmp |= (z[j+1] & (one<<42)) >>16; tmp |= (z[j+1] & (one<<46)) >>19;
+      tmp |= (z[j+1] & (one<<50)) >>22; tmp |= (z[j+1] & (one<<54)) >>25; tmp |= (z[j+1] & (one<<58)) >>28; tmp |= (z[j+1] & (one<<62)) >>31;
+                                      
+      tmp |= (z[j+0] & (one<< 2)) >> 2; tmp |= (z[j+0] & (one<< 6)) >> 5; tmp |= (z[j+0] & (one<<10)) >> 8; tmp |= (z[j+0] & (one<<14)) >>11;
+      tmp |= (z[j+0] & (one<<18)) >>14; tmp |= (z[j+0] & (one<<22)) >>17; tmp |= (z[j+0] & (one<<26)) >>20; tmp |= (z[j+0] & (one<<30)) >>23;
+      tmp |= (z[j+0] & (one<<34)) >>26; tmp |= (z[j+0] & (one<<38)) >>29; tmp |= (z[j+0] & (one<<42)) >>32; tmp |= (z[j+0] & (one<<46)) >>35;
+      tmp |= (z[j+0] & (one<<50)) >>38; tmp |= (z[j+0] & (one<<54)) >>41; tmp |= (z[j+0] & (one<<58)) >>44; tmp |= (z[j+0] & (one<<62)) >>47;
+
+      a2[j2] = tmp;
+    }
+    tmp = 0;
+    switch(Z->x->width - j) {
+    case 4:
+      tmp |= (z[j+3] & (one<< 2)) <<46; tmp |= (z[j+3] & (one<< 6)) <<43; tmp |= (z[j+3] & (one<<10)) <<40; tmp |= (z[j+3] & (one<<14)) <<37;
+      tmp |= (z[j+3] & (one<<18)) <<34; tmp |= (z[j+3] & (one<<22)) <<31; tmp |= (z[j+3] & (one<<26)) <<28; tmp |= (z[j+3] & (one<<30)) <<25;
+      tmp |= (z[j+3] & (one<<34)) <<22; tmp |= (z[j+3] & (one<<38)) <<19; tmp |= (z[j+3] & (one<<42)) <<16; tmp |= (z[j+3] & (one<<46)) <<13;
+      tmp |= (z[j+3] & (one<<50)) <<10; tmp |= (z[j+3] & (one<<54)) << 7; tmp |= (z[j+3] & (one<<58)) << 4; tmp |= (z[j+3] & (one<<62)) << 1;
+    case 3:                           
+      tmp |= (z[j+2] & (one<< 2)) <<30; tmp |= (z[j+2] & (one<< 6)) <<27; tmp |= (z[j+2] & (one<<10)) <<24; tmp |= (z[j+2] & (one<<14)) <<21; 
+      tmp |= (z[j+2] & (one<<18)) <<18; tmp |= (z[j+2] & (one<<22)) <<15; tmp |= (z[j+2] & (one<<26)) <<12; tmp |= (z[j+2] & (one<<30)) << 9; 
+      tmp |= (z[j+2] & (one<<34)) << 6; tmp |= (z[j+2] & (one<<38)) << 3; tmp |= (z[j+2] & (one<<42)) << 0; tmp |= (z[j+2] & (one<<46)) >> 3;
+      tmp |= (z[j+2] & (one<<50)) >> 6; tmp |= (z[j+2] & (one<<54)) >> 9; tmp |= (z[j+2] & (one<<58)) >>12; tmp |= (z[j+2] & (one<<62)) >>15; 
+    case 2:                           
+      tmp |= (z[j+1] & (one<< 2)) <<14; tmp |= (z[j+1] & (one<< 6)) <<11; tmp |= (z[j+1] & (one<<10)) << 8; tmp |= (z[j+1] & (one<<14)) << 5;
+      tmp |= (z[j+1] & (one<<18)) << 2; tmp |= (z[j+1] & (one<<22)) >> 1; tmp |= (z[j+1] & (one<<26)) >> 4; tmp |= (z[j+1] & (one<<30)) >> 7;
+      tmp |= (z[j+1] & (one<<34)) >>10; tmp |= (z[j+1] & (one<<38)) >>13; tmp |= (z[j+1] & (one<<42)) >>16; tmp |= (z[j+1] & (one<<46)) >>19;
+      tmp |= (z[j+1] & (one<<50)) >>22; tmp |= (z[j+1] & (one<<54)) >>25; tmp |= (z[j+1] & (one<<58)) >>28; tmp |= (z[j+1] & (one<<62)) >>31;
+    case 1:
+      tmp |= (z[j+0] & (one<< 2)) >> 2; tmp |= (z[j+0] & (one<< 6)) >> 5; tmp |= (z[j+0] & (one<<10)) >> 8; tmp |= (z[j+0] & (one<<14)) >>11;
+      tmp |= (z[j+0] & (one<<18)) >>14; tmp |= (z[j+0] & (one<<22)) >>17; tmp |= (z[j+0] & (one<<26)) >>20; tmp |= (z[j+0] & (one<<30)) >>23;
+      tmp |= (z[j+0] & (one<<34)) >>26; tmp |= (z[j+0] & (one<<38)) >>29; tmp |= (z[j+0] & (one<<42)) >>32; tmp |= (z[j+0] & (one<<46)) >>35;
+      tmp |= (z[j+0] & (one<<50)) >>38; tmp |= (z[j+0] & (one<<54)) >>41; tmp |= (z[j+0] & (one<<58)) >>44; tmp |= (z[j+0] & (one<<62)) >>47;
+      break;
+    default:
+      m4ri_die("impossible");
+    }
+    a2[j2] = tmp & mask_end;
+  }
+
+  if(A->depth == 3)
+    return A;
+
+  /* A3 */
+  for(size_t i=0; i<A->nrows; i++) {
+    word *a3 = A->x[3]->rows[i];
+    const word const *z  = Z->x->rows[i];
+
+    /* bulk of work */
+    for(j=0, j2=0; j+4 < Z->x->width; j+=4,j2++) {
+      if ( !(z[j+0] | z[j+1] | z[j+2] | z[j+3]) )
+        continue;
+      tmp = 0;
+
+      tmp |= (z[j+3] & (one<< 3)) <<45; tmp |= (z[j+3] & (one<< 7)) <<42; tmp |= (z[j+3] & (one<<11)) <<39; tmp |= (z[j+3] & (one<<15)) <<36;
+      tmp |= (z[j+3] & (one<<19)) <<33; tmp |= (z[j+3] & (one<<23)) <<30; tmp |= (z[j+3] & (one<<27)) <<27; tmp |= (z[j+3] & (one<<31)) <<24;
+      tmp |= (z[j+3] & (one<<35)) <<21; tmp |= (z[j+3] & (one<<39)) <<18; tmp |= (z[j+3] & (one<<43)) <<15; tmp |= (z[j+3] & (one<<47)) <<12;
+      tmp |= (z[j+3] & (one<<51)) << 9; tmp |= (z[j+3] & (one<<55)) << 6; tmp |= (z[j+3] & (one<<59)) << 3; tmp |= (z[j+3] & (one<<63)) << 0;
+                                      
+      tmp |= (z[j+2] & (one<< 3)) <<29; tmp |= (z[j+2] & (one<< 7)) <<26; tmp |= (z[j+2] & (one<<11)) <<23; tmp |= (z[j+2] & (one<<15)) <<20; 
+      tmp |= (z[j+2] & (one<<19)) <<17; tmp |= (z[j+2] & (one<<23)) <<14; tmp |= (z[j+2] & (one<<27)) <<11; tmp |= (z[j+2] & (one<<31)) << 8; 
+      tmp |= (z[j+2] & (one<<35)) << 5; tmp |= (z[j+2] & (one<<39)) << 2; tmp |= (z[j+2] & (one<<43)) >> 1; tmp |= (z[j+2] & (one<<47)) >> 4;
+      tmp |= (z[j+2] & (one<<51)) >> 7; tmp |= (z[j+2] & (one<<55)) >>10; tmp |= (z[j+2] & (one<<59)) >>13; tmp |= (z[j+2] & (one<<63)) >>16; 
+                                      
+      tmp |= (z[j+1] & (one<< 3)) <<13; tmp |= (z[j+1] & (one<< 7)) <<10; tmp |= (z[j+1] & (one<<11)) << 7; tmp |= (z[j+1] & (one<<15)) << 4;
+      tmp |= (z[j+1] & (one<<19)) << 1; tmp |= (z[j+1] & (one<<23)) >> 2; tmp |= (z[j+1] & (one<<27)) >> 5; tmp |= (z[j+1] & (one<<31)) >> 8;
+      tmp |= (z[j+1] & (one<<35)) >>11; tmp |= (z[j+1] & (one<<39)) >>14; tmp |= (z[j+1] & (one<<43)) >>17; tmp |= (z[j+1] & (one<<47)) >>20;
+      tmp |= (z[j+1] & (one<<51)) >>23; tmp |= (z[j+1] & (one<<55)) >>26; tmp |= (z[j+1] & (one<<59)) >>29; tmp |= (z[j+1] & (one<<63)) >>32;
+                                      
+      tmp |= (z[j+0] & (one<< 3)) >> 3; tmp |= (z[j+0] & (one<< 7)) >> 6; tmp |= (z[j+0] & (one<<11)) >> 9; tmp |= (z[j+0] & (one<<15)) >>12;
+      tmp |= (z[j+0] & (one<<19)) >>15; tmp |= (z[j+0] & (one<<23)) >>18; tmp |= (z[j+0] & (one<<27)) >>21; tmp |= (z[j+0] & (one<<31)) >>24;
+      tmp |= (z[j+0] & (one<<35)) >>27; tmp |= (z[j+0] & (one<<39)) >>30; tmp |= (z[j+0] & (one<<43)) >>33; tmp |= (z[j+0] & (one<<47)) >>36;
+      tmp |= (z[j+0] & (one<<51)) >>39; tmp |= (z[j+0] & (one<<55)) >>42; tmp |= (z[j+0] & (one<<59)) >>45; tmp |= (z[j+0] & (one<<63)) >>48;
+
+      a3[j2] = tmp;
+    }
+    tmp = 0;
+    switch(Z->x->width - j) {
+    case 4:
+      tmp |= (z[j+3] & (one<< 3)) <<45; tmp |= (z[j+3] & (one<< 7)) <<42; tmp |= (z[j+3] & (one<<11)) <<39; tmp |= (z[j+3] & (one<<15)) <<36;
+      tmp |= (z[j+3] & (one<<19)) <<33; tmp |= (z[j+3] & (one<<23)) <<30; tmp |= (z[j+3] & (one<<27)) <<27; tmp |= (z[j+3] & (one<<31)) <<24;
+      tmp |= (z[j+3] & (one<<35)) <<21; tmp |= (z[j+3] & (one<<39)) <<18; tmp |= (z[j+3] & (one<<43)) <<15; tmp |= (z[j+3] & (one<<47)) <<12;
+      tmp |= (z[j+3] & (one<<51)) << 9; tmp |= (z[j+3] & (one<<55)) << 6; tmp |= (z[j+3] & (one<<59)) << 3; tmp |= (z[j+3] & (one<<63)) << 0;
+    case 3:
+      tmp |= (z[j+2] & (one<< 3)) <<29; tmp |= (z[j+2] & (one<< 7)) <<26; tmp |= (z[j+2] & (one<<11)) <<23; tmp |= (z[j+2] & (one<<15)) <<20; 
+      tmp |= (z[j+2] & (one<<19)) <<17; tmp |= (z[j+2] & (one<<23)) <<14; tmp |= (z[j+2] & (one<<27)) <<11; tmp |= (z[j+2] & (one<<31)) << 8; 
+      tmp |= (z[j+2] & (one<<35)) << 5; tmp |= (z[j+2] & (one<<39)) << 2; tmp |= (z[j+2] & (one<<43)) >> 1; tmp |= (z[j+2] & (one<<47)) >> 4;
+      tmp |= (z[j+2] & (one<<51)) >> 7; tmp |= (z[j+2] & (one<<55)) >>10; tmp |= (z[j+2] & (one<<59)) >>13; tmp |= (z[j+2] & (one<<63)) >>16; 
+    case 2:
+      tmp |= (z[j+1] & (one<< 3)) <<13; tmp |= (z[j+1] & (one<< 7)) <<10; tmp |= (z[j+1] & (one<<11)) << 7; tmp |= (z[j+1] & (one<<15)) << 4;
+      tmp |= (z[j+1] & (one<<19)) << 1; tmp |= (z[j+1] & (one<<23)) >> 2; tmp |= (z[j+1] & (one<<27)) >> 5; tmp |= (z[j+1] & (one<<31)) >> 8;
+      tmp |= (z[j+1] & (one<<35)) >>11; tmp |= (z[j+1] & (one<<39)) >>14; tmp |= (z[j+1] & (one<<43)) >>17; tmp |= (z[j+1] & (one<<47)) >>20;
+      tmp |= (z[j+1] & (one<<51)) >>23; tmp |= (z[j+1] & (one<<55)) >>26; tmp |= (z[j+1] & (one<<59)) >>29; tmp |= (z[j+1] & (one<<63)) >>32;
+    case 1:
+      tmp |= (z[j+0] & (one<< 3)) >> 3; tmp |= (z[j+0] & (one<< 7)) >> 6; tmp |= (z[j+0] & (one<<11)) >> 9; tmp |= (z[j+0] & (one<<15)) >>12;
+      tmp |= (z[j+0] & (one<<19)) >>15; tmp |= (z[j+0] & (one<<23)) >>18; tmp |= (z[j+0] & (one<<27)) >>21; tmp |= (z[j+0] & (one<<31)) >>24;
+      tmp |= (z[j+0] & (one<<35)) >>27; tmp |= (z[j+0] & (one<<39)) >>30; tmp |= (z[j+0] & (one<<43)) >>33; tmp |= (z[j+0] & (one<<47)) >>36;
+      tmp |= (z[j+0] & (one<<51)) >>39; tmp |= (z[j+0] & (one<<55)) >>42; tmp |= (z[j+0] & (one<<59)) >>45; tmp |= (z[j+0] & (one<<63)) >>48;
+      break;
+    default:
+      m4ri_die("impossible");
+    }
+    a3[j2] = tmp & mask_end;
+  }
+  return A;
+}
+
+
 mzed_t *mzed_mul_karatsuba(mzed_t *C, const mzed_t *A, const mzed_t *B) {
   if (A->ncols != B->nrows || A->finite_field != B->finite_field) {
     m4ri_die("mzed_mul: rows, columns and fields must match.\n");
@@ -710,6 +976,7 @@ mzed_t *_mzed_mul_karatsuba2(mzed_t *C, const mzed_t *A, const mzed_t *B) {
   else
     Cs = mzd_slice_init(A->finite_field, A->nrows, B->ncols);
 
+
   As = mzed_slice2(NULL, A);
   Bs = mzed_slice2(NULL, B);
 
@@ -745,3 +1012,4 @@ void mzd_slice_set_ui(mzd_slice_t *A, word value) {
     mzd_set_ui(A->x[i], (value>>i)&1);
   }
 }
+
