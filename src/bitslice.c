@@ -967,6 +967,12 @@ mzed_t *_mzed_cling4(mzed_t *A, const mzd_slice_t *Z) {
   return A;
 }
 
+void mzd_slice_set_ui(mzd_slice_t *A, word value) {
+  for(int i=0; i<A->depth; i++) {
+    mzd_set_ui(A->x[i], (value>>i)&1);
+  }
+}
+
 
 mzed_t *mzed_mul_karatsuba(mzed_t *C, const mzed_t *A, const mzed_t *B) {
   if (A->ncols != B->nrows || A->finite_field != B->finite_field) {
@@ -978,13 +984,9 @@ mzed_t *mzed_mul_karatsuba(mzed_t *C, const mzed_t *A, const mzed_t *B) {
     }
     mzed_set_ui(C,0);
   }
-  switch(A->finite_field->degree) {
-  case 2:
-    C =  _mzed_mul_karatsuba2(C, A, B);
-    break;
-  default:
-    m4ri_die("mzed_mul_karatsuba: only implemented for GF(2^2)");
-  }
+
+  C = _mzed_mul_karatsuba(C, A, B);
+
   return C; 
 }
 
@@ -997,57 +999,62 @@ mzed_t *mzed_addmul_karatsuba(mzed_t *C, const mzed_t *A, const mzed_t *B) {
   if (C->finite_field != A->finite_field || C->nrows != A->nrows || C->ncols != B->ncols) {
     m4ri_die("mzed_mul: rows and columns of returned matrix must match.\n");
   }
-  switch(A->finite_field->degree) {
-  case 2:
-    C =  _mzed_mul_karatsuba2(C, A, B);
-    break;
-  default:
-    m4ri_die("mzed_mul_karatsuba: only implemented for GF(2^2)");
-  }
+
+  C = _mzed_mul_karatsuba(C, A, B);
+
   return C; 
 }
 
-mzed_t *_mzed_mul_karatsuba2(mzed_t *C, const mzed_t *A, const mzed_t *B) {
-  mzd_slice_t *As, *Bs, *Cs;
-  if (C != NULL)
-    Cs = mzed_slice2(NULL, C);
+mzed_t *_mzed_mul_karatsuba(mzed_t *C, const mzed_t *A, const mzed_t *B) {
+  mzd_slice_t *As,*Bs,*Cs;
+  if(C)
+    Cs = mzed_slice(NULL,C);
   else
-    Cs = mzd_slice_init(A->finite_field, A->nrows, B->ncols);
+    Cs = NULL;
+  As = mzed_slice(NULL,A);
+  Bs = mzed_slice(NULL,B);
 
+  switch(A->finite_field->degree) {
+  case  2:
+    Cs = _mzd_slice_mul_karatsuba2(Cs, As, Bs); break;
+  case  3:
+  case  4:
+  case  5:
+  case  6:
+  case  7:
+  case  8:
+  case  9:
+  case 10:
+  default:
+    m4ri_die("mzed_mul_karatsuba: only implemented for GF(2^2)");
+  }
+  C = mzed_cling(C, Cs);
 
-  As = mzed_slice2(NULL, A);
-  Bs = mzed_slice2(NULL, B);
-
-  /* compute */
-
-  mzd_addmul(Cs->x[0], As->x[1], Bs->x[1], 0);  /* C0 += A1*B1 */
-
-  mzd_t *T0 = mzd_addmul(NULL, As->x[0], Bs->x[0], 0);  /* A0B0 = A0*B0 */
-  mzd_add(Cs->x[0], Cs->x[0], T0); /*C0 += A0*B0 */
-  mzd_add(Cs->x[1], Cs->x[1], T0); /*C1 += A0*B0 */
-  mzd_free(T0);
-
-  T0 = mzd_add(NULL, As->x[1], As->x[0]); /*T0 = A1 + A0 */
-  mzd_t *T1 = mzd_add(NULL, Bs->x[1], Bs->x[0]); /*T1 = B1 + B0 */
-
-  mzd_addmul(Cs->x[1], T0, T1, 0); /* C1 += A0*B0 + T0*T1 */
-
-  /* pack */
-  C = mzed_cling2(C, Cs);
-
-  /* clean */
-
-  mzd_free(T0);  mzd_free(T1);
   mzd_slice_free(As);
   mzd_slice_free(Bs);
   mzd_slice_free(Cs);
+  return C;
+}
+
+mzd_slice_t *_mzd_slice_mul_karatsuba2(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B) {
+  if (C == NULL)
+    C = mzd_slice_init(A->finite_field, A->nrows, B->ncols);
+
+  mzd_addmul(C->x[0], A->x[1], B->x[1], 0);  /* C0 += A1*B1 */
+
+  mzd_t *T0 = mzd_addmul(NULL, A->x[0], B->x[0], 0);  /* A0B0 = A0*B0 */
+  mzd_add(C->x[0], C->x[0], T0); /*C0 += A0*B0 */
+  mzd_add(C->x[1], C->x[1], T0); /*C1 += A0*B0 */
+  mzd_free(T0);
+
+  T0 = mzd_add(NULL, A->x[1], A->x[0]); /*T0 = A1 + A0 */
+  mzd_t *T1 = mzd_add(NULL, B->x[1], B->x[0]); /*T1 = B1 + B0 */
+
+  mzd_addmul(C->x[1], T0, T1, 0); /* C1 += A0*B0 + T0*T1 */
+
+  mzd_free(T0);  mzd_free(T1);
 
   return C;
 }
 
-void mzd_slice_set_ui(mzd_slice_t *A, word value) {
-  for(int i=0; i<A->depth; i++) {
-    mzd_set_ui(A->x[i], (value>>i)&1);
-  }
-}
 

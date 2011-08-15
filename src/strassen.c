@@ -64,7 +64,7 @@ mzed_t *_mzed_mul_strassen_even(mzed_t *C, const mzed_t *A, const mzed_t *B, int
     /* C = _mzd_mul_m4rm(C, A, B, 0, TRUE); */
     mzed_t *Cbar = mzed_init(C->finite_field, m, n);
     if (A->finite_field->degree == 2)
-      _mzed_mul_karatsuba2(Cbar, A, B);
+      _mzed_mul_karatsuba(Cbar, A, B);
     else
       _mzed_mul_travolta(Cbar, A, B);
 
@@ -172,7 +172,7 @@ mzed_t *_mzed_mul_strassen_even(mzed_t *C, const mzed_t *A, const mzed_t *B, int
     mzed_t *C_last_col = mzed_init_window(C, 0, nnn, m, n);
     mzed_set_ui(C_last_col, 0);
     if (A->finite_field->degree == 2)
-      _mzed_mul_karatsuba2(C_last_col, A, B_last_col);
+      _mzed_mul_karatsuba(C_last_col, A, B_last_col);
     else
       _mzed_mul_travolta(C_last_col, A, B_last_col);
     mzed_free_window(B_last_col);
@@ -187,7 +187,7 @@ mzed_t *_mzed_mul_strassen_even(mzed_t *C, const mzed_t *A, const mzed_t *B, int
     mzed_t *C_last_row = mzed_init_window(C, mmm, 0, m, nnn);
     mzed_set_ui(C_last_row, 0);
     if (A->finite_field->degree == 2)
-      _mzed_mul_karatsuba2(C_last_row, A_last_row, B_first_col);
+      _mzed_mul_karatsuba(C_last_row, A_last_row, B_first_col);
     else
       _mzed_mul_travolta(C_last_row, A_last_row, B_first_col);
     mzed_free_window(A_last_row);
@@ -202,7 +202,7 @@ mzed_t *_mzed_mul_strassen_even(mzed_t *C, const mzed_t *A, const mzed_t *B, int
     mzed_t *B_last_row = mzed_init_window(B, kkk,   0,   k, nnn);
     mzed_t *C_bulk = mzed_init_window(C, 0, 0, mmm, nnn);
     if (A->finite_field->degree == 2)
-      _mzed_mul_karatsuba2(C_bulk, A_last_col, B_last_row);
+      _mzed_mul_karatsuba(C_bulk, A_last_col, B_last_row);
     else
       _mzed_mul_travolta(C_bulk, A_last_col, B_last_row);
     mzed_free_window(A_last_col);

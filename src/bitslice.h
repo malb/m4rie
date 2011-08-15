@@ -417,8 +417,8 @@ mzed_t *mzed_addmul_karatsuba(mzed_t *C, const mzed_t *A, const mzed_t *B);
  * \wordoffset
  */
 
-mzed_t *_mzed_mul_karatsuba2(mzed_t *C, const mzed_t *A, const mzed_t *B);
+mzed_t *_mzed_mul_karatsuba(mzed_t *C, const mzed_t *A, const mzed_t *B);
 
-
+mzd_slice_t *_mzd_slice_mul_karatsuba2(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B);
 
 #endif //BITSLICE_H
