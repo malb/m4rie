@@ -1020,24 +1020,24 @@ mzed_t *_mzed_mul_karatsuba2(mzed_t *C, const mzed_t *A, const mzed_t *B) {
 
   /* compute */
 
-  mzd_t *T0 = mzd_mul(NULL, As->x[1], Bs->x[1], 0);  /* A1B1 = A1*B1 */
-  mzd_t *T1 = mzd_mul(NULL, As->x[0], Bs->x[0], 0);  /* A0B0 = A0*B0 */
+  mzd_addmul(Cs->x[0], As->x[1], Bs->x[1], 0);  /* C0 += A1*B1 */
 
-  mzd_add(Cs->x[0], Cs->x[0], T0);
-  mzd_add(Cs->x[0], Cs->x[0], T1); /*C0 += A1*B1 + A0*B0 */
+  mzd_t *T0 = mzd_addmul(NULL, As->x[0], Bs->x[0], 0);  /* A0B0 = A0*B0 */
+  mzd_add(Cs->x[0], Cs->x[0], T0); /*C0 += A0*B0 */
+  mzd_add(Cs->x[1], Cs->x[1], T0); /*C1 += A0*B0 */
+  mzd_free(T0);
 
-  mzd_t *T2 = mzd_add(NULL, As->x[1], As->x[0]); /*T2 = A1 + A0 */
-  mzd_t *T3 = mzd_add(NULL, Bs->x[1], Bs->x[0]); /*T3 = B1 + B0 */
+  T0 = mzd_add(NULL, As->x[1], As->x[0]); /*T0 = A1 + A0 */
+  mzd_t *T1 = mzd_add(NULL, Bs->x[1], Bs->x[0]); /*T1 = B1 + B0 */
 
-  mzd_add(Cs->x[1], Cs->x[1], T1);
-  mzd_addmul(Cs->x[1], T2, T3, 0); /* C1 += T1 + T2*T3 */
+  mzd_addmul(Cs->x[1], T0, T1, 0); /* C1 += A0*B0 + T0*T1 */
 
   /* pack */
   C = mzed_cling2(C, Cs);
 
   /* clean */
 
-  mzd_free(T0);  mzd_free(T1);  mzd_free(T2);  mzd_free(T3);
+  mzd_free(T0);  mzd_free(T1);
   mzd_slice_free(As);
   mzd_slice_free(Bs);
   mzd_slice_free(Cs);
