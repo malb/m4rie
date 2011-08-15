@@ -34,6 +34,8 @@ int run(void *_p, unsigned long long *data, int *data_len) {
     C = mzed_mul_travolta(NULL, A, B);
   else if(strcmp(p->algorithm,"naive")==0)
     C = mzed_mul_naive(NULL, A, B);
+  else if(strcmp(p->algorithm,"karatsuba")==0)
+    C = mzed_mul_karatsuba(NULL, A, B);
   else
     C = mzed_mul(NULL, A, B);
 

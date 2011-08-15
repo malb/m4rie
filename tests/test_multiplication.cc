@@ -33,6 +33,7 @@ using namespace M4RIE;
 
 int test_addmul() {
   int fail_ret = 0;
+  int fail_ret_global = 0;
   for(size_t k=2; k<=10; k++) {
     FiniteField *F = (FiniteField*)(new GFqDom<int>(2,k));
     gf2e *ff = gf2e_init_givgfq(F);
@@ -71,6 +72,8 @@ int test_addmul() {
         printf("pass\n");
       else
         printf("FAIL\n");
+      fail_ret_global += fail_ret;
+      fail_ret = 0;
 
       mzed_free(A);
       mzed_free(B);
@@ -82,10 +85,11 @@ int test_addmul() {
     gf2e_free(ff);
     delete F;
   }
-  return fail_ret;
+  return fail_ret_global;
 }
 
 int test_mul() {
+  int fail_ret_global = 0;
   int fail_ret = 0;
   for(size_t k=2; k<=10; k++) {
     FiniteField *F = (FiniteField*)(new GFqDom<int>(2,k));
@@ -111,7 +115,7 @@ int test_mul() {
       m4rie_check( mzed_cmp(C0, C1) == 0);
       m4rie_check( mzed_cmp(C1, C2) == 0);
 
-      if (k == 2) {
+      if (k <= 3) {
         mzed_t *C3 = mzed_mul_karatsuba(NULL, A, B);
         m4rie_check( mzed_cmp(C2, C3) == 0);
         mzed_free(C3);
@@ -121,7 +125,8 @@ int test_mul() {
         printf("pass\n");
       else 
         printf("FAIL\n");
-
+      fail_ret_global += fail_ret;
+      fail_ret = 0;
       mzed_free(A);
       mzed_free(B);
       mzed_free(C0);
@@ -131,7 +136,7 @@ int test_mul() {
     gf2e_free(ff);
     delete F;
   }
-  return fail_ret;
+  return fail_ret_global;
 }
 
 int main(int argc, char **argv) {

@@ -1018,6 +1018,7 @@ mzed_t *_mzed_mul_karatsuba(mzed_t *C, const mzed_t *A, const mzed_t *B) {
   case  2:
     Cs = _mzd_slice_mul_karatsuba2(Cs, As, Bs); break;
   case  3:
+    Cs = _mzd_slice_mul_karatsuba3(Cs, As, Bs); break;
   case  4:
   case  5:
   case  6:
@@ -1053,6 +1054,80 @@ mzd_slice_t *_mzd_slice_mul_karatsuba2(mzd_slice_t *C, const mzd_slice_t *A, con
   mzd_addmul(C->x[1], T0, T1, 0); /* C1 += A0*B0 + T0*T1 */
 
   mzd_free(T0);  mzd_free(T1);
+
+  return C;
+}
+
+
+mzd_slice_t *_mzd_slice_mul_karatsuba3(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B) {
+  if (C == NULL)
+    C = mzd_slice_init(A->finite_field, A->nrows, B->ncols);
+  
+  const mzd_t *a0 = A->x[0];
+  const mzd_t *a1 = A->x[1];
+  const mzd_t *a2 = A->x[2];
+
+  const mzd_t *b0 = B->x[0];
+  const mzd_t *b1 = B->x[1];
+  const mzd_t *b2 = B->x[2];
+
+  mzd_t *t0 = mzd_init(a0->nrows, a0->ncols);
+  mzd_t *t1 = mzd_init(b0->nrows, b0->ncols);
+
+  mzd_t *t2 = mzd_init(a0->nrows, b0->ncols);
+  mzd_t *t3 = mzd_init(a0->nrows, b0->ncols);
+
+  mzd_t *X[5] = {C->x[0], C->x[1], C->x[2], t2, t3};
+
+  mzd_add(t0, a0, a1);
+  mzd_add(t1, b0, b1);
+  mzd_addmul(X[1], t0, t1, 0); /* + (a0+a1)(b0+b1)X */
+
+  mzd_add(t0, a0, a2);
+  mzd_add(t1, b0, b2);
+  mzd_addmul(X[2], t0, t1, 0); /* + (a0+a2)(b0+b2)X^2 */
+
+  mzd_add(t0, a1, a2);
+  mzd_add(t1, b1, b2);
+  mzd_addmul(X[3], t0, t1, 0); /* + (a1+a2)(b1+b2)X^3 */
+
+  mzd_free(t0);
+  mzd_free(t1);
+
+  t0 = mzd_init(a0->nrows, b0->ncols);
+
+  mzd_mul(t0, a0, b0, 0); /* + a0b0(1-X-X^2) */
+  mzd_add(X[0], X[0], t0);
+  mzd_add(X[1], X[1], t0);
+  mzd_add(X[2], X[2], t0);
+
+  mzd_mul(t0, a1, b1, 0); /* + a1b1(X+X^2-X^3) */
+  mzd_add(X[1], X[1], t0);
+  mzd_add(X[2], X[2], t0);
+  mzd_add(X[3], X[3], t0);
+
+  mzd_mul(t0, a2, b2, 0); /* + a2b2(-X^2-X^3+X^4) */
+  mzd_add(X[2], X[2], t0);
+  mzd_add(X[3], X[3], t0);
+  mzd_add(X[4], X[4], t0);
+
+  mzd_free(t0);
+
+  /* modular reduction */
+
+  if(A->finite_field->minpoly & 1<<2) {
+    mzd_add(X[2],X[2],X[3]);
+    mzd_add(X[3],X[3],X[4]);
+  }
+  else { // (A->finite_field->minpoly & 1<<1)
+    mzd_add(X[1],X[1],X[3]);
+    mzd_add(X[2],X[2],X[4]);
+  }
+  mzd_add(X[0],X[0],X[3]);
+  mzd_add(X[1],X[1],X[4]);
+
+  mzd_free(t2);
+  mzd_free(t3);
 
   return C;
 }

@@ -7,6 +7,7 @@ typedef struct {
   word **mul;
   word *inv;
   size_t degree;
+  word minpoly;
 } gf2e;
 
 void gf2e_free(gf2e *ff);
