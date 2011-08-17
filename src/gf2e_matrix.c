@@ -99,7 +99,6 @@ mzed_t *mzed_addmul(mzed_t *C, const mzed_t *A, const mzed_t *B) {
   return C;
 }
 
-
 mzed_t *_mzed_mul(mzed_t *C, const mzed_t *A, const mzed_t *B) {
   if (A->finite_field->degree <= 3)
     return _mzed_mul_karatsuba(C, A, B);
@@ -138,6 +137,83 @@ mzed_t *_mzed_mul_naive(mzed_t *C, const mzed_t *A, const mzed_t *B) {
   return C;
 }
 
+mzed_t *mzed_mul_scalar(mzed_t *C, const word a, const mzed_t *B) {
+  /**
+   * The algorithm proceeds as follows:
+   */
+  if(C == NULL)
+    C = mzed_init(B->finite_field, B->nrows, B->ncols);
+
+  const gf2e *ff = B->finite_field;
+  const word *x = ff->mul[a];
+
+  /**
+   * 0) If a direct approach would need less lookups we use that.
+   */
+
+  if(ff->degree > 8 || B->nrows*B->ncols < 1<<17) {
+    mzed_copy(C, B);
+    for(rci_t i=0; i<B->nrows; i++)
+      mzed_rescale_row(C, i, 0, x);
+    return C;
+  }
+
+  word *mul = calloc(1<<16, sizeof(word));
+
+  const word mask_16 = (1<<16)-1;
+  const word mask_w = (1<<B->w)-1;
+
+  /**
+   * 1) We generate a lookup table of 16-bit wide entries
+   *
+   * @todo: this is a bit of overkill, we could do better
+   */
+  for(word i=0; i<1<<16; i++) {
+    switch(C->w) {
+    case 2:
+      mul[i]  = x[(i&mask_w)] | x[((i>>2)&mask_w)]<<2 | x[((i>>4)&mask_w)]<<4 | x[((i>>6)&mask_w)]<<6;
+      mul[i] |= x[((i>>8)&mask_w)]<<8 | x[((i>>10)&mask_w)]<<10 | x[((i>>12)&mask_w)]<<12 | x[((i>>14)&mask_w)]<<14;
+      break;
+    case 4:
+      mul[i]  = x[(i&mask_w)] | x[((i>>4)&mask_w)]<<4 | x[((i>>8)&mask_w)]<<9 | x[((i>>12)&mask_w)]<<12;
+      break;
+    case 8:
+      mul[i]  = x[(i&mask_w)] | x[((i>>8)&mask_w)]<<8;
+      break;
+    case 16:
+      mul[i]  = x[(i&mask_w)];
+      break;
+    };
+  }
+
+  /**
+   * 2) We use that lookup table to do 4 lookups per word
+   */
+
+  for(rci_t i=0; i<C->nrows; i++) {
+    word *c_row = C->x->rows[i];
+    const word *b_row = B->x->rows[i];
+    for(wi_t j=0; j<C->x->width-1; j++) {
+      const word tmp = b_row[j];
+      const word a0 = tmp & mask_16;
+      const word a1 = tmp>>16 & mask_16;
+      const word a2 = tmp>>32 & mask_16;
+      const word a3 = tmp>>48 & mask_16;
+      c_row[j] = mul[a3]<<48 | mul[a2]<<32 | mul[a1]<<16 | mul[a0];      
+    }
+    /* deal with rest */
+    const word tmp = b_row[B->x->width-1] & B->x->high_bitmask;
+    const word a0 = tmp & mask_16;
+    const word a1 = tmp>>16 & mask_16;
+    const word a2 = tmp>>32 & mask_16;
+    const word a3 = tmp>>48 & mask_16;
+    c_row[C->x->width-1] &= ~B->x->high_bitmask;
+    c_row[C->x->width-1] |= mul[a3]<<48 | mul[a2]<<32 | mul[a1]<<16 | mul[a0];
+  }
+  free(mul);
+  return C;
+}
+
 
 mzed_t *mzed_copy(mzed_t *A, const mzed_t *B) {
   if (A == B)
@@ -150,7 +226,6 @@ mzed_t *mzed_copy(mzed_t *A, const mzed_t *B) {
   mzd_copy(A->x, B->x);
   return A;
 }
-
 
 rci_t mzed_echelonize_naive(mzed_t *A, int full) {
   rci_t start_row,r,c,i,elim_start;

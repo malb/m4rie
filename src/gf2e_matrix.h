@@ -368,6 +368,18 @@ mzed_t *mzed_mul_naive(mzed_t *C, const mzed_t *A, const mzed_t *B);
 mzed_t *_mzed_mul_naive(mzed_t *C, const mzed_t *A, const mzed_t *B);
 
 /**
+ * \brief C such that C == aB.
+ *
+ * \param C Preallocated product matrix or NULL.
+ * \param a finite field element.
+ * \param B Input matrix B.
+ *
+ * \ingroup Multiplication
+ */
+
+mzed_t *mzed_mul_scalar(mzed_t *C, const word a, const mzed_t *B);
+
+/**
  * Check whether C, A and B match in sizes and fields for
  * multiplication
  *
@@ -780,7 +792,7 @@ static inline void mzed_add_multiple_of_row(mzed_t *A, rci_t ar, const mzed_t *B
  * \wordoffset
  */
 
-static inline void mzed_rescale_row(mzed_t *A, rci_t r, rci_t c, word *X) {
+static inline void mzed_rescale_row(mzed_t *A, rci_t r, rci_t c, const word *X) {
   for(rci_t l=c; l<A->ncols; l++) {
     mzed_write_elem(A, r, l, X[mzed_read_elem(A, r, l)]);
   }

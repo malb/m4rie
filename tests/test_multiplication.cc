@@ -68,8 +68,8 @@ int test_addmul(gf2e *ff, rci_t m, rci_t n, rci_t l) {
 
 int test_mul(gf2e *ff, rci_t m, rci_t n, rci_t l) {
   int fail_ret = 0;
-  mzed_t *A = random_mzed_t(ff, m, l);
-  mzed_t *B = random_mzed_t(ff, l, n);
+  const mzed_t *A = random_mzed_t(ff, m, l);
+  const mzed_t *B = random_mzed_t(ff, l, n);
 
   mzed_t *C0 = random_mzed_t(ff, m, n);
   mzed_t *C1 = random_mzed_t(ff, m, n);
@@ -91,8 +91,8 @@ int test_mul(gf2e *ff, rci_t m, rci_t n, rci_t l) {
     m4rie_check( mzed_cmp(C3, C4) == 0);
   }
 
-  mzed_free(A);
-  mzed_free(B);
+  mzed_free((mzed_t*)A);
+  mzed_free((mzed_t*)B);
   mzed_free(C0);
   mzed_free(C1);
   mzed_free(C2);
@@ -101,9 +101,62 @@ int test_mul(gf2e *ff, rci_t m, rci_t n, rci_t l) {
   return fail_ret;
 }
 
+int test_scalar(gf2e *ff, rci_t m, rci_t n) {
+  int fail_ret = 0;
+
+  word a = random() & ((1<<ff->degree)-1);
+  while (!a)
+    a = random() & ((1<<ff->degree)-1);
+  mzed_t *B = random_mzed_t(ff, m, n);
+
+  mzed_t *C0 = mzed_init(ff, m, n);
+  mzed_t *C1 = random_mzed_t(ff, m, n);
+  mzed_t *C2 = NULL;
+
+  C0 = mzed_mul_scalar(C0, a, B);
+  C1 = mzed_mul_scalar(C1, a, B);
+  C2 = mzed_mul_scalar(C2, a, B);
+
+  m4rie_check( mzed_cmp(C0, C1) == 0);
+  m4rie_check( mzed_cmp(C1, C2) == 0);
+
+  const word a_inv = ff->inv[a];
+
+  mzed_t *B0 = mzed_init(ff, m, n);
+  mzed_t *B1 = random_mzed_t(ff, m, n);
+  mzed_t *B2 = NULL;
+
+  B0 = mzed_mul_scalar(B0, a_inv, C0);
+  B1 = mzed_mul_scalar(B1, a_inv, C1);
+  B2 = mzed_mul_scalar(B2, a_inv, C2);
+
+  m4rie_check( mzed_cmp(B, B0) == 0);
+  m4rie_check( mzed_cmp(B, B1) == 0);
+  m4rie_check( mzed_cmp(B, B2) == 0);
+
+  mzed_free(C0);
+  mzed_free(C1);
+  mzed_free(C2);
+
+  mzed_free(B0);
+  mzed_free(B1);
+  mzed_free(B2);
+
+  return fail_ret;
+}
+
+
 int test_batch(gf2e *ff, rci_t m, rci_t l, rci_t n) {
   int fail_ret = 0;
   printf("mul: k: %2d, minpoly: 0x%03x m: %5d, l: %5d, n: %5d ",ff->degree, ff->minpoly, m, l, n);
+
+  m4rie_check(test_scalar(ff, m, m) == 0); printf("."); fflush(0);
+  m4rie_check(test_scalar(ff, l, l) == 0); printf("."); fflush(0);
+  m4rie_check(test_scalar(ff, n, n) == 0); printf("."); fflush(0);
+  m4rie_check(test_scalar(ff, m, l) == 0); printf("."); fflush(0);
+  m4rie_check(test_scalar(ff, l, n) == 0); printf("."); fflush(0);
+  m4rie_check(test_scalar(ff, m, n) == 0); printf("."); fflush(0);
+  m4rie_check(test_scalar(ff, l, m) == 0); printf("."); fflush(0);
 
   if(m == l && m == n) {
     m4rie_check(   test_mul(ff, m, l, n) == 0); printf("."); fflush(0);
