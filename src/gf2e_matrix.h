@@ -86,7 +86,7 @@ typedef struct {
  * \ingroup Constructions
  */
 
-mzed_t *mzed_init(gf2e *ff, const size_t m, const size_t n);
+mzed_t *mzed_init(gf2e *ff, const rci_t m, const rci_t n);
 
 /**
  * \brief Free a matrix created with mzed_init.
@@ -171,7 +171,7 @@ static inline mzed_t *mzed_stack(mzed_t *C, const mzed_t *A, const mzed_t *B) {
  *
  * \ingroup Constructions
  */
-static inline mzed_t *mzed_submatrix(mzed_t *S, const mzed_t *M, const size_t lowr, const size_t lowc, const size_t highr, const size_t highc) {
+static inline mzed_t *mzed_submatrix(mzed_t *S, const mzed_t *M, const rci_t lowr, const rci_t lowc, const rci_t highr, const rci_t highc) {
   if(S==NULL)
     S = mzed_init(M->finite_field, highr - lowr, highc - lowc);
 
@@ -201,7 +201,7 @@ static inline mzed_t *mzed_submatrix(mzed_t *S, const mzed_t *M, const size_t lo
  * \ingroup Constructions
  */
 
-static inline mzed_t *mzed_init_window(const mzed_t *A, const size_t lowr, const size_t lowc, const size_t highr, const size_t highc) {
+static inline mzed_t *mzed_init_window(const mzed_t *A, const rci_t lowr, const rci_t lowc, const rci_t highr, const rci_t highc) {
   mzed_t *B = (mzed_t *)m4ri_mm_malloc(sizeof(mzed_t));
   B->finite_field = A->finite_field;
   B->w = gf2e_degree_to_w(A->finite_field);
@@ -421,7 +421,7 @@ void mzed_set_ui(mzed_t *A, word value);
  * \ingroup Assignment
  */ 
 
-static inline word mzed_read_elem(const mzed_t *A, const size_t row, const size_t col) {
+static inline word mzed_read_elem(const mzed_t *A, const rci_t row, const rci_t col) {
   return __mzd_read_bits(A->x, row, A->w*col, A->w);
 }
 
@@ -436,7 +436,7 @@ static inline word mzed_read_elem(const mzed_t *A, const size_t row, const size_
  * \ingroup Assignment
  */ 
 
-static inline void mzed_add_elem(mzed_t *a, const size_t row, const size_t col, const word elem) {
+static inline void mzed_add_elem(mzed_t *a, const rci_t row, const rci_t col, const word elem) {
   __mzd_xor_bits(a->x, row, a->w*col, a->w, elem);
 }
 
@@ -451,7 +451,7 @@ static inline void mzed_add_elem(mzed_t *a, const size_t row, const size_t col, 
  * \ingroup Assignment
  */ 
 
-static inline void mzed_write_elem(mzed_t *a, const size_t row, const size_t col, const word elem) {
+static inline void mzed_write_elem(mzed_t *a, const rci_t row, const rci_t col, const word elem) {
   __mzd_clear_bits(a->x, row, a->w*col, a->w);
   __mzd_xor_bits(a->x, row, a->w*col, a->w, elem);
 }
@@ -504,7 +504,7 @@ static inline int mzed_is_zero(mzed_t *A) {
  * \wordoffset
  */
 
-static inline void mzed_add_multiple_of_row(mzed_t *A, size_t ar, const mzed_t *B, size_t br, word *X, size_t start_col) {
+static inline void mzed_add_multiple_of_row(mzed_t *A, rci_t ar, const mzed_t *B, rci_t br, word *X, rci_t start_col) {
   assert(A->ncols == B->ncols && A->finite_field == B->finite_field);
   assert(A->x->offset == 0 && B->x->offset == 0);
 
@@ -749,7 +749,7 @@ static inline void mzed_add_multiple_of_row(mzed_t *A, size_t ar, const mzed_t *
     };
 
   }  else {
-    for(size_t j=start_col; j<B->ncols; j++) {
+    for(rci_t j=start_col; j<B->ncols; j++) {
       mzed_add_elem(A, ar, j, X[mzed_read_elem(B, br, j)]);
     }
   }
@@ -769,8 +769,8 @@ static inline void mzed_add_multiple_of_row(mzed_t *A, size_t ar, const mzed_t *
  * \wordoffset
  */
 
-static inline void mzed_rescale_row(mzed_t *A, size_t r, size_t c, word *X) {
-  for(size_t l=c; l<A->ncols; l++) {
+static inline void mzed_rescale_row(mzed_t *A, rci_t r, rci_t c, word *X) {
+  for(rci_t l=c; l<A->ncols; l++) {
     mzed_write_elem(A, r, l, X[mzed_read_elem(A, r, l)]);
   }
 }
@@ -787,7 +787,7 @@ static inline void mzed_rescale_row(mzed_t *A, size_t r, size_t c, word *X) {
  * \wordoffset
  */
 
-static inline void mzed_row_swap(mzed_t *M, const size_t rowa, const size_t rowb) {
+static inline void mzed_row_swap(mzed_t *M, const rci_t rowa, const rci_t rowb) {
   mzd_row_swap(M->x, rowa, rowb);
 }
 
@@ -807,7 +807,7 @@ static inline void mzed_row_swap(mzed_t *M, const size_t rowa, const size_t rowb
  * \wordoffset
  */
 
-static inline void mzed_copy_row(mzed_t* B, size_t i, const mzed_t* A, size_t j) {
+static inline void mzed_copy_row(mzed_t* B, rci_t i, const mzed_t* A, rci_t j) {
   mzd_copy_row(B->x, i, A->x, j);
 }
 
@@ -823,8 +823,8 @@ static inline void mzed_copy_row(mzed_t* B, size_t i, const mzed_t* A, size_t j)
  * \wordoffset
  */
  
-static inline void mzed_col_swap(mzed_t *M, const size_t cola, const size_t colb) {
-  for(size_t i=0; i<M->w; i++)
+static inline void mzed_col_swap(mzed_t *M, const rci_t cola, const rci_t colb) {
+  for(rci_t i=0; i<M->w; i++)
     mzd_col_swap(M->x,M->w*cola+i, M->w*colb+i);
 }
 
@@ -843,7 +843,7 @@ static inline void mzed_col_swap(mzed_t *M, const size_t cola, const size_t colb
  * \wordoffset
  */
 
-static inline void mzed_row_add(mzed_t *M, const size_t sourcerow, const size_t destrow) {
+static inline void mzed_row_add(mzed_t *M, const rci_t sourcerow, const rci_t destrow) {
   mzd_row_add(M->x, sourcerow, destrow);
 }
 
@@ -859,7 +859,7 @@ static inline void mzed_row_add(mzed_t *M, const size_t sourcerow, const size_t 
  * \wordoffset
  */
 
-static inline size_t mzed_first_zero_row(mzed_t *A) {
+static inline rci_t mzed_first_zero_row(mzed_t *A) {
   return mzd_first_zero_row(A->x);
 }
 
@@ -876,7 +876,7 @@ static inline size_t mzed_first_zero_row(mzed_t *A) {
  * \wordoffset
  */
 
-static inline void mzed_row_clear_offset(mzed_t *M, const size_t row, const size_t coloffset) {
+static inline void mzed_row_clear_offset(mzed_t *M, const rci_t row, const rci_t coloffset) {
   mzd_row_clear_offset(M->x, row, coloffset*M->w);
 }
 
@@ -897,7 +897,7 @@ static inline void mzed_row_clear_offset(mzed_t *M, const size_t row, const size
  * \wordoffset
  */
 
-size_t mzed_echelonize_naive(mzed_t *A, int full);
+rci_t mzed_echelonize_naive(mzed_t *A, int full);
 
 /**
  * \brief Print a matrix to stdout. 
@@ -946,7 +946,7 @@ void mzed_print(const mzed_t *M);
 /*  * \param c Column index updated if pivot is found */
 /*  *\/ */
 
-/* int mzed_find_pivot(mzed_t *M, size_t start_row, size_t start_col, size_t *r, size_t *c); */
+/* int mzed_find_pivot(mzed_t *M, rci_t start_row, rci_t start_col, rci_t *r, rci_t *c); */
 
 /* /\** */
 /*  * \brief Return the number of nonzero entries divided by nrows * */
@@ -976,6 +976,6 @@ void mzed_print(const mzed_t *M);
 /*  * \param c Column to start counting */
 /*  *\/ */
 
-/* double _mzed_density(mzed_t *A, int res, size_t r, size_t c); */
+/* double _mzed_density(mzed_t *A, int res, rci_t r, rci_t c); */
 
 #endif //MATRIX_H

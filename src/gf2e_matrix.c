@@ -24,7 +24,7 @@
 #include "strassen.h"
 #include "bitslice.h"
 
-mzed_t *mzed_init(gf2e* k, size_t m, size_t n) {
+mzed_t *mzed_init(gf2e* k, rci_t m, rci_t n) {
   mzed_t *A = (mzed_t *)m4ri_mm_malloc(sizeof(mzed_t));
 
   A->finite_field = k;
@@ -42,8 +42,8 @@ void mzed_free(mzed_t *A) {
 
 void mzed_randomize(mzed_t *A) {
   int bitmask = (1<<A->finite_field->degree)-1;
-  for(size_t r=0; r<A->nrows; r++) {
-    for(size_t c=0; c<A->ncols; c++) {
+  for(rci_t r=0; r<A->nrows; r++) {
+    for(rci_t c=0; c<A->ncols; c++) {
       mzed_write_elem(A,r,c, random()&bitmask);
     }
   }
@@ -104,7 +104,7 @@ mzed_t *_mzed_mul(mzed_t *C, const mzed_t *A, const mzed_t *B) {
   if (A->finite_field->degree == 2)
     return _mzed_mul_karatsuba(C, A, B);
 
-  size_t cutoff = _mzed_strassen_cutoff(C, A, B);
+  rci_t cutoff = _mzed_strassen_cutoff(C, A, B);
   return _mzed_mul_strassen(C, A, B, cutoff);
 }
 
@@ -120,15 +120,16 @@ mzed_t *mzed_addmul_naive(mzed_t *C, const mzed_t *A, const mzed_t *B) {
 
 mzed_t *_mzed_mul_naive(mzed_t *C, const mzed_t *A, const mzed_t *B) {
   gf2e* ff = C->finite_field;
-  for (size_t i=0; i<C->nrows; ++i) {
-    for (size_t j=0; j<C->ncols; ++j) {
-      for (size_t k=0; k<A->ncols; ++k) {
+  for (rci_t i=0; i<C->nrows; ++i) {
+    for (rci_t j=0; j<C->ncols; ++j) {
+      for (rci_t k=0; k<A->ncols; ++k) {
         mzed_add_elem(C, i, j, ff->mul[mzed_read_elem(A,i, k)][mzed_read_elem(B, k, j)]);
       }
     }
   }
   return C;
 }
+
 
 mzed_t *mzed_copy(mzed_t *A, const mzed_t *B) {
   if (A == B)
@@ -143,12 +144,12 @@ mzed_t *mzed_copy(mzed_t *A, const mzed_t *B) {
 }
 
 
-size_t mzed_echelonize_naive(mzed_t *A, int full) {
-  size_t start_row,r,c,i,elim_start;
+rci_t mzed_echelonize_naive(mzed_t *A, int full) {
+  rci_t start_row,r,c,i,elim_start;
   word x = 0;
 
-  size_t nr = A->nrows;
-  size_t nc = A->ncols;
+  rci_t nr = A->nrows;
+  rci_t nc = A->ncols;
 
   gf2e *ff = A->finite_field;
 
@@ -184,15 +185,15 @@ void mzed_set_ui(mzed_t *A, word value) {
   mzd_set_ui(A->x, 0);
   if(!value)
     return;
-  for(size_t i=0; i< MIN(A->ncols,A->nrows); i++) {
+  for(rci_t i=0; i< MIN(A->ncols,A->nrows); i++) {
     mzed_write_elem(A, i, i, value);
   }
 }
 
 void mzed_print(const mzed_t *A) {
-  for (size_t i=0; i < A->nrows; ++i) {
+  for (rci_t i=0; i < A->nrows; ++i) {
     printf("[");
-    for (size_t j=0; j < A->ncols; j++) {
+    for (rci_t j=0; j < A->ncols; j++) {
       word tmp = mzed_read_elem(A,i,j);
       printf("[");
       switch(A->finite_field->degree) {
