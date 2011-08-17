@@ -27,118 +27,120 @@
 
 #include "testing.h"
 #include <gf2e_cxx/finite_field_givaro.h>
-#include <m4rie/m4rie.h>
 
 using namespace M4RIE;
 
-int test_addmul() {
+int test_addmul(gf2e *ff, rci_t m, rci_t n, rci_t l) {
   int fail_ret = 0;
-  int fail_ret_global = 0;
-  for(size_t k=2; k<=10; k++) {
-    FiniteField *F = (FiniteField*)(new GFqDom<int>(2,k));
-    gf2e *ff = gf2e_init_givgfq(F);
-    for(size_t i=0; i<(k*256/(1<<k)); i++) {
-      size_t m = random() & 255;
-      size_t n = random() & 255;
-      size_t l = random() & 255;
-      m = m ? m : 1;
-      n = n ? n : 1;
-      l = l ? n : 1;
-      mzed_t *A = mzed_init(ff,m,l);
-      mzed_randomize(A);
-      mzed_t *B = mzed_init(ff,l,n);
-      mzed_randomize(B);
+  printf("addmul: k: %2d, m: %5d, l: %5d, n: %5d ... ",ff->degree, m, l, n);
 
-      mzed_t *C0 = mzed_init(ff,m,n);
-      mzed_randomize(A);
-      mzed_t *C1 = mzed_copy(NULL, C0);
-      mzed_t *C2 = mzed_copy(NULL, C0);
-      mzed_t *C3 = mzed_copy(NULL, C0);
+  mzed_t *A = random_mzed_t(ff, m, l);
+  mzed_t *B = random_mzed_t(ff, l, n);
+
+  mzed_t *C0 = random_mzed_t(ff, m, n);
+  mzed_t *C1 = mzed_copy(NULL, C0);
+  mzed_t *C2 = mzed_copy(NULL, C0);
+  mzed_t *C3 = mzed_copy(NULL, C0);
         
-      mzed_addmul_travolta(C0, A, B);
-      mzed_addmul_naive(C1, A, B);
-      mzed_addmul_strassen(C2, A, B, 64);
-      printf("addmul: m: %5d, l: %5d, n: %5d, k: %2d ... ",m,l,n,k);
+  mzed_addmul_travolta(C0, A, B);
+  mzed_addmul_naive(C1, A, B);
+  mzed_addmul_strassen(C2, A, B, 64);
 
-      m4rie_check( mzed_cmp(C0, C1) == 0);
-      m4rie_check( mzed_cmp(C1, C2) == 0);
+  m4rie_check( mzed_cmp(C0, C1) == 0);
+  m4rie_check( mzed_cmp(C1, C2) == 0);
 
-      if (k == 2) {
-        mzed_addmul_karatsuba(C3, A, B);
-        m4rie_check( mzed_cmp(C2, C3) == 0);
-      }
-
-      if (fail_ret == 0)
-        printf("pass\n");
-      else
-        printf("FAIL\n");
-      fail_ret_global += fail_ret;
-      fail_ret = 0;
-
-      mzed_free(A);
-      mzed_free(B);
-      mzed_free(C0);
-      mzed_free(C1);
-      mzed_free(C2);
-      mzed_free(C3);
-    }
-    gf2e_free(ff);
-    delete F;
+  if (ff->degree <= 2) {
+    mzed_addmul_karatsuba(C3, A, B);
+    m4rie_check( mzed_cmp(C2, C3) == 0);
   }
-  return fail_ret_global;
+
+  if (fail_ret == 0)
+    printf("pass\n");
+  else
+    printf("FAIL\n");
+  
+  mzed_free(A);
+  mzed_free(B);
+  mzed_free(C0);
+  mzed_free(C1);
+  mzed_free(C2);
+  mzed_free(C3);
+
+  return fail_ret;
 }
 
-int test_mul() {
-  int fail_ret_global = 0;
+int test_mul(gf2e *ff, rci_t m, rci_t n, rci_t l) {
   int fail_ret = 0;
-  for(size_t k=2; k<=10; k++) {
-    FiniteField *F = (FiniteField*)(new GFqDom<int>(2,k));
-    gf2e *ff = gf2e_init_givgfq(F);
-    for(size_t i=0; i<(k*256/(1<<k)); i++) {
-      size_t m = random() & 255;
-      size_t n = random() & 255;
-      size_t l = random() & 255;
-      m = m ? m : 1;
-      n = n ? n : 1;
-      l = l ? n : 1;
-      mzed_t *A = mzed_init(ff,m,l);
-      mzed_randomize(A);
-      mzed_t *B = mzed_init(ff,l,n);
-      mzed_randomize(B);
+  printf("   mul: k: %2d, m: %5d, l: %5d, n: %5d ... ",ff->degree, m, l, n);
 
-      
-      mzed_t *C0 = mzed_mul_travolta(NULL, A, B);
-      mzed_t *C1 = mzed_mul_naive(NULL, A, B);
-      mzed_t *C2 = mzed_mul_strassen(NULL, A, B, 64);
-      printf("mul: m: %5d, l: %5d, n: %5d, k: %2d ... ",m,l,n,k);
+  mzed_t *A = random_mzed_t(ff, m, l);
+  mzed_t *B = random_mzed_t(ff, l, n);
 
-      m4rie_check( mzed_cmp(C0, C1) == 0);
-      m4rie_check( mzed_cmp(C1, C2) == 0);
+  mzed_t *C0 = random_mzed_t(ff, m, n);
+  mzed_t *C1 = random_mzed_t(ff, m, n);
+  mzed_t *C2 = random_mzed_t(ff, m, n);
+  mzed_t *C3 = random_mzed_t(ff, m, n);
+        
+  mzed_mul_travolta(C0, A, B);
+  mzed_mul_naive(C1, A, B);
+  mzed_mul_strassen(C2, A, B, 64);
 
-      if (k <= 3) {
-        mzed_t *C3 = mzed_mul_karatsuba(NULL, A, B);
-        m4rie_check( mzed_cmp(C2, C3) == 0);
-        mzed_free(C3);
-      }
+  m4rie_check( mzed_cmp(C0, C1) == 0);
+  m4rie_check( mzed_cmp(C1, C2) == 0);
 
-      if (fail_ret == 0)
-        printf("pass\n");
-      else 
-        printf("FAIL\n");
-      fail_ret_global += fail_ret;
-      fail_ret = 0;
-      mzed_free(A);
-      mzed_free(B);
-      mzed_free(C0);
-      mzed_free(C1);
-      mzed_free(C2);
-    }
-    gf2e_free(ff);
-    delete F;
+  if (ff->degree <= 3) {
+    mzed_mul_karatsuba(C3, A, B);
+    m4rie_check( mzed_cmp(C2, C3) == 0);
   }
-  return fail_ret_global;
+
+  if (fail_ret == 0)
+    printf("pass\n");
+  else
+    printf("FAIL\n");
+  
+  mzed_free(A);
+  mzed_free(B);
+  mzed_free(C0);
+  mzed_free(C1);
+  mzed_free(C2);
+  mzed_free(C3);
+
+  return fail_ret;
+}
+
+int test_batch(gf2e *ff, rci_t m, rci_t l, rci_t n) {
+  return \
+      test_mul(ff, m, l, n) + test_addmul(ff, m, l, n)      \
+    + test_mul(ff, m, n, l) + test_addmul(ff, m, n, l)       \
+    + test_mul(ff, n, m, l) + test_addmul(ff, n, m, l)       \
+    + test_mul(ff, n, l, m) + test_addmul(ff, n, l, m)       \
+    + test_mul(ff, l, m, n) + test_addmul(ff, l, m, n)       \
+    + test_mul(ff, l, n, m) + test_addmul(ff, l, n, m);
 }
 
 int main(int argc, char **argv) {
-  return test_mul() + test_addmul();
+
+  gf2e *ff[10];
+  int fail_ret = 0;
+
+  for(int k=2; k<=10; k++) {
+    FiniteField *F = (FiniteField*)(new GFqDom<int>(2,k));
+    ff[k] = gf2e_init_givgfq(F);
+    delete F;
+  }
+
+  for(int k=2; k<=10; k++) {
+    fail_ret += test_batch(ff[k],   1,   1,   1);
+    fail_ret += test_batch(ff[k],  13,   2,  90);
+    fail_ret += test_batch(ff[k],  32,  33,  34);
+    fail_ret += test_batch(ff[k],  63,  64,  65);
+    fail_ret += test_batch(ff[k], 127, 128, 129);
+    fail_ret += test_batch(ff[k], 200,  20, 112);
+  };
+
+  for(int k=2; k<=10; k++) {
+    gf2e_free(ff[k]);
+  }
+
+  return fail_ret;
 }

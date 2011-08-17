@@ -69,7 +69,7 @@ mzed_t *mzed_addmul_strassen(mzed_t *C, const mzed_t *A, const mzed_t *B, int cu
 mzed_t *_mzed_mul_strassen(mzed_t *C, const mzed_t *A, const mzed_t *B, int cutoff);
 
 /**
- * \brief C such that C == C + AB.
+ * \brief C such that C == AB.
  *
  * This function uses Strassen-Winograd multiplication (Bodrato
  * variant) recursively until it reaches the cutoff, where it switches
@@ -85,6 +85,25 @@ mzed_t *_mzed_mul_strassen(mzed_t *C, const mzed_t *A, const mzed_t *B, int cuto
  */
 
 mzed_t *_mzed_mul_strassen_even(mzed_t *C, const mzed_t *A, const mzed_t *B, int cutoff);
+
+
+/**
+ * \brief C such that C == C + AB.
+ *
+ * This function uses Strassen-Winograd multiplication (Bodrato
+ * variant) recursively until it reaches the cutoff, where it switches
+ * to Travolta table based multiplication or naive multiplication.
+ *
+ * \param C Preallocated product matrix.
+ * \param A Input matrix A.
+ * \param B Input matrix B.
+ *
+ * \ingroup Multiplication
+ *
+ * \wordoffset
+ */
+
+mzed_t *_mzed_addmul_strassen_even(mzed_t *C, const mzed_t *A, const mzed_t *B, int cutoff);
 
 size_t _mzed_strassen_cutoff(const mzed_t *C, const mzed_t *A, const mzed_t *B);
 

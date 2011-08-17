@@ -5,18 +5,6 @@
 
 using namespace M4RIE;
 
-mzed_t *random_mzed_t(gf2e *ff, int m, int n) {
-  mzed_t *A  = mzed_init(ff,m,n);
-  mzed_randomize(A);
-  return A;
-}
-
-mzd_slice_t *random_mzd_slice_t(gf2e *ff, int m, int n) {
-  mzd_slice_t *A  = mzd_slice_init(ff,m,n);
-  mzd_slice_randomize(A);
-  return A;
-}
-
 int test_slice(gf2e *ff, int m, int n) {
   int fail_ret = 0;
 
@@ -151,5 +139,10 @@ int main(int argc, char **argv) {
       }
     }
   }
+
+  for(int k=2; k<=10; k++) {
+    gf2e_free(ff[k]);
+  }
+
   return fail_ret;
 }
