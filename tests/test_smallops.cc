@@ -114,6 +114,18 @@ int test_batch(gf2e *ff, int m, int n) {
   m4rie_check( test_add(ff, m, n) == 0) ; printf("."); 
   m4rie_check( test_slice_known_answers(ff, m, n) == 0); printf(".");
 
+  m4rie_check( test_slice(ff, m, m) == 0); printf("."); 
+  m4rie_check( test_add(ff, m, m) == 0) ; printf("."); 
+  m4rie_check( test_slice_known_answers(ff, m, m) == 0); printf(".");
+
+  m4rie_check( test_slice(ff, n, m) == 0); printf("."); 
+  m4rie_check( test_add(ff, n, m) == 0) ; printf("."); 
+  m4rie_check( test_slice_known_answers(ff, n, m) == 0); printf(".");
+
+  m4rie_check( test_slice(ff, n, n) == 0); printf("."); 
+  m4rie_check( test_add(ff, n, n) == 0) ; printf("."); 
+  m4rie_check( test_slice_known_answers(ff, n, n) == 0); printf(".");
+
   if (fail_ret == 0)
     printf(" passed\n");
   else
@@ -133,11 +145,16 @@ int main(int argc, char **argv) {
   }
 
   for(int k=2; k<=4; k++) {
-    for(int m=1; m<=128; m++) {
-      for(int n=1; n<=128; n++) {
-        fail_ret += test_batch(ff[k], m, n);
-      }
-    }
+    fail_ret += test_batch(ff[k],   1,   2);
+    fail_ret += test_batch(ff[k],  10,  11);
+    fail_ret += test_batch(ff[k],  20,  19);
+    fail_ret += test_batch(ff[k],  32,  64);
+    fail_ret += test_batch(ff[k],  63,  65);
+    fail_ret += test_batch(ff[k],  64,  65);
+    fail_ret += test_batch(ff[k],  64, 128);
+    fail_ret += test_batch(ff[k],  65, 129);
+    fail_ret += test_batch(ff[k], 201, 200);
+    fail_ret += test_batch(ff[k], 217,   2);
   }
 
   for(int k=2; k<=10; k++) {
