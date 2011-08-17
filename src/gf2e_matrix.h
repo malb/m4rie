@@ -311,12 +311,23 @@ mzed_t *mzed_addmul(mzed_t *C, const mzed_t *A, const mzed_t *B);
  * \param C Preallocated product matrix.
  * \param A Input matrix A.
  * \param B Input matrix B.
- * \param clear Whether to clear C before accumulating AB
  *
  * \ingroup Multiplication
  */
 
 mzed_t *_mzed_mul(mzed_t *C, const mzed_t *A, const mzed_t *B);
+
+/**
+ * \brief C such that C == C + AB.
+ *
+ * \param C Preallocated product matrix.
+ * \param A Input matrix A.
+ * \param B Input matrix B.
+ *
+ * \ingroup Multiplication
+ */
+
+mzed_t *_mzed_addmul(mzed_t *C, const mzed_t *A, const mzed_t *B);
 
 
 /**

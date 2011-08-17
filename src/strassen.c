@@ -37,11 +37,7 @@ mzed_t *mzed_mul_strassen(mzed_t *C, const mzed_t *A, const mzed_t *B, int cutof
 
 mzed_t *mzed_addmul_strassen(mzed_t *C, const mzed_t *A, const mzed_t *B, int cutoff) {
   C = _mzed_mul_init(C, A, B, FALSE);
-  return _mzed_addmul_strassen_even(C, A, B, cutoff);
-}
-
-mzed_t *_mzed_mul_strassen(mzed_t *C, const mzed_t *A, const mzed_t *B, int cutoff) {
-  return _mzed_mul_strassen_even(C, A, B, cutoff);
+  return _mzed_addmul_strassen(C, A, B, cutoff);
 }
 
 mzed_t *_mzed_mul_strassen_even(mzed_t *C, const mzed_t *A, const mzed_t *B, int cutoff) {
@@ -63,19 +59,16 @@ mzed_t *_mzed_mul_strassen_even(mzed_t *C, const mzed_t *A, const mzed_t *B, int
        there are no speed regressions */
     /* C = _mzd_mul_m4rm(C, A, B, 0, TRUE); */
     mzed_t *Cbar = mzed_init(C->finite_field, C->nrows, C->ncols);
-    if (A->finite_field->degree <= 3)
-      _mzed_mul_karatsuba(Cbar, A, B);
-    else
-      _mzed_mul_travolta(Cbar, A, B);
+    _mzed_mul_travolta(Cbar, A, B);
 
     mzed_copy(C, Cbar);
     mzed_free(Cbar);
     return C;
   }
 
-  size_t mmm = m/2;
-  size_t kkk = k/2;
-  size_t nnn = n/2;
+  rci_t mmm = m/2;
+  rci_t kkk = k/2;
+  rci_t nnn = n/2;
     
   mmm = (mmm - mmm%(m4ri_radix/A->w));
   kkk = (kkk - kkk%(m4ri_radix/A->w));
@@ -171,10 +164,7 @@ mzed_t *_mzed_mul_strassen_even(mzed_t *C, const mzed_t *A, const mzed_t *B, int
     mzed_t *B_last_col = mzed_init_window(B, 0, nnn, k, n); 
     mzed_t *C_last_col = mzed_init_window(C, 0, nnn, m, n);
     mzed_set_ui(C_last_col, 0);
-    if (A->finite_field->degree <= 3)
-      _mzed_mul_karatsuba(C_last_col, A, B_last_col);
-    else
-      _mzed_mul_travolta(C_last_col, A, B_last_col);
+    _mzed_mul_travolta(C_last_col, A, B_last_col);
     mzed_free_window(B_last_col);
     mzed_free_window(C_last_col);
   }
@@ -186,10 +176,7 @@ mzed_t *_mzed_mul_strassen_even(mzed_t *C, const mzed_t *A, const mzed_t *B, int
     mzed_t *B_first_col= mzed_init_window(B,   0, 0, k, nnn);
     mzed_t *C_last_row = mzed_init_window(C, mmm, 0, m, nnn);
     mzed_set_ui(C_last_row, 0);
-    if (A->finite_field->degree <= 3)
-      _mzed_mul_karatsuba(C_last_row, A_last_row, B_first_col);
-    else
-      _mzed_mul_travolta(C_last_row, A_last_row, B_first_col);
+    _mzed_mul_travolta(C_last_row, A_last_row, B_first_col);
     mzed_free_window(A_last_row);
     mzed_free_window(B_first_col);
     mzed_free_window(C_last_row);
@@ -201,10 +188,7 @@ mzed_t *_mzed_mul_strassen_even(mzed_t *C, const mzed_t *A, const mzed_t *B, int
     mzed_t *A_last_col = mzed_init_window(A,   0, kkk, mmm, k);
     mzed_t *B_last_row = mzed_init_window(B, kkk,   0,   k, nnn);
     mzed_t *C_bulk = mzed_init_window(C, 0, 0, mmm, nnn);
-    if (A->finite_field->degree <= 3)
-      _mzed_mul_karatsuba(C_bulk, A_last_col, B_last_row);
-    else
-      _mzed_mul_travolta(C_bulk, A_last_col, B_last_row);
+    _mzed_mul_travolta(C_bulk, A_last_col, B_last_row);
     mzed_free_window(A_last_col);
     mzed_free_window(B_last_row);
     mzed_free_window(C_bulk);
@@ -232,10 +216,7 @@ mzed_t *_mzed_addmul_strassen_even(mzed_t *C, const mzed_t *A, const mzed_t *B, 
        there are no speed regressions */
     /* C = _mzd_mul_m4rm(C, A, B, 0, TRUE); */
     mzed_t *Cbar = mzed_copy(NULL, C);
-    if (A->finite_field->degree <= 3)
-      _mzed_mul_karatsuba(Cbar, A, B);
-    else
-      _mzed_mul_travolta(Cbar, A, B);
+    _mzed_mul_travolta(Cbar, A, B);
 
     mzed_copy(C, Cbar);
     mzed_free(Cbar);
@@ -329,10 +310,7 @@ mzed_t *_mzed_addmul_strassen_even(mzed_t *C, const mzed_t *A, const mzed_t *B, 
      * Compute |AA| x | B| = | C| */
     mzed_t const *B_last_col = mzed_init_window(B, 0, nnn, k, n); 
     mzed_t *C_last_col = mzed_init_window(C, 0, nnn, m, n);
-    if (A->finite_field->degree <= 3)
-      _mzed_mul_karatsuba(C_last_col, A, B_last_col);
-    else
-      _mzed_mul_travolta(C_last_col, A, B_last_col);
+    _mzed_mul_travolta(C_last_col, A, B_last_col);
     mzed_free_window((mzed_t*)B_last_col);
     mzed_free_window((mzed_t*)C_last_col);
   }
@@ -343,10 +321,7 @@ mzed_t *_mzed_addmul_strassen_even(mzed_t *C, const mzed_t *A, const mzed_t *B, 
     mzed_t const *A_last_row = mzed_init_window(A, mmm, 0, m, k);
     mzed_t const *B_first_col= mzed_init_window(B,   0, 0, k, nnn);
     mzed_t *C_last_row = mzed_init_window(C, mmm, 0, m, nnn);
-    if (A->finite_field->degree <= 3)
-      _mzed_mul_karatsuba(C_last_row, A_last_row, B_first_col);
-    else
-      _mzed_mul_travolta(C_last_row, A_last_row, B_first_col);
+    _mzed_mul_travolta(C_last_row, A_last_row, B_first_col);
     mzed_free_window((mzed_t*)A_last_row);
     mzed_free_window((mzed_t*)B_first_col);
     mzed_free_window(C_last_row);
@@ -358,10 +333,7 @@ mzed_t *_mzed_addmul_strassen_even(mzed_t *C, const mzed_t *A, const mzed_t *B, 
     mzed_t const *A_last_col = mzed_init_window(A,   0, kkk, mmm, k);
     mzed_t const *B_last_row = mzed_init_window(B, kkk,   0,   k, nnn);
     mzed_t *C_bulk = mzed_init_window(C, 0, 0, mmm, nnn);
-    if (A->finite_field->degree <= 3)
-      _mzed_mul_karatsuba(C_bulk, A_last_col, B_last_row);
-    else
-      _mzed_mul_travolta(C_bulk, A_last_col, B_last_row);
+    _mzed_mul_travolta(C_bulk, A_last_col, B_last_row);
     mzed_free_window((mzed_t*)A_last_col);
     mzed_free_window((mzed_t*)B_last_row);
     mzed_free_window(C_bulk);
@@ -370,9 +342,8 @@ mzed_t *_mzed_addmul_strassen_even(mzed_t *C, const mzed_t *A, const mzed_t *B, 
   return C;
 }
 
-
-size_t _mzed_strassen_cutoff(const mzed_t *C, const mzed_t *A, const mzed_t *B) {
-  size_t cutoff;
+rci_t _mzed_strassen_cutoff(const mzed_t *C, const mzed_t *A, const mzed_t *B) {
+  rci_t cutoff;
 
   /* it seems most of it is cache bound: 2 matrix * (n^2 *w / 8 ) <= L2  */
 

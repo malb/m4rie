@@ -32,7 +32,6 @@ using namespace M4RIE;
 
 int test_addmul(gf2e *ff, rci_t m, rci_t n, rci_t l) {
   int fail_ret = 0;
-  printf("addmul: k: %2d, m: %5d, l: %5d, n: %5d ... ",ff->degree, m, l, n);
 
   mzed_t *A = random_mzed_t(ff, m, l);
   mzed_t *B = random_mzed_t(ff, l, n);
@@ -41,24 +40,22 @@ int test_addmul(gf2e *ff, rci_t m, rci_t n, rci_t l) {
   mzed_t *C1 = mzed_copy(NULL, C0);
   mzed_t *C2 = mzed_copy(NULL, C0);
   mzed_t *C3 = mzed_copy(NULL, C0);
+  mzed_t *C4 = mzed_copy(NULL, C0);
         
   mzed_addmul_travolta(C0, A, B);
   mzed_addmul_naive(C1, A, B);
   mzed_addmul_strassen(C2, A, B, 64);
+  mzed_addmul(C3, A, B);
 
   m4rie_check( mzed_cmp(C0, C1) == 0);
   m4rie_check( mzed_cmp(C1, C2) == 0);
+  m4rie_check( mzed_cmp(C2, C3) == 0);
 
-  if (ff->degree <= 2) {
-    mzed_addmul_karatsuba(C3, A, B);
-    m4rie_check( mzed_cmp(C2, C3) == 0);
+  if (ff->degree <= 3) {
+    mzed_addmul_karatsuba(C4, A, B);
+    m4rie_check( mzed_cmp(C3, C4) == 0);
   }
 
-  if (fail_ret == 0)
-    printf("pass\n");
-  else
-    printf("FAIL\n");
-  
   mzed_free(A);
   mzed_free(B);
   mzed_free(C0);
@@ -71,8 +68,6 @@ int test_addmul(gf2e *ff, rci_t m, rci_t n, rci_t l) {
 
 int test_mul(gf2e *ff, rci_t m, rci_t n, rci_t l) {
   int fail_ret = 0;
-  printf("   mul: k: %2d, m: %5d, l: %5d, n: %5d ... ",ff->degree, m, l, n);
-
   mzed_t *A = random_mzed_t(ff, m, l);
   mzed_t *B = random_mzed_t(ff, l, n);
 
@@ -80,24 +75,22 @@ int test_mul(gf2e *ff, rci_t m, rci_t n, rci_t l) {
   mzed_t *C1 = random_mzed_t(ff, m, n);
   mzed_t *C2 = random_mzed_t(ff, m, n);
   mzed_t *C3 = random_mzed_t(ff, m, n);
+  mzed_t *C4 = random_mzed_t(ff, m, n);
         
   mzed_mul_travolta(C0, A, B);
   mzed_mul_naive(C1, A, B);
   mzed_mul_strassen(C2, A, B, 64);
+  mzed_mul(C3, A, B);
 
   m4rie_check( mzed_cmp(C0, C1) == 0);
   m4rie_check( mzed_cmp(C1, C2) == 0);
+  m4rie_check( mzed_cmp(C2, C3) == 0);
 
   if (ff->degree <= 3) {
-    mzed_mul_karatsuba(C3, A, B);
-    m4rie_check( mzed_cmp(C2, C3) == 0);
+    mzed_mul_karatsuba(C4, A, B);
+    m4rie_check( mzed_cmp(C3, C4) == 0);
   }
 
-  if (fail_ret == 0)
-    printf("pass\n");
-  else
-    printf("FAIL\n");
-  
   mzed_free(A);
   mzed_free(B);
   mzed_free(C0);
@@ -109,16 +102,38 @@ int test_mul(gf2e *ff, rci_t m, rci_t n, rci_t l) {
 }
 
 int test_batch(gf2e *ff, rci_t m, rci_t l, rci_t n) {
-  return \
-      test_mul(ff, m, l, n) + test_addmul(ff, m, l, n)      \
-    + test_mul(ff, m, n, l) + test_addmul(ff, m, n, l)       \
-    + test_mul(ff, n, m, l) + test_addmul(ff, n, m, l)       \
-    + test_mul(ff, n, l, m) + test_addmul(ff, n, l, m)       \
-    + test_mul(ff, l, m, n) + test_addmul(ff, l, m, n)       \
-    + test_mul(ff, l, n, m) + test_addmul(ff, l, n, m);
+  int fail_ret = 0;
+  printf("mul: k: %2d, minpoly: 0x%03x m: %5d, l: %5d, n: %5d ",ff->degree, ff->minpoly, m, l, n);
+
+  if(m == l && m == n) {
+    m4rie_check(   test_mul(ff, m, l, n) == 0); printf("."); fflush(0);
+    m4rie_check(test_addmul(ff, m, l, n) == 0); printf("."); fflush(0);
+    printf("          ");
+  } else {
+    m4rie_check(   test_mul(ff, m, l, n) == 0); printf("."); fflush(0);
+    m4rie_check(   test_mul(ff, m, n, l) == 0); printf("."); fflush(0);
+    m4rie_check(   test_mul(ff, n, m, l) == 0); printf("."); fflush(0);
+    m4rie_check(   test_mul(ff, n, l, m) == 0); printf("."); fflush(0);
+    m4rie_check(   test_mul(ff, l, m, n) == 0); printf("."); fflush(0);
+    m4rie_check(   test_mul(ff, l, n, m) == 0); printf("."); fflush(0);
+    m4rie_check(test_addmul(ff, m, l, n) == 0); printf("."); fflush(0);
+    m4rie_check(test_addmul(ff, m, n, l) == 0); printf("."); fflush(0);
+    m4rie_check(test_addmul(ff, n, m, l) == 0); printf("."); fflush(0);
+    m4rie_check(test_addmul(ff, n, l, m) == 0); printf("."); fflush(0);
+    m4rie_check(test_addmul(ff, l, m, n) == 0); printf("."); fflush(0);
+    m4rie_check(test_addmul(ff, l, n, m) == 0); printf("."); fflush(0);
+  }
+
+  if (fail_ret == 0)
+    printf(" passed\n");
+  else
+    printf(" FAILED\n");
+
+  return fail_ret;
 }
 
 int main(int argc, char **argv) {
+  srandom(17);
 
   gf2e *ff[10];
   int fail_ret = 0;
@@ -131,6 +146,11 @@ int main(int argc, char **argv) {
 
   for(int k=2; k<=10; k++) {
     fail_ret += test_batch(ff[k],   1,   1,   1);
+    if(fail_ret)
+      return fail_ret;
+    fail_ret += test_batch(ff[k],   1,   2,   3);
+    fail_ret += test_batch(ff[k],  11,  12,  13);
+    fail_ret += test_batch(ff[k],  21,  22,  23);
     fail_ret += test_batch(ff[k],  13,   2,  90);
     fail_ret += test_batch(ff[k],  32,  33,  34);
     fail_ret += test_batch(ff[k],  63,  64,  65);

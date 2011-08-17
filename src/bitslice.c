@@ -1116,15 +1116,16 @@ mzd_slice_t *_mzd_slice_mul_karatsuba3(mzd_slice_t *C, const mzd_slice_t *A, con
   /* modular reduction */
 
   if(A->finite_field->minpoly & 1<<2) {
-    mzd_add(X[2],X[2],X[3]);
     mzd_add(X[3],X[3],X[4]);
+    mzd_add(X[2],X[2],X[3]);
   }
-  else { // (A->finite_field->minpoly & 1<<1)
-    mzd_add(X[1],X[1],X[3]);
+  else { //if (A->finite_field->minpoly & 1<<1) {
     mzd_add(X[2],X[2],X[4]);
+    mzd_add(X[1],X[1],X[3]);
   }
-  mzd_add(X[0],X[0],X[3]);
   mzd_add(X[1],X[1],X[4]);
+  mzd_add(X[0],X[0],X[3]);
+
 
   mzd_free(t2);
   mzd_free(t3);

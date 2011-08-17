@@ -95,17 +95,25 @@ mzed_t *mzed_mul(mzed_t *C, const mzed_t *A, const mzed_t *B) {
 
 mzed_t *mzed_addmul(mzed_t *C, const mzed_t *A, const mzed_t *B) {
   C = _mzed_mul_init(C,A,B, FALSE);
-  _mzed_mul(C, A, B);
+  _mzed_addmul(C, A, B);
   return C;
 }
 
 
 mzed_t *_mzed_mul(mzed_t *C, const mzed_t *A, const mzed_t *B) {
-  if (A->finite_field->degree == 2)
+  if (A->finite_field->degree <= 3)
     return _mzed_mul_karatsuba(C, A, B);
 
-  rci_t cutoff = _mzed_strassen_cutoff(C, A, B);
+  const rci_t cutoff = _mzed_strassen_cutoff(C, A, B);
   return _mzed_mul_strassen(C, A, B, cutoff);
+}
+
+mzed_t *_mzed_addmul(mzed_t *C, const mzed_t *A, const mzed_t *B) {
+  if (A->finite_field->degree <= 3)
+    return _mzed_mul_karatsuba(C, A, B);
+
+  const rci_t cutoff = _mzed_strassen_cutoff(C, A, B);
+  return _mzed_addmul_strassen(C, A, B, cutoff);
 }
 
 mzed_t *mzed_mul_naive(mzed_t *C, const mzed_t *A, const mzed_t *B) {

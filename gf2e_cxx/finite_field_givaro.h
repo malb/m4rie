@@ -50,8 +50,7 @@ static inline gf2e *gf2e_init_givgfq(M4RIE::FiniteField *givgfq) {
   for(int i = 0; i<ff->degree; i++) {
     tmp = ff->mul[2][tmp];
   }
-  ff->minpoly = tmp + 1<<ff->degree;
-
+  ff->minpoly = tmp ^ (1<<(ff->degree));
   return ff;
 }
  
