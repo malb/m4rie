@@ -9,7 +9,7 @@ libm4rie_la_SOURCES = src/finite_field.c src/gf2e_matrix.c src/travolta.c src/ec
 pkgincludesubdir = $(includedir)/m4rie
 pkgincludesub_HEADERS = src/finite_field.h  src/gf2e_matrix.h  src/m4rie.h  src/m4ri_functions.h  src/travolta.h src/echelonform.h src/strassen.h src/bitslice.h gf2e_cxx/finite_field_givaro.h 
 
-libm4rie_la_LDFLAGS = -release 0.0.20110801 -no-undefined ${M4RIE_M4RI_LDFLAGS}
+libm4rie_la_LDFLAGS = -release 0.0.20110821 -no-undefined ${M4RIE_M4RI_LDFLAGS}
 libm4rie_la_LIBADD = -lm4ri
 
 #testing

@@ -175,7 +175,7 @@ mzed_t *mzed_mul_scalar(mzed_t *C, const word a, const mzed_t *B) {
       mul[i] |= x[((i>>8)&mask_w)]<<8 | x[((i>>10)&mask_w)]<<10 | x[((i>>12)&mask_w)]<<12 | x[((i>>14)&mask_w)]<<14;
       break;
     case 4:
-      mul[i]  = x[(i&mask_w)] | x[((i>>4)&mask_w)]<<4 | x[((i>>8)&mask_w)]<<9 | x[((i>>12)&mask_w)]<<12;
+      mul[i]  = x[(i&mask_w)] | x[((i>>4)&mask_w)]<<4 | x[((i>>8)&mask_w)]<<8 | x[((i>>12)&mask_w)]<<12;
       break;
     case 8:
       mul[i]  = x[(i&mask_w)] | x[((i>>8)&mask_w)]<<8;
