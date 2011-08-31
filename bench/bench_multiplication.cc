@@ -34,6 +34,8 @@ int run(void *_p, unsigned long long *data, int *data_len) {
     C = mzed_mul_travolta(NULL, A, B);
   else if(strcmp(p->algorithm,"naive")==0)
     C = mzed_mul_naive(NULL, A, B);
+  else if(strcmp(p->algorithm,"strassen")==0)
+    C = mzed_mul_strassen(NULL, A, B,_mzed_strassen_cutoff(NULL, A, B));
   else if(strcmp(p->algorithm,"karatsuba")==0)
     C = mzed_mul_karatsuba(NULL, A, B);
   else
@@ -71,16 +73,9 @@ int main(int argc, char **argv) {
   unsigned long long data[2];
   run_bench(run, (void*)&params, data, 2);
 
-  /* yes this is incorrect but okay-ish for random matrices */
-  rci_t r;
-  if (params.n<params.m) 
-    r = params.n;
-  else
-    r = params.m;
+  double cc_per_op = ((double)data[1])/ ( (double)params.m * powl((double)params.n,1.807) );
 
-  double cc_per_op = ((double)data[1])/ ( (double)params.m * (double)params.n * powl((double)r,0.807) );
-
-  printf("m: %5d, n: %5d, cpu cycles: %10llu, cc/(mnr^0.807): %.5lf, wall time: %lf\n", params.m, params.n, data[1], cc_per_op, data[0] / 1000000.0);
+  printf("e: %2d, m: %5d, n: %5d, algo: %10s, cpu cycles: %10llu, cc/(mn^1.807): %.5lf, wall time: %lf\n", params.k, params.m, params.n, params.algorithm, data[1], cc_per_op, data[0] / 1000000.0);
 }
 
 

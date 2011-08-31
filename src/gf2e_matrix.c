@@ -100,7 +100,7 @@ mzed_t *mzed_addmul(mzed_t *C, const mzed_t *A, const mzed_t *B) {
 }
 
 mzed_t *_mzed_mul(mzed_t *C, const mzed_t *A, const mzed_t *B) {
-  if (A->finite_field->degree <= 3)
+  if (A->finite_field->degree <= 4)
     return _mzed_mul_karatsuba(C, A, B);
 
   const rci_t cutoff = _mzed_strassen_cutoff(C, A, B);
