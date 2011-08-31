@@ -1020,6 +1020,7 @@ mzed_t *_mzed_mul_karatsuba(mzed_t *C, const mzed_t *A, const mzed_t *B) {
   case  3:
     Cs = _mzd_slice_mul_karatsuba3(Cs, As, Bs); break;
   case  4:
+    Cs = _mzd_slice_mul_karatsuba4(Cs, As, Bs); break;
   case  5:
   case  6:
   case  7:
@@ -1038,6 +1039,7 @@ mzed_t *_mzed_mul_karatsuba(mzed_t *C, const mzed_t *A, const mzed_t *B) {
 }
 
 mzd_slice_t *_mzd_slice_mul_karatsuba2(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B) {
+  // two temporaries
   if (C == NULL)
     C = mzd_slice_init(A->finite_field, A->nrows, B->ncols);
 
@@ -1058,10 +1060,12 @@ mzd_slice_t *_mzd_slice_mul_karatsuba2(mzd_slice_t *C, const mzd_slice_t *A, con
   return C;
 }
 
-
 mzd_slice_t *_mzd_slice_mul_karatsuba3(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B) {
+  // three temporaries
   if (C == NULL)
     C = mzd_slice_init(A->finite_field, A->nrows, B->ncols);
+
+  C = _mzd_slice_adapt_depth(C,4);
   
   const mzd_t *a0 = A->x[0];
   const mzd_t *a1 = A->x[1];
@@ -1074,10 +1078,7 @@ mzd_slice_t *_mzd_slice_mul_karatsuba3(mzd_slice_t *C, const mzd_slice_t *A, con
   mzd_t *t0 = mzd_init(a0->nrows, a0->ncols);
   mzd_t *t1 = mzd_init(b0->nrows, b0->ncols);
 
-  mzd_t *t2 = mzd_init(a0->nrows, b0->ncols);
-  mzd_t *t3 = mzd_init(a0->nrows, b0->ncols);
-
-  mzd_t *X[5] = {C->x[0], C->x[1], C->x[2], t2, t3};
+  mzd_t **X = C->x;
 
   mzd_add(t0, a0, a1);
   mzd_add(t1, b0, b1);
@@ -1107,28 +1108,157 @@ mzd_slice_t *_mzd_slice_mul_karatsuba3(mzd_slice_t *C, const mzd_slice_t *A, con
   mzd_add(X[3], X[3], t0);
 
   mzd_mul(t0, a2, b2, 0); /* + a2b2(-X^2-X^3+X^4) */
-  mzd_add(X[2], X[2], t0);
-  mzd_add(X[3], X[3], t0);
-  mzd_add(X[4], X[4], t0);
+  
+  /*
+   *  We'd do
+   *   mzd_add(X[4], X[4], t0);
+   *  here but we perform modular reductions at the end of this function anyway.
+   *   if(A->finite_field->minpoly & 1<<2) {
+   *      mzd_add(X[3],X[3],X[4]); 
+   *   } else { //if (A->finite_field->minpoly & 1<<1) {
+   *      mzd_add(X[2],X[2],X[4]);
+   *   }
+   *   mzd_add(X[1],X[1],X[4]);
+   * This way, we save X[4]
+   */ 
+
+  if( (A->finite_field->minpoly & 1<<2) == 0)
+    mzd_add(X[3], X[3], t0);
+  else
+    mzd_add(X[2], X[2], t0);
+  mzd_add(X[1], X[1], t0);
 
   mzd_free(t0);
 
-  /* modular reduction */
+  /* modular reductions for X[3] */
 
   if(A->finite_field->minpoly & 1<<2) {
-    mzd_add(X[3],X[3],X[4]);
     mzd_add(X[2],X[2],X[3]);
   }
-  else { //if (A->finite_field->minpoly & 1<<1) {
-    mzd_add(X[2],X[2],X[4]);
+  else { //if (A->finite_field->minpoly & 1<<1) {=
     mzd_add(X[1],X[1],X[3]);
   }
-  mzd_add(X[1],X[1],X[4]);
   mzd_add(X[0],X[0],X[3]);
 
+  _mzd_slice_adapt_depth(C,3);
 
-  mzd_free(t2);
-  mzd_free(t3);
+  return C;
+}
+
+static void _poly2_addmul(mzd_t **X, const mzd_t **a, const mzd_t **b) {
+  mzd_t *t0 = mzd_init(a[0]->nrows, a[0]->ncols);
+  mzd_t *t1 = mzd_init(b[0]->nrows, b[0]->ncols);
+
+  mzd_add(t0, a[0], a[1]);
+  mzd_add(t1, b[0], b[1]);
+
+  mzd_addmul(X[1], t0, t1, 0); /* + (a0+a1)(b0+b1)X */
+
+  mzd_free(t0);
+  mzd_free(t1);
+
+  t0 = mzd_init(a[0]->nrows, b[0]->ncols);
+
+  mzd_mul(t0, a[0], b[0], 0); /* + a0b0(1-X) */
+  mzd_add(X[0], X[0], t0);
+  mzd_add(X[1], X[1], t0);
+
+  mzd_mul(t0, a[1], b[1], 0); /* + a1b1(X+X^2) */
+  mzd_add(X[1], X[1], t0);
+  mzd_add(X[2], X[2], t0);
+
+  mzd_free(t0);
+}
+
+static void _poly_add(mzd_t **c, const mzd_t **a, const mzd_t **b,const int length) {
+  switch(length) {
+  case 4: mzd_add(c[3], a[3], b[3]);
+  case 3: mzd_add(c[2], a[2], b[2]);
+  case 2: mzd_add(c[1], a[1], b[1]);
+  case 1: mzd_add(c[0], a[0], b[0]);
+    break;
+  case 0:
+  default:
+    m4ri_die("this should never happen.");
+  } 
+}
+
+mzd_slice_t *_mzd_slice_mul_karatsuba4(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B) {
+  if (C == NULL)
+    C = mzd_slice_init(A->finite_field, A->nrows, B->ncols);
+
+  C = _mzd_slice_adapt_depth(C,2*4-1);
+  
+  const mzd_t *a0[2] = {A->x[0],A->x[1]};
+  const mzd_t *a1[2] = {A->x[2],A->x[3]};
+  const mzd_t *b0[2] = {B->x[0],B->x[1]};
+  const mzd_t *b1[2] = {B->x[2],B->x[3]};
+
+  mzd_t *X[3][3] = { {C->x[0],C->x[1],C->x[2]}, 
+                     {C->x[2],C->x[3],C->x[4]},
+                     {C->x[4],C->x[5],C->x[6]} };
+
+  mzd_t *t0[3];
+  mzd_t *t1[2];
+
+  t0[0] = mzd_init(A->nrows, A->ncols);
+  t0[1] = mzd_init(A->nrows, A->ncols);
+  t1[0] = mzd_init(B->nrows, B->ncols);
+  t1[1] = mzd_init(B->nrows, B->ncols);
+
+  _poly_add(t0, a0, a1, 2);
+  _poly_add(t1, b0, b1, 2);
+
+  _poly2_addmul(X[1], (const mzd_t**)t0, (const mzd_t**)t1);
+
+  mzd_free(t0[0]);  mzd_free(t0[1]);
+  mzd_free(t1[0]);  mzd_free(t1[1]);
+
+  t0[0] = mzd_init(A->nrows, B->ncols);
+  t0[1] = mzd_init(A->nrows, B->ncols);
+  t0[2] = mzd_init(A->nrows, B->ncols);
+
+  _poly2_addmul(t0, a0, b0);
+  _poly_add(X[0], (const mzd_t**)X[0], (const mzd_t**)t0, 3);
+  _poly_add(X[1], (const mzd_t**)X[1], (const mzd_t**)t0, 3);
+
+  mzd_set_ui(t0[0], 0);
+  mzd_set_ui(t0[1], 0);
+  mzd_set_ui(t0[2], 0);
+  
+  _poly2_addmul(t0, a1, b1);
+  _poly_add(X[1], (const mzd_t**)X[1], (const mzd_t**)t0, 3);
+  /** TODO: can avoid X[2] **/
+  _poly_add(X[2], (const mzd_t**)X[2], (const mzd_t**)t0, 3);
+
+  mzd_free(t0[0]); mzd_free(t0[1]); mzd_free(t0[2]); 
+
+  /** modular reduction **/
+  if(A->finite_field->minpoly & 1<<3)
+    mzd_add(C->x[5], C->x[5], C->x[6]);
+  if(A->finite_field->minpoly & 1<<2)
+    mzd_add(C->x[4], C->x[4], C->x[6]);
+  if(A->finite_field->minpoly & 1<<1)
+    mzd_add(C->x[3], C->x[3], C->x[6]);
+  mzd_add(C->x[2], C->x[2], C->x[6]);
+
+  if(A->finite_field->minpoly & 1<<3)
+    mzd_add(C->x[4], C->x[4], C->x[5]);
+  if(A->finite_field->minpoly & 1<<2)
+    mzd_add(C->x[3], C->x[3], C->x[5]);
+  if(A->finite_field->minpoly & 1<<1)
+    mzd_add(C->x[2], C->x[2], C->x[5]);
+  mzd_add(C->x[1], C->x[1], C->x[5]);
+
+  if(A->finite_field->minpoly & 1<<3)
+    mzd_add(C->x[3], C->x[3], C->x[4]);
+  if(A->finite_field->minpoly & 1<<2)
+    mzd_add(C->x[2], C->x[2], C->x[4]);
+  if(A->finite_field->minpoly & 1<<1)
+    mzd_add(C->x[1], C->x[1], C->x[4]);
+  mzd_add(C->x[0], C->x[0], C->x[4]);
+
+  _mzd_slice_adapt_depth(C,4);
 
   return C;
 }

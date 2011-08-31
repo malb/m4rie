@@ -45,7 +45,7 @@ typedef struct {
   int depth; // the number of slices
 } mzd_slice_t;
 
-static inline mzd_slice_t *mzd_slice_init(gf2e *ff, const size_t m, const size_t n) {
+static inline mzd_slice_t *mzd_slice_init(gf2e *ff, const rci_t m, const rci_t n) {
 
   /**
    * @TODO: avoid all these malloc() calls and call it once only
@@ -73,6 +73,21 @@ static inline mzd_slice_t *mzd_slice_init(gf2e *ff, const size_t m, const size_t
     A->x[i] = mzd_init(m,n);
   return A;
 
+}
+
+static inline mzd_slice_t *_mzd_slice_adapt_depth(mzd_slice_t *A, const int new_depth) {
+  if (new_depth < A->depth) { 
+    for(int i=new_depth; i<A->depth; i++) {
+      mzd_free(A->x[i]);
+      A->x[i] = NULL;
+    }
+  } else {
+    for(int i=A->depth; i<new_depth; i++) {
+      A->x[i] = mzd_init(A->nrows,A->ncols);
+    }
+  }
+  A->depth = new_depth;
+  return A;
 }
 
 static inline void mzd_slice_free(mzd_slice_t *A) {
@@ -421,5 +436,6 @@ mzed_t *_mzed_mul_karatsuba(mzed_t *C, const mzed_t *A, const mzed_t *B);
 
 mzd_slice_t *_mzd_slice_mul_karatsuba2(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B);
 mzd_slice_t *_mzd_slice_mul_karatsuba3(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B);
+mzd_slice_t *_mzd_slice_mul_karatsuba4(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B);
 
 #endif //BITSLICE_H
