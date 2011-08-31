@@ -1061,7 +1061,7 @@ mzd_slice_t *_mzd_slice_mul_karatsuba2(mzd_slice_t *C, const mzd_slice_t *A, con
 }
 
 mzd_slice_t *_mzd_slice_mul_karatsuba3(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B) {
-  // three temporaries
+  /* using three temporary matrices */
   if (C == NULL)
     C = mzd_slice_init(A->finite_field, A->nrows, B->ncols);
 
@@ -1109,18 +1109,7 @@ mzd_slice_t *_mzd_slice_mul_karatsuba3(mzd_slice_t *C, const mzd_slice_t *A, con
 
   mzd_mul(t0, a2, b2, 0); /* + a2b2(-X^2-X^3+X^4) */
   
-  /*
-   *  We'd do
-   *   mzd_add(X[4], X[4], t0);
-   *  here but we perform modular reductions at the end of this function anyway.
-   *   if(A->finite_field->minpoly & 1<<2) {
-   *      mzd_add(X[3],X[3],X[4]); 
-   *   } else { //if (A->finite_field->minpoly & 1<<1) {
-   *      mzd_add(X[2],X[2],X[4]);
-   *   }
-   *   mzd_add(X[1],X[1],X[4]);
-   * This way, we save X[4]
-   */ 
+  /* modular reductions and final additions */
 
   if( (A->finite_field->minpoly & 1<<2) == 0)
     mzd_add(X[3], X[3], t0);
@@ -1128,18 +1117,13 @@ mzd_slice_t *_mzd_slice_mul_karatsuba3(mzd_slice_t *C, const mzd_slice_t *A, con
     mzd_add(X[2], X[2], t0);
   mzd_add(X[1], X[1], t0);
 
-  mzd_free(t0);
-
-  /* modular reductions for X[3] */
-
-  if(A->finite_field->minpoly & 1<<2) {
+  if(A->finite_field->minpoly & 1<<2) 
     mzd_add(X[2],X[2],X[3]);
-  }
-  else { //if (A->finite_field->minpoly & 1<<1) {=
+  else  //if (A->finite_field->minpoly & 1<<1) {=
     mzd_add(X[1],X[1],X[3]);
-  }
   mzd_add(X[0],X[0],X[3]);
 
+  mzd_free(t0);
   _mzd_slice_adapt_depth(C,3);
 
   return C;
@@ -1184,19 +1168,20 @@ static void _poly_add(mzd_t **c, const mzd_t **a, const mzd_t **b,const int leng
 }
 
 mzd_slice_t *_mzd_slice_mul_karatsuba4(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B) {
+  /* using five + two = 7 temporary matrices */
+
   if (C == NULL)
     C = mzd_slice_init(A->finite_field, A->nrows, B->ncols);
 
-  C = _mzd_slice_adapt_depth(C,2*4-1);
+  C = _mzd_slice_adapt_depth(C,5);
   
   const mzd_t *a0[2] = {A->x[0],A->x[1]};
   const mzd_t *a1[2] = {A->x[2],A->x[3]};
   const mzd_t *b0[2] = {B->x[0],B->x[1]};
   const mzd_t *b1[2] = {B->x[2],B->x[3]};
 
-  mzd_t *X[3][3] = { {C->x[0],C->x[1],C->x[2]}, 
-                     {C->x[2],C->x[3],C->x[4]},
-                     {C->x[4],C->x[5],C->x[6]} };
+  mzd_t *X[2][3] = { {C->x[0],C->x[1],C->x[2]}, 
+                     {C->x[2],C->x[3],C->x[4]} };
 
   mzd_t *t0[3];
   mzd_t *t1[2];
@@ -1228,36 +1213,36 @@ mzd_slice_t *_mzd_slice_mul_karatsuba4(mzd_slice_t *C, const mzd_slice_t *A, con
   
   _poly2_addmul(t0, a1, b1);
   _poly_add(X[1], (const mzd_t**)X[1], (const mzd_t**)t0, 3);
-  /** TODO: can avoid X[2] **/
-  _poly_add(X[2], (const mzd_t**)X[2], (const mzd_t**)t0, 3);
 
-  mzd_free(t0[0]); mzd_free(t0[1]); mzd_free(t0[2]); 
+  /* we would now do 
+   *
+   *    _poly_add(X[2], (const mzd_t**)X[2], (const mzd_t**)t0, 3);
+   *
+   * but we want avoid C->x[6] and C->x[5], hence we combine it with the
+   * modular reduction.
+   */
 
-  /** modular reduction **/
-  if(A->finite_field->minpoly & 1<<3)
-    mzd_add(C->x[5], C->x[5], C->x[6]);
-  if(A->finite_field->minpoly & 1<<2)
-    mzd_add(C->x[4], C->x[4], C->x[6]);
-  if(A->finite_field->minpoly & 1<<1)
-    mzd_add(C->x[3], C->x[3], C->x[6]);
-  mzd_add(C->x[2], C->x[2], C->x[6]);
-
-  if(A->finite_field->minpoly & 1<<3)
-    mzd_add(C->x[4], C->x[4], C->x[5]);
-  if(A->finite_field->minpoly & 1<<2)
-    mzd_add(C->x[3], C->x[3], C->x[5]);
-  if(A->finite_field->minpoly & 1<<1)
-    mzd_add(C->x[2], C->x[2], C->x[5]);
-  mzd_add(C->x[1], C->x[1], C->x[5]);
-
-  if(A->finite_field->minpoly & 1<<3)
+  mzd_add(C->x[4], C->x[4], t0[0]);
+  if(A->finite_field->minpoly & 1<<3) {
+    mzd_add(t0[1], t0[1], t0[2]);
+    mzd_add(C->x[4], C->x[4], t0[1]);
     mzd_add(C->x[3], C->x[3], C->x[4]);
-  if(A->finite_field->minpoly & 1<<2)
+  }
+  if(A->finite_field->minpoly & 1<<2) {
+    mzd_add(C->x[4], C->x[4], t0[2]);
+    mzd_add(C->x[3], C->x[3], t0[1]);
     mzd_add(C->x[2], C->x[2], C->x[4]);
-  if(A->finite_field->minpoly & 1<<1)
+  }
+  if(A->finite_field->minpoly & 1<<1) {
+    mzd_add(C->x[3], C->x[3], t0[2]);
+    mzd_add(C->x[2], C->x[2], t0[1]);
     mzd_add(C->x[1], C->x[1], C->x[4]);
+  }
+  mzd_add(C->x[2], C->x[2], t0[2]);
+  mzd_add(C->x[1], C->x[1], t0[1]);
   mzd_add(C->x[0], C->x[0], C->x[4]);
 
+  mzd_free(t0[0]); mzd_free(t0[1]); mzd_free(t0[2]); 
   _mzd_slice_adapt_depth(C,4);
 
   return C;
