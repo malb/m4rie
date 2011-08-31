@@ -148,7 +148,7 @@ int test_scalar(gf2e *ff, rci_t m, rci_t n) {
 
 int test_batch(gf2e *ff, rci_t m, rci_t l, rci_t n) {
   int fail_ret = 0;
-  printf("mul: k: %2d, minpoly: 0x%03x m: %5d, l: %5d, n: %5d ",ff->degree, ff->minpoly, m, l, n);
+  printf("mul: k: %2d, minpoly: 0x%03x m: %5d, l: %5d, n: %5d ",(int)ff->degree, (unsigned int)ff->minpoly, (int)m, (int)l, (int)n);
 
   m4rie_check(test_scalar(ff, m, m) == 0); printf("."); fflush(0);
   m4rie_check(test_scalar(ff, l, l) == 0); printf("."); fflush(0);

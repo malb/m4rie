@@ -20,7 +20,7 @@ int main(int argc, char **argv) {
       mzed_echelonize_travolta(A0,1);
       mzed_echelonize_naive(A1,1);
       mzed_echelonize(A2,1);
-      printf("elim: m: %5d, n: %5d, k: %2d ... ",m,n,k);
+      printf("elim: m: %5d, n: %5d, k: %2d ... ",(int)m,(int)n,(int)k);
       if (!mzed_cmp(A0,A1) && !mzed_cmp(A1,A2)) {
         printf("pass\n");
       } else {
