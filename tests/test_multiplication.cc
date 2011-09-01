@@ -201,8 +201,6 @@ int main(int argc, char **argv) {
 
   for(int k=2; k<=10; k++) {
     fail_ret += test_batch(ff[k],   1,   1,   1);
-    if(fail_ret)
-      return fail_ret;
     fail_ret += test_batch(ff[k],   1,   2,   3);
     fail_ret += test_batch(ff[k],  11,  12,  13);
     fail_ret += test_batch(ff[k],  21,  22,  23);

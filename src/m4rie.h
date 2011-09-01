@@ -51,6 +51,7 @@ extern "C" {
 #include "echelonform.h"
 #include "strassen.h"
 #include "bitslice.h"
+#include "trsm.h"
 
 #ifdef __cplusplus
 }

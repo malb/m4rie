@@ -4,7 +4,7 @@ BENCHCXXFLAGS = $(AM_CFLAGS)  -I.. -I${CPUCYCLES_DIR} @CXXFLAGS@ ${M4RIE_GIVARO_
 BENCHLIBADD = -lm4ri -lgivaro -lntl -lgmpxx -lgmp -lm -lstdc++ cpucycles.o
 BENCHLDFLAGS = -Wl,-rpath,../.libs/ ../.libs/libm4rie.so ${M4RIE_GIVARO_LDFLAGS} -L${CPUCYCLES_DIR} -Wl,-rpath,${M4RIE_GIVARO_PREFIX}/lib -Wl,-rpath,${M4RIE_M4RI_PREFIX}/lib
 
-EXTRA_PROGRAMS = bench_multiplication bench_elimination bench_smallops
+EXTRA_PROGRAMS = bench_multiplication bench_elimination bench_smallops bench_trsm
 
 .PHONY: clean dist-clean
 
@@ -28,3 +28,7 @@ bench_multiplication_LDFLAGS=${BENCHLDFLAGS} ${BENCHLIBADD}
 bench_smallops_SOURCES=bench_smallops.cc cpucycles.h benchmarking.cc
 bench_smallops_CXXFLAGS=${BENCHCXXFLAGS}
 bench_smallops_LDFLAGS=${BENCHLDFLAGS} ${BENCHLIBADD}
+
+bench_trsm_SOURCES=bench_trsm.cc cpucycles.h benchmarking.cc
+bench_trsm_CXXFLAGS=${BENCHCXXFLAGS}
+bench_trsm_LDFLAGS=${BENCHLDFLAGS} ${BENCHLIBADD}
