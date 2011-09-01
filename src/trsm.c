@@ -14,53 +14,50 @@ void mzed_trsm_lower_left_naive(const mzed_t *L, mzed_t *B) {
   }
 }
 
-
-
-void mzed_trsm_lower_left(const mzed_t *L, mzed_t *B) {
+void mzd_slice_trsm_lower_left_naive(const mzd_slice_t *L, mzd_slice_t *B) {
   assert(L->finite_field == B->finite_field);
   assert(L->nrows == L->ncols);
   assert(B->nrows == L->ncols);
 
-  const rci_t c = MZED_TRSM_CUTOFF;
+  const mzed_t *Le = mzed_cling(NULL, L);
+  mzed_t *Be = mzed_cling(NULL, B);
+  mzed_trsm_lower_left_naive(Le, Be);
 
-  if (L->nrows < c) {
-    mzed_trsm_lower_left_naive(L,B);
-    return;
-  }
-
-  /**
-  \verbatim  
-  |\           ______
-  | \         |      |
-  |  \        |  B0  |
-  |L00\       |      |
-  |____\      |______|
-  |    |\     |      |
-  |    | \    |      |
-  |    |  \   |  B1  |
-  |L10 |L11\  |      |
-  |____|____\ |______|
-  \endverbatim 
-  * \li L00 L10 B0 and B1 are possibly located at uneven locations.
-  * \li Their column dimension is lower than 64.
-  * \li The first column of L01, L11, B1 are aligned to words.
-  */
-
-  mzed_t *B0  = mzed_init_window(B, 0, 0, c, B->ncols);
-  mzed_t *B1  = mzed_init_window(B, c, 0, B->nrows, B->ncols);
-  const mzed_t *L00 = (const mzed_t*)mzed_init_window((mzed_t*)L, 0, 0, c, c);
-  const mzed_t *L10 = (const mzed_t*)mzed_init_window((mzed_t*)L, c, 0, B->nrows, c);
-  const mzed_t *L11 = (const mzed_t*)mzed_init_window((mzed_t*)L, c, c, B->nrows, B->nrows);
-    
-  mzed_trsm_lower_left_naive(L00, B0);
-  mzed_addmul(B1, L10, B0);
-  mzed_trsm_lower_left(L11, B1);
-    
-  mzed_free_window(B0);
-  mzed_free_window(B1);
-    
-  mzed_free_window((mzed_t*)L00);
-  mzed_free_window((mzed_t*)L10);
-  mzed_free_window((mzed_t*)L11);
+  mzed_slice(B, Be);
+  mzed_free((mzed_t*)Le);
+  mzed_free(Be);
 }
+
+
+#define matrix_t mzed_t
+#define matrix_trsm_lower_left mzed_trsm_lower_left
+#define matrix_trsm_lower_left_naive mzed_trsm_lower_left_naive
+#define matrix_init_window mzed_init_window
+#define matrix_addmul mzed_addmul
+#define matrix_free_window mzed_free_window
+
+#include "trsm.inl"
+
+#undef matrix_t
+#undef matrix_trsm_lower_left
+#undef matrix_trsm_lower_left_naive
+#undef matrix_init_window
+#undef matrix_addmul
+#undef matrix_free_window
+
+#define matrix_t mzd_slice_t
+#define matrix_trsm_lower_left mzd_slice_trsm_lower_left
+#define matrix_trsm_lower_left_naive mzd_slice_trsm_lower_left_naive
+#define matrix_init_window mzd_slice_init_window
+#define matrix_addmul mzd_slice_addmul
+#define matrix_free_window mzd_slice_free_window
+
+#include "trsm.inl"
+
+#undef matrix_t
+#undef matrix_trsm_lower_left_naive
+#undef matrix_init_window
+#undef matrix_addmul
+#undef matrix_free_window
+
 

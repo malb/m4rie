@@ -375,9 +375,12 @@ static inline mzed_t* mzed_cling4(mzed_t *A, const mzd_slice_t *Z) {
   return A;
 }
 
+mzd_slice_t *_mzd_slice_mul_karatsuba2(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B);
+mzd_slice_t *_mzd_slice_mul_karatsuba3(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B);
+mzd_slice_t *_mzd_slice_mul_karatsuba4(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B);
 
 /**
- * \brief Compute C == A*B using Karatsuba multiplication of polynomials over GF(2).
+ * \brief Compute C += A*B using Karatsuba multiplication of polynomials over GF(2).
  *
  * Matrices over GF(2^e) can be represented as polynomials with matrix
  * coefficients where the matrices are in GF(2). This function uses
@@ -388,15 +391,15 @@ static inline mzed_t* mzed_cling4(mzed_t *A, const mzd_slice_t *Z) {
  * 1. The matrix A can be represented as A0*x + A1 and the matrix B
  * can be represented as B0*x + B1. Their product C is 
  * \f[
- * A0*B0*x^2 + (A0*B1 + A1*B0)*x + A1*B1.
+ A0*B0*x^2 + (A0*B1 + A1*B0)*x + A1*B1.
  * \f]
  * Reduction modulo x^2 + x + 1 gives
  * \f[
- * (A0*B0 + A0*B1 + A1*B0)*x + A1*B1 + A0*B0.
+ (A0*B0 + A0*B1 + A1*B0)*x + A1*B1 + A0*B0.
  * \f]
  * This can be re-written as
  * \f[
- * ((A0 + A1)*(B0 + B1) + A1*B1)*x + A1*B1 + A0*B0
+ ((A0 + A1)*(B0 + B1) + A1*B1)*x + A1*B1 + A0*B0
  * \f]
  * and thus this multiplication costs 3 matrix multiplications over
  * GF(2) and 4 matrix additions over GF(2).
@@ -409,33 +412,182 @@ static inline mzed_t* mzed_cling4(mzed_t *A, const mzd_slice_t *Z) {
  * \param A Input matrix A.
  * \param B Input matrix B.
  *
- * \note This function is only implemented for GF(2^2) so far.
+ * \note This function is only implemented for GF(2^e) for e<=4 so far.
  *
  * \sa mzed_mul()
  *
  * \wordoffset
  */
 
-mzed_t *mzed_mul_karatsuba(mzed_t *C, const mzed_t *A, const mzed_t *B);
-
-mzed_t *mzed_addmul_karatsuba(mzed_t *C, const mzed_t *A, const mzed_t *B);
+static inline mzd_slice_t *_mzd_slice_mul_karatsuba(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B) {
+  switch(A->finite_field->degree) {
+  case  2:
+    C = _mzd_slice_mul_karatsuba2(C, A, B); break;
+  case  3:
+    C = _mzd_slice_mul_karatsuba3(C, A, B); break;
+  case  4:
+    C = _mzd_slice_mul_karatsuba4(C, A, B); break;
+  case  5:
+  case  6:
+  case  7:
+  case  8:
+  case  9:
+  case 10:
+  default:
+    m4ri_die("mzed_mul_karatsuba: only implemented for GF(2^e) with e <= 4");
+  }
+  return C;
+}
 
 /**
- * \brief Compute C == A*B over GF(2^2) using Karatsuba multiplication.
- *
- * \sa mzed_mul_karatsuba()
+ * \brief Compute C = A*B using Karatsuba multiplication of polynomials over GF(2).
  *
  * \param C Preallocated return matrix, may be NULL for automatic creation.
  * \param A Input matrix A.
  * \param B Input matrix B.
  *
+ * \sa _mzd_slice_mul_karatsuba
+ *
  * \wordoffset
  */
 
-mzed_t *_mzed_mul_karatsuba(mzed_t *C, const mzed_t *A, const mzed_t *B);
+static inline mzd_slice_t *mzd_slice_mul_karatsuba(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B) {
+  if (A->ncols != B->nrows || A->finite_field != B->finite_field) 
+    m4ri_die("mzd_slice_mul_karatsuba: rows, columns and fields must match.\n");
+  if (C != NULL) {
+    if (C->finite_field != A->finite_field || C->nrows != A->nrows || C->ncols != B->ncols) 
+      m4ri_die("mzd_slice_mul_karatsuba: rows and columns of returned matrix must match.\n");
+    mzd_slice_set_ui(C,0);
+  }
+  return _mzd_slice_mul_karatsuba(C, A, B);
+}
 
-mzd_slice_t *_mzd_slice_mul_karatsuba2(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B);
-mzd_slice_t *_mzd_slice_mul_karatsuba3(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B);
-mzd_slice_t *_mzd_slice_mul_karatsuba4(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B);
+/**
+ * \brief Compute C += A*B using Karatsuba multiplication of polynomials over GF(2).
+ *
+ * \param C Preallocated return matrix.
+ * \param A Input matrix A.
+ * \param B Input matrix B.
+ *
+ * \sa _mzd_slice_mul_karatsuba
+ *
+ * \wordoffset
+ */
+
+static inline mzd_slice_t *mzd_slice_addmul_karatsuba(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B) {
+  assert(C != NULL);
+  if (A->ncols != B->nrows || A->finite_field != B->finite_field) 
+    m4ri_die("mzd_slice_addmul_karatsuba: rows, columns and fields must match.\n");
+  if (C->finite_field != A->finite_field || C->nrows != A->nrows || C->ncols != B->ncols) 
+    m4ri_die("mzd_slice_addmul_karatsuba: rows and columns of returned matrix must match.\n");
+  return _mzd_slice_mul_karatsuba(C, A, B);
+}
+
+/**
+ * \brief Compute C = A*B.
+ *
+ * \param C Preallocated return matrix, may be NULL for automatic creation.
+ * \param A Input matrix A.
+ * \param B Input matrix B.
+ *
+ * \sa _mzd_slice_mul_karatsuba
+ *
+ * \wordoffset
+ */
+
+static inline mzd_slice_t *mzd_slice_mul(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B) {
+  return mzd_slice_mul_karatsuba(C,A,B);
+}
+
+/**
+ * \brief Compute C += A*B.
+ *
+ * \param C Preallocated return matrix.
+ * \param A Input matrix A.
+ * \param B Input matrix B.
+ *
+ * \sa _mzd_slice_mul_karatsuba
+ *
+ * \wordoffset
+ */
+
+static inline mzd_slice_t *mzd_slice_addmul(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B) {
+  return mzd_slice_addmul_karatsuba(C,A,B);
+}
+
+/**
+ * \brief Compute C += A*B using Karatsuba multiplication of polynomials over GF(2).
+ *
+ * \param C Preallocated return matrix, may be NULL for automatic creation.
+ * \param A Input matrix A.
+ * \param B Input matrix B.
+ *
+ * \sa _mzd_slice_mul_karatsuba
+ *
+ * \wordoffset
+ */
+
+static inline mzed_t *_mzed_mul_karatsuba(mzed_t *C, const mzed_t *A, const mzed_t *B) {
+  mzd_slice_t *As,*Bs,*Cs;
+  if(C)
+    Cs = mzed_slice(NULL,C);
+  else
+    Cs = NULL;
+  As = mzed_slice(NULL,A);
+  Bs = mzed_slice(NULL,B);
+
+  _mzd_slice_mul_karatsuba(Cs, As, Bs);
+
+  C = mzed_cling(C, Cs);
+
+  mzd_slice_free(As);
+  mzd_slice_free(Bs);
+  mzd_slice_free(Cs);
+  return C;
+}
+
+/**
+ * \brief Compute C = A*B.
+ *
+ * \param C Preallocated return matrix, may be NULL for automatic creation.
+ * \param A Input matrix A.
+ * \param B Input matrix B.
+ *
+ * \sa _mzd_slice_mul_karatsuba
+ *
+ * \wordoffset
+ */
+
+static inline mzed_t *mzed_mul_karatsuba(mzed_t *C, const mzed_t *A, const mzed_t *B) {
+  if (A->ncols != B->nrows || A->finite_field != B->finite_field) 
+    m4ri_die("mzed_mul_karatsuba: rows, columns and fields must match.\n");
+  if (C != NULL) {
+    if (C->finite_field != A->finite_field || C->nrows != A->nrows || C->ncols != B->ncols) 
+      m4ri_die("mzed_mul_karatsuba: rows and columns of returned matrix must match.\n");
+    mzed_set_ui(C,0);
+  }
+  return _mzed_mul_karatsuba(C, A, B);
+}
+
+/**
+ * \brief Compute C += A*B.
+ *
+ * \param C Preallocated return matrix.
+ * \param A Input matrix A.
+ * \param B Input matrix B.
+ *
+ * \sa _mzd_slice_mul_karatsuba
+ *
+ * \wordoffset
+ */
+
+static inline mzed_t *mzed_addmul_karatsuba(mzed_t *C, const mzed_t *A, const mzed_t *B) {
+  assert(C != NULL);
+  if (A->ncols != B->nrows || A->finite_field != B->finite_field) 
+    m4ri_die("mzed_addmul_karatsuba: rows, columns and fields must match.\n");
+  if (C->finite_field != A->finite_field || C->nrows != A->nrows || C->ncols != B->ncols) 
+    m4ri_die("mzed_addmul_karatsuba: rows and columns of returned matrix must match.\n");
+  return _mzed_mul_karatsuba(C, A, B);
+}
 
 #endif //BITSLICE_H

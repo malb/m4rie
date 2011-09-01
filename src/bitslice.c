@@ -974,69 +974,8 @@ void mzd_slice_set_ui(mzd_slice_t *A, word value) {
 }
 
 
-mzed_t *mzed_mul_karatsuba(mzed_t *C, const mzed_t *A, const mzed_t *B) {
-  if (A->ncols != B->nrows || A->finite_field != B->finite_field) {
-    m4ri_die("mzed_mul: rows, columns and fields must match.\n");
-  }
-  if (C != NULL) {
-    if (C->finite_field != A->finite_field || C->nrows != A->nrows || C->ncols != B->ncols) {
-      m4ri_die("mzed_mul: rows and columns of returned matrix must match.\n");
-    }
-    mzed_set_ui(C,0);
-  }
 
-  C = _mzed_mul_karatsuba(C, A, B);
 
-  return C; 
-}
-
-mzed_t *mzed_addmul_karatsuba(mzed_t *C, const mzed_t *A, const mzed_t *B) {
-  assert(C != NULL);
-
-  if (A->ncols != B->nrows || A->finite_field != B->finite_field) {
-    m4ri_die("mzed_mul: rows, columns and fields must match.\n");
-  }
-  if (C->finite_field != A->finite_field || C->nrows != A->nrows || C->ncols != B->ncols) {
-    m4ri_die("mzed_mul: rows and columns of returned matrix must match.\n");
-  }
-
-  C = _mzed_mul_karatsuba(C, A, B);
-
-  return C; 
-}
-
-mzed_t *_mzed_mul_karatsuba(mzed_t *C, const mzed_t *A, const mzed_t *B) {
-  mzd_slice_t *As,*Bs,*Cs;
-  if(C)
-    Cs = mzed_slice(NULL,C);
-  else
-    Cs = NULL;
-  As = mzed_slice(NULL,A);
-  Bs = mzed_slice(NULL,B);
-
-  switch(A->finite_field->degree) {
-  case  2:
-    Cs = _mzd_slice_mul_karatsuba2(Cs, As, Bs); break;
-  case  3:
-    Cs = _mzd_slice_mul_karatsuba3(Cs, As, Bs); break;
-  case  4:
-    Cs = _mzd_slice_mul_karatsuba4(Cs, As, Bs); break;
-  case  5:
-  case  6:
-  case  7:
-  case  8:
-  case  9:
-  case 10:
-  default:
-    m4ri_die("mzed_mul_karatsuba: only implemented for GF(2^2)");
-  }
-  C = mzed_cling(C, Cs);
-
-  mzd_slice_free(As);
-  mzd_slice_free(Bs);
-  mzd_slice_free(Cs);
-  return C;
-}
 
 mzd_slice_t *_mzd_slice_mul_karatsuba2(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B) {
   // two temporaries

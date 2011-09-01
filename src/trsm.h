@@ -36,5 +36,9 @@ void mzed_trsm_lower_left_naive(const mzed_t *L, mzed_t *B);
 
 void mzed_trsm_lower_left(const mzed_t *L, mzed_t *B);
 
+void mzd_slice_trsm_lower_left_naive(const mzd_slice_t *L, mzd_slice_t *B);
+
+void mzd_slice_trsm_lower_left(const mzd_slice_t *L, mzd_slice_t *B);
+
 
 #endif //TRSM_H
