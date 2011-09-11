@@ -12,6 +12,7 @@ struct elim_params {
   char const *matrix_type;  
   char const *direction;  
   char const *algorithm;  
+  rci_t cutoff;
 };
 
 int run_mzed(void *_p, unsigned long long *data, int *data_len) {
@@ -41,7 +42,7 @@ int run_mzed(void *_p, unsigned long long *data, int *data_len) {
     if(strcmp(p->algorithm,"naive")==0)
       mzed_trsm_lower_left_naive(A, B);
     else 
-      mzed_trsm_lower_left(A, B);
+      _mzed_trsm_lower_left(A, B, p->cutoff);
   }   
   data[1] = cpucycles() - data[1];
   data[0] = walltime(data[0]);
@@ -80,7 +81,7 @@ int run_mzd_slice(void *_p, unsigned long long *data, int *data_len) {
     if(strcmp(p->algorithm,"naive")==0)
       mzd_slice_trsm_lower_left_naive(A, B);
     else 
-      mzd_slice_trsm_lower_left(A, B);
+      _mzd_slice_trsm_lower_left(A, B, p->cutoff);
   }   
   data[1] = cpucycles() - data[1];
   data[0] = walltime(data[0]);
@@ -113,6 +114,10 @@ int main(int argc, char **argv) {
     params.algorithm = argv[6];
   else
     params.algorithm = (char*)"default";
+  if (argc >= 8)
+    params.cutoff = atoi(argv[7]);
+  else
+    params.cutoff = MZED_TRSM_CUTOFF;
 
   srandom(17);
   unsigned long long data[2];
@@ -125,5 +130,7 @@ int main(int argc, char **argv) {
     m4ri_die("unknown type '%s'",params.matrix_type);
   double cc_per_op = ((double)data[1])/ ( (double)params.m * (double)params.m * powl((double)params.n,0.807) );
 
-  printf("e: %2d, m: %5d, n: %5d, cpu cycles: %10llu, cc/(mmn^0.807): %.5lf, wall time: %lf\n", params.e, params.m, params.n, data[1], cc_per_op, data[0] / 1000000.0);
+  printf("e: %2d, m: %5d, n: %5d, cutoff: %4d, cpu cycles: %10llu, cc/(mmn^0.807): %.5lf, wall time: %lf\n", params.e, params.m, params.n, params.cutoff, data[1], cc_per_op, data[0] / 1000000.0);
 }
+
+

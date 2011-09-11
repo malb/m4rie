@@ -6,13 +6,13 @@
  * templates.
  */
 
-void matrix_trsm_lower_left(const matrix_t *L, matrix_t *B) {
+void _matrix_trsm_lower_left(const matrix_t *L, matrix_t *B, const rci_t cutoff) {
   assert((L->finite_field == B->finite_field) && (L->nrows == L->ncols) && (B->nrows == L->ncols));
 
-  const rci_t c = MZED_TRSM_CUTOFF;
-
-  if (L->nrows < c)
-    return matrix_trsm_lower_left_naive(L,B);
+  if (L->nrows < cutoff) {
+    matrix_trsm_lower_left_naive(L,B);
+    return;
+  }
 
   /**
   \verbatim  
@@ -29,15 +29,15 @@ void matrix_trsm_lower_left(const matrix_t *L, matrix_t *B) {
   \endverbatim 
   */
 
-  matrix_t *B0  = matrix_init_window(B, 0, 0, c, B->ncols);
-  matrix_t *B1  = matrix_init_window(B, c, 0, B->nrows, B->ncols);
-  const matrix_t *L00 = (const matrix_t*)matrix_init_window((matrix_t*)L, 0, 0, c, c);
-  const matrix_t *L10 = (const matrix_t*)matrix_init_window((matrix_t*)L, c, 0, B->nrows, c);
-  const matrix_t *L11 = (const matrix_t*)matrix_init_window((matrix_t*)L, c, c, B->nrows, B->nrows);
+  matrix_t *B0  = matrix_init_window(B, 0, 0, cutoff, B->ncols);
+  matrix_t *B1  = matrix_init_window(B, cutoff, 0, B->nrows, B->ncols);
+  const matrix_t *L00 = (const matrix_t*)matrix_init_window((matrix_t*)L, 0, 0, cutoff, cutoff);
+  const matrix_t *L10 = (const matrix_t*)matrix_init_window((matrix_t*)L, cutoff, 0, B->nrows, cutoff);
+  const matrix_t *L11 = (const matrix_t*)matrix_init_window((matrix_t*)L, cutoff, cutoff, B->nrows, B->nrows);
     
   matrix_trsm_lower_left_naive(L00, B0);
   matrix_addmul(B1, L10, B0);
-  matrix_trsm_lower_left(L11, B1);
+  _matrix_trsm_lower_left(L11, B1, cutoff);
     
   matrix_free_window(B0);
   matrix_free_window(B1);

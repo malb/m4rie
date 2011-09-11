@@ -30,7 +30,7 @@ void mzd_slice_trsm_lower_left_naive(const mzd_slice_t *L, mzd_slice_t *B) {
 
 
 #define matrix_t mzed_t
-#define matrix_trsm_lower_left mzed_trsm_lower_left
+#define _matrix_trsm_lower_left _mzed_trsm_lower_left
 #define matrix_trsm_lower_left_naive mzed_trsm_lower_left_naive
 #define matrix_init_window mzed_init_window
 #define matrix_addmul mzed_addmul
@@ -39,14 +39,14 @@ void mzd_slice_trsm_lower_left_naive(const mzd_slice_t *L, mzd_slice_t *B) {
 #include "trsm.inl"
 
 #undef matrix_t
-#undef matrix_trsm_lower_left
+#undef _matrix_trsm_lower_left
 #undef matrix_trsm_lower_left_naive
 #undef matrix_init_window
 #undef matrix_addmul
 #undef matrix_free_window
 
 #define matrix_t mzd_slice_t
-#define matrix_trsm_lower_left mzd_slice_trsm_lower_left
+#define _matrix_trsm_lower_left _mzd_slice_trsm_lower_left
 #define matrix_trsm_lower_left_naive mzd_slice_trsm_lower_left_naive
 #define matrix_init_window mzd_slice_init_window
 #define matrix_addmul mzd_slice_addmul
