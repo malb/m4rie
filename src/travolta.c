@@ -141,15 +141,15 @@ size_t _mzed_gauss_submatrix_full(mzed_t *A, size_t r, size_t c, size_t end_row,
 }
 
 
-void mzed_make_table(const mzed_t *A, rci_t r, rci_t c, mzed_t *T,  rci_t *L, gf2e *ff) {
+void mzed_make_table(const mzed_t *A, rci_t r, rci_t c, mzed_t *T,  rci_t *L) {
   mzd_set_ui(T->x,0);
   L[0] = 0;
 
   mzed_copy_row(T, 1, A, r);
   L[1] = 1;
 
-  for(size_t i=2; i< __M4RI_TWOPOW(ff->degree); i++) {
-    word *X = ff->mul[i];
+  for(size_t i=2; i< __M4RI_TWOPOW(A->finite_field->degree); i++) {
+    word *X = A->finite_field->mul[i];
     L[i] = i;
     mzed_add_multiple_of_row(T, i, A, r, X, c);
   }
@@ -211,56 +211,56 @@ size_t mzed_echelonize_travolta(mzed_t *A, int full) {
     kbar = _mzed_gauss_submatrix_full(A, r, c, A->nrows, kk);
 
     if (kbar == 6)  {
-      mzed_make_table( A, r,   c,   T0, L0, ff);
-      mzed_make_table( A, r+1, c+1, T1, L1, ff);
-      mzed_make_table( A, r+2, c+2, T2, L2, ff);
-      mzed_make_table( A, r+3, c+3, T3, L3, ff);
-      mzed_make_table( A, r+4, c+4, T4, L4, ff);
-      mzed_make_table( A, r+5, c+5, T5, L5, ff);
+      mzed_make_table( A, r,   c,   T0, L0);
+      mzed_make_table( A, r+1, c+1, T1, L1);
+      mzed_make_table( A, r+2, c+2, T2, L2);
+      mzed_make_table( A, r+3, c+3, T3, L3);
+      mzed_make_table( A, r+4, c+4, T4, L4);
+      mzed_make_table( A, r+5, c+5, T5, L5);
       if(kbar == kk)
         mzed_process_rows6( A, r+6, A->nrows, c, T0, L0, T1, L1, T2, L2, T3, L3, T4, L4, T5, L5);
       if(full)
         mzed_process_rows6( A,   0,        r, c, T0, L0, T1, L1, T2, L2, T3, L3, T4, L4, T5, L5);
     } else if(kbar == 5) {
-      mzed_make_table( A, r,     c, T0, L0, ff);
-      mzed_make_table( A, r+1, c+1, T1, L1, ff);
-      mzed_make_table( A, r+2, c+2, T2, L2, ff);
-      mzed_make_table( A, r+3, c+3, T3, L3, ff);
-      mzed_make_table( A, r+4, c+4, T4, L4, ff);
+      mzed_make_table( A, r,     c, T0, L0);
+      mzed_make_table( A, r+1, c+1, T1, L1);
+      mzed_make_table( A, r+2, c+2, T2, L2);
+      mzed_make_table( A, r+3, c+3, T3, L3);
+      mzed_make_table( A, r+4, c+4, T4, L4);
       if(kbar == kk)
         mzed_process_rows5( A, r+5, A->nrows, c, T0, L0, T1, L1, T2, L2, T3, L3, T4, L4);
       if(full)
         mzed_process_rows5( A,   0,        r, c, T0, L0, T1, L1, T2, L2, T3, L3, T4, L4);
 
     } else if(kbar == 4) {
-      mzed_make_table( A, r,   c,   T0, L0, ff);
-      mzed_make_table( A, r+1, c+1, T1, L1, ff);
-      mzed_make_table( A, r+2, c+2, T2, L2, ff);
-      mzed_make_table( A, r+3, c+3, T3, L3, ff);
+      mzed_make_table( A, r,   c,   T0, L0);
+      mzed_make_table( A, r+1, c+1, T1, L1);
+      mzed_make_table( A, r+2, c+2, T2, L2);
+      mzed_make_table( A, r+3, c+3, T3, L3);
       if(kbar == kk)
         mzed_process_rows4( A, r+4, A->nrows, c, T0, L0, T1, L1, T2, L2, T3, L3);
       if(full)
         mzed_process_rows4( A,   0,        r, c, T0, L0, T1, L1, T2, L2, T3, L3);
 
     } else if(kbar == 3) {
-      mzed_make_table( A, r,   c,   T0, L0, ff);
-      mzed_make_table( A, r+1, c+1, T1, L1, ff);
-      mzed_make_table( A, r+2, c+2, T2, L2, ff);
+      mzed_make_table( A, r,   c,   T0, L0);
+      mzed_make_table( A, r+1, c+1, T1, L1);
+      mzed_make_table( A, r+2, c+2, T2, L2);
       if(kbar == kk)
         mzed_process_rows3( A, r+3, A->nrows, c, T0, L0, T1, L1, T2, L2);
       if(full)
         mzed_process_rows3( A,   0,        r, c, T0, L0, T1, L1, T2, L2);
 
     } else if(kbar == 2) {
-      mzed_make_table( A, r,   c,   T0, L0, ff);
-      mzed_make_table( A, r+1, c+1, T1, L1, ff);
+      mzed_make_table( A, r,   c,   T0, L0);
+      mzed_make_table( A, r+1, c+1, T1, L1);
       if(kbar == kk)
         mzed_process_rows2( A, r+2, A->nrows, c, T0, L0, T1, L1);
       if(full)
         mzed_process_rows2( A,   0,        r, c, T0, L0, T1, L1);
 
     } else if (kbar == 1) {
-      mzed_make_table(A, r, c, T0, L0, ff);
+      mzed_make_table(A, r, c, T0, L0);
       if(kbar == kk)
         mzed_process_rows( A, r+1, A->nrows, c, T0, L0);
       if(full)
@@ -285,7 +285,7 @@ mzed_t *_mzed_mul_travolta0(mzed_t *C, const mzed_t *A, const mzed_t *B) {
   rci_t *L0 = (rci_t*)m4ri_mm_calloc(__M4RI_TWOPOW(A->finite_field->degree), sizeof(rci_t));
 
   for(size_t i=0; i < A->ncols; i++) {
-    mzed_make_table(B, i, 0, T0, L0, A->finite_field);
+    mzed_make_table(B, i, 0, T0, L0);
     for(size_t j=0; j<A->nrows; j++)
       mzd_combine(C->x, j, 0, C->x, j, 0, T0->x, mzed_read_elem(A, j, i), 0);
   }
@@ -335,14 +335,14 @@ mzed_t *_mzed_mul_travolta(mzed_t *C, const mzed_t *A, const mzed_t *B) {
 
   for (giantstep=0; giantstep + blocksize <= A->nrows; giantstep += blocksize) {
     for(rci_t i=0; i < end; i++) {
-      mzed_make_table( B, kk*i  , 0, T0, L0, A->finite_field);
-      mzed_make_table( B, kk*i+1, 0, T1, L1, A->finite_field);
-      mzed_make_table( B, kk*i+2, 0, T2, L2, A->finite_field);
-      mzed_make_table( B, kk*i+3, 0, T3, L3, A->finite_field);
-      mzed_make_table( B, kk*i+4, 0, T4, L4, A->finite_field);
-      mzed_make_table( B, kk*i+5, 0, T5, L5, A->finite_field);
-      mzed_make_table( B, kk*i+6, 0, T6, L6, A->finite_field);
-      mzed_make_table( B, kk*i+7, 0, T7, L7, A->finite_field);
+      mzed_make_table( B, kk*i  , 0, T0, L0);
+      mzed_make_table( B, kk*i+1, 0, T1, L1);
+      mzed_make_table( B, kk*i+2, 0, T2, L2);
+      mzed_make_table( B, kk*i+3, 0, T3, L3);
+      mzed_make_table( B, kk*i+4, 0, T4, L4);
+      mzed_make_table( B, kk*i+5, 0, T5, L5);
+      mzed_make_table( B, kk*i+6, 0, T6, L6);
+      mzed_make_table( B, kk*i+7, 0, T7, L7);
       for(babystep = 0; babystep < blocksize; babystep++) {
         const rci_t j = giantstep + babystep;
         const rci_t x0 = mzed_read_elem(A, j, kk*  i);
@@ -360,14 +360,14 @@ mzed_t *_mzed_mul_travolta(mzed_t *C, const mzed_t *A, const mzed_t *B) {
 
   /* last giant step */
   for(rci_t i=0; i < end; i++) {
-    mzed_make_table( B, kk*i  , 0, T0, L0, A->finite_field);
-    mzed_make_table( B, kk*i+1, 0, T1, L1, A->finite_field);
-    mzed_make_table( B, kk*i+2, 0, T2, L2, A->finite_field);
-    mzed_make_table( B, kk*i+3, 0, T3, L3, A->finite_field);
-    mzed_make_table( B, kk*i+4, 0, T4, L4, A->finite_field);
-    mzed_make_table( B, kk*i+5, 0, T5, L5, A->finite_field);
-    mzed_make_table( B, kk*i+6, 0, T6, L6, A->finite_field);
-    mzed_make_table( B, kk*i+7, 0, T7, L7, A->finite_field);
+    mzed_make_table( B, kk*i  , 0, T0, L0);
+    mzed_make_table( B, kk*i+1, 0, T1, L1);
+    mzed_make_table( B, kk*i+2, 0, T2, L2);
+    mzed_make_table( B, kk*i+3, 0, T3, L3);
+    mzed_make_table( B, kk*i+4, 0, T4, L4);
+    mzed_make_table( B, kk*i+5, 0, T5, L5);
+    mzed_make_table( B, kk*i+6, 0, T6, L6);
+    mzed_make_table( B, kk*i+7, 0, T7, L7);
     for(babystep = 0; babystep < A->nrows - giantstep; babystep++) {
       const rci_t j = giantstep + babystep;
       const rci_t x0 = mzed_read_elem(A, j, kk*  i);
@@ -384,7 +384,7 @@ mzed_t *_mzed_mul_travolta(mzed_t *C, const mzed_t *A, const mzed_t *B) {
   
   if (A->ncols%kk) {
     for(rci_t i=kk*end; i < A->ncols; i++) {
-      mzed_make_table(B, i, 0, T0, L0, A->finite_field);
+      mzed_make_table(B, i, 0, T0, L0);
       for(rci_t j=0; j<A->nrows; j++)
         mzd_combine(C->x, j, 0, C->x, j, 0, T0->x, mzed_read_elem(A, j, i), 0);
     }

@@ -1,5 +1,5 @@
-#ifndef TRAVOLTA_H
-#define TRAVOLTA_H
+#ifndef M4RIE_TRAVOLTA_H
+#define M4RIE_TRAVOLTA_H
 
 /******************************************************************************
 *
@@ -23,7 +23,17 @@
 #include "finite_field.h"
 #include "gf2e_matrix.h"
 
-void mzed_make_table(const mzed_t *A, rci_t r, rci_t c, mzed_t *T, rci_t *L, gf2e *ff);
+/**
+ * \brief Construct Travolta table T for row r of A, and element A[r,c].
+ *
+ * \param A Matrix.
+ * \param r Row index.
+ * \param c Column index.
+ * \param T Matrix of dimension (2^k) x A->ncols
+ * \param L lookup table of length (2^k)
+ */
+
+void mzed_make_table(const mzed_t *A, rci_t r, rci_t c, mzed_t *T, rci_t *L);
 
 /**
  * \brief Compute C such that C == AB using Travolta tables.
@@ -32,9 +42,9 @@ void mzed_make_table(const mzed_t *A, rci_t r, rci_t c, mzed_t *T, rci_t *L, gf2
  * \param A Input matrix A.
  * \param B Input matrix B.
  *
- * \sa mzed_mul_travolta1 mzed_mul
- *
- * \wordoffset
+ * \sa mzed_mul _mzed_mul_travolta0
+ * 
+ * \ingroup Multiplication
  */
 
 mzed_t *mzed_mul_travolta(mzed_t *C, const mzed_t *A, const mzed_t *B);
@@ -47,8 +57,8 @@ mzed_t *mzed_mul_travolta(mzed_t *C, const mzed_t *A, const mzed_t *B);
  * \param B Input matrix B.
  *
  * \sa _mzed_mul_travolta mzed_mul
- *
- * \wordoffset
+ * 
+ * \ingroup Multiplication
  */
 
 mzed_t *mzed_addmul_travolta(mzed_t *C, const mzed_t *A, const mzed_t *B);
@@ -63,8 +73,8 @@ mzed_t *mzed_addmul_travolta(mzed_t *C, const mzed_t *A, const mzed_t *B);
  * \param B Input matrix B.
  *
  * \sa mzed_mul_travolta mzed_mul
- *
- * \wordoffset
+ * 
+ * \ingroup Multiplication
  */
 
 mzed_t *_mzed_mul_travolta0(mzed_t *C, const mzed_t *A, const mzed_t *B);
@@ -78,9 +88,9 @@ mzed_t *_mzed_mul_travolta0(mzed_t *C, const mzed_t *A, const mzed_t *B);
  * \param A Input matrix A.
  * \param B Input matrix B.
  *
- * \sa mzed_mul_travolta0 mzed_mul
- *
- * \wordoffset
+ * \sa mzed_mul
+ * 
+ * \ingroup Multiplication
  */
 
 mzed_t *_mzed_mul_travolta(mzed_t *C, const mzed_t *A, const mzed_t *B);
@@ -92,8 +102,8 @@ mzed_t *_mzed_mul_travolta(mzed_t *C, const mzed_t *A, const mzed_t *B);
  * \param A Matrix to be reduced.
  * \param full If set to true, the reduced row echelon form will be
  * computed.
- *
- * \wordoffset
+ * 
+ * \ingroup Echelon
  */
 
 size_t mzed_echelonize_travolta(mzed_t *A, int full);
@@ -104,8 +114,8 @@ size_t mzed_echelonize_travolta(mzed_t *A, int full);
  * \param B Preallocated space for inversion matrix, may be NULL for
  * automatic creation.
  * \param A Matrix to be inverted.
- *
- * \wordoffset
+ * 
+ * \ingroup Echelon
  */
 
 mzed_t *mzed_invert_travolta(mzed_t *B, const mzed_t *A);
@@ -123,8 +133,8 @@ mzed_t *mzed_invert_travolta(mzed_t *B, const mzed_t *A);
  * \param startcol Starting column for addition
  * \param T contains the correct row to be added
  * \param L Contains row number to be added
- *
- * \wordoffset
+ * 
+ * \ingroup RowOperations
  */
 
 static inline void mzed_process_rows(mzed_t *M, rci_t startrow, rci_t endrow, rci_t startcol, mzed_t *T, rci_t *L) {
@@ -143,8 +153,8 @@ static inline void mzed_process_rows(mzed_t *M, rci_t startrow, rci_t endrow, rc
  * \param L0 Contains row number to be added
  * \param T1 contains the correct row to be added
  * \param L1 Contains row number to be added
- *
- * \wordoffset
+ * 
+ * \ingroup RowOperations
  */
 
 static inline void mzed_process_rows2(mzed_t *M, rci_t startrow, rci_t endrow, rci_t startcol, mzed_t *T0, rci_t *L0, mzed_t *T1, rci_t *L1) {
@@ -165,8 +175,8 @@ static inline void mzed_process_rows2(mzed_t *M, rci_t startrow, rci_t endrow, r
  * \param L1 Contains row number to be added
  * \param T2 contains the correct row to be added
  * \param L2 Contains row number to be added
- *
- * \wordoffset
+ * 
+ * \ingroup RowOperations
  */
 
 static inline void mzed_process_rows3(mzed_t *M, rci_t startrow, rci_t endrow, rci_t startcol, 
@@ -191,8 +201,8 @@ static inline void mzed_process_rows3(mzed_t *M, rci_t startrow, rci_t endrow, r
  * \param L2 Contains row number to be added
  * \param T3 contains the correct row to be added
  * \param L3 Contains row number to be added
- *
- * \wordoffset
+ * 
+ * \ingroup RowOperations
  */
 
 static inline void mzed_process_rows4(mzed_t *M, rci_t startrow, rci_t endrow, rci_t startcol,
@@ -220,8 +230,8 @@ static inline void mzed_process_rows4(mzed_t *M, rci_t startrow, rci_t endrow, r
  * \param L3 Contains row number to be added
  * \param T4 contains the correct row to be added
  * \param L4 Contains row number to be added
- *
- * \wordoffset
+ * 
+ * \ingroup RowOperations
  */
 
 static inline void mzed_process_rows5(mzed_t *M, rci_t startrow, rci_t endrow, rci_t startcol,
@@ -252,8 +262,8 @@ static inline void mzed_process_rows5(mzed_t *M, rci_t startrow, rci_t endrow, r
  * \param L4 Contains row number to be added
  * \param T5 contains the correct row to be added
  * \param L5 Contains row number to be added
- *
- * \wordoffset
+ * 
+ * \ingroup RowOperations
  */
 
 static inline void mzed_process_rows6(mzed_t *M, rci_t startrow, rci_t endrow, rci_t startcol,
@@ -263,4 +273,4 @@ static inline void mzed_process_rows6(mzed_t *M, rci_t startrow, rci_t endrow, r
   mzd_process_rows6(M->x, startrow, endrow, startcol*M->w, 6*M->w, T0->x, L0, T1->x, L1, T2->x, L2, T3->x, L3, T4->x, L4, T5->x, L5);
 }
 
-#endif //TRAVOLTA_H
+#endif //M4RIE_TRAVOLTA_H

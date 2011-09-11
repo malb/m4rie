@@ -1,12 +1,27 @@
 /**
  * \file gf2e_matrix.h
- * \brief Dense matrices over GF(2^k) (2<= k <= 16) represented by M4RI matrices.
+ *
+ * \brief Dense matrices over GF(2^k) (2<= k <= 10) represented by M4RI matrices.
+ *
+ * This file implements the data type mzed_t. 
+ * That is, matrices over GF(2^k) in row major representation. 
+
+ * For example, let a = \sum a_i x_i / <f> and b = \sum b_i x_i / <f> 
+ * be elements in GF(2^6) with minimal polynomial f. Then, the 
+ * 1 x 2 matrix [b a] would be stored as 
+\verbatim
+ [...| 0 0 b5 b4 b3 b2 b1 b0 | 0 0 a5 a4 a3 a2 a1 a0]
+\endverbatim
+ * 
+ * Internally M4RI matrices are used to store bits with allows to
+ * re-use existing M4RI methods (such as mzd_add) when implementing
+ * functions for mzed_t.
  *
  * \author Martin Albrecht <martinralbrecht@googlemail.com>
  */
 
-#ifndef GF2E_MATRIX_H
-#define GF2E_MATRIX_H
+#ifndef M4RIE_GF2E_MATRIX_H
+#define M4RIE_GF2E_MATRIX_H
 
 /******************************************************************************
 *
@@ -32,13 +47,10 @@
 #include "m4ri_functions.h"
 
 /**
- * \brief Dense matrices over GF(2^k). 
+ * \brief Dense matrices over GF(2^k) in a packed representation.
  * 
- * The most fundamental data type in this library.
- *
  * \ingroup Definitions
  */
-
 
 typedef struct {
 
@@ -117,8 +129,6 @@ void mzed_free(mzed_t *A);
  * \note This is sometimes called augment.
  *
  * \ingroup Constructions
- *
- * \wordoffset
  */
 
 static inline mzed_t *mzed_concat(mzed_t *C, const mzed_t *A, const mzed_t *B) {
@@ -145,8 +155,6 @@ static inline mzed_t *mzed_concat(mzed_t *C, const mzed_t *A, const mzed_t *B) {
  * \param B Matrix
  *
  * \ingroup Constructions
- *
- * \wordoffset
  */
 
 static inline mzed_t *mzed_stack(mzed_t *C, const mzed_t *A, const mzed_t *B) {
@@ -187,8 +195,8 @@ static inline mzed_t *mzed_submatrix(mzed_t *S, const mzed_t *M, const rci_t low
  * matrix window is used.
  *
  * This function puts the restriction on the provided parameters that
- * all parameters must be within range for M which is not enforced
- * currently .
+ * all parameters must be within range for M which is not currently
+ * enforced.
  *
  * Use mzed_free_window to free the window.
  *
@@ -345,8 +353,7 @@ mzed_t *mzed_addmul_naive(mzed_t *C, const mzed_t *A, const mzed_t *B);
 /**
  * \brief Compute C such that C == AB using naive cubic multiplication.
  *
- * \param C Preallocated product matrix, may be NULL for automatic
- * creation.
+ * \param C Preallocated product matrix, may be NULL for automatic creation.
  * \param A Input matrix A.
  * \param B Input matrix B.
  *
@@ -386,7 +393,7 @@ mzed_t *mzed_mul_scalar(mzed_t *C, const word a, const mzed_t *B);
  * \param C Output matrix, if NULL a new matrix is created.
  * \param A Input matrix.
  * \param B Input matrix.
- * \param clear Zero out C or not.
+ * \param clear Write zeros to C or not.
  */
 
 mzed_t *_mzed_mul_init(mzed_t *C, const mzed_t *A, const mzed_t *B, int clear);
@@ -397,8 +404,6 @@ mzed_t *_mzed_mul_init(mzed_t *C, const mzed_t *A, const mzed_t *B, int clear);
  * \param A Matrix
  *
  * \todo Allow the user to provide a RNG callback.
- *
- * \wordoffset
  *
  * \ingroup Assignment
  */
@@ -411,19 +416,16 @@ void mzed_randomize(mzed_t *A);
  * \param B May be NULL for automatic creation.
  * \param A Source matrix.
  *
- * \wordoffset
- *
  * \ingroup Assignment
  */
 
 mzed_t *mzed_copy(mzed_t *B, const mzed_t *A);
 
 /**
- * \brief Set the matrix A to the value equivalent to the finite field
- * value provided.
+ * \brief Return diagonal matrix with value on the diagonal.
  *
  * If the matrix is not square then the largest possible square
- * submatrix is set to the identity matrix.
+ * submatrix is used.
  *
  * \param M Matrix
  * \param value Finite Field element
@@ -489,8 +491,6 @@ static inline void mzed_write_elem(mzed_t *a, const rci_t row, const rci_t col, 
  * relatively arbitrary since elements of GF(2^k) don't have an
  * ordering.
  *
- * \wordoffset
- *
  * \ingroup Comparison
  */
 
@@ -503,8 +503,6 @@ static inline int mzed_cmp(mzed_t *A, mzed_t *B) {
  * \brief Zero test for matrix.
  *
  * \param A Input matrix.
- *
- * \wordoffset
  *
  * \ingroup Comparison
  */
@@ -523,378 +521,9 @@ static inline int mzed_is_zero(mzed_t *A) {
  * \param start_col Column index.
  *
  * \ingroup RowOperations
- *
- * \wordoffset
  */
 
-static inline void mzed_add_multiple_of_row(mzed_t *A, rci_t ar, const mzed_t *B, rci_t br, word *X, rci_t start_col) {
-  assert(A->ncols == B->ncols && A->finite_field == B->finite_field);
-  assert(A->x->offset == 0 && B->x->offset == 0);
-  assert(start_col < A->ncols);
-
-  const size_t startblock = (A->w*start_col)/m4ri_radix;
-
-  if(A->w == 2) {
-    mzd_t *from_x = B->x;
-    mzd_t *to_x = A->x;
-    word *_f = from_x->rows[br];
-    word *_t = to_x->rows[ar];
-    int j;
-    register word __t, __f;
-
-    __f = _f[startblock]>>(2*(start_col%32)), __t = _t[startblock];
-
-    switch(start_col % 32) {
-    case  0:  __t ^= (X[((__f)& 0x0000000000000003ULL)])<<0;   __f >>= 2;
-    case  1:  __t ^= (X[((__f)& 0x0000000000000003ULL)])<<2;   __f >>= 2;
-    case  2:  __t ^= (X[((__f)& 0x0000000000000003ULL)])<<4;   __f >>= 2;
-    case  3:  __t ^= (X[((__f)& 0x0000000000000003ULL)])<<6;   __f >>= 2;
-    case  4:  __t ^= (X[((__f)& 0x0000000000000003ULL)])<<8;   __f >>= 2;
-    case  5:  __t ^= (X[((__f)& 0x0000000000000003ULL)])<<10;  __f >>= 2;
-    case  6:  __t ^= (X[((__f)& 0x0000000000000003ULL)])<<12;  __f >>= 2;
-    case  7:  __t ^= (X[((__f)& 0x0000000000000003ULL)])<<14;  __f >>= 2;
-    case  8:  __t ^= (X[((__f)& 0x0000000000000003ULL)])<<16;  __f >>= 2;
-    case  9:  __t ^= (X[((__f)& 0x0000000000000003ULL)])<<18;  __f >>= 2;
-    case 10:  __t ^= (X[((__f)& 0x0000000000000003ULL)])<<20;  __f >>= 2;
-    case 11:  __t ^= (X[((__f)& 0x0000000000000003ULL)])<<22;  __f >>= 2;
-    case 12:  __t ^= (X[((__f)& 0x0000000000000003ULL)])<<24;  __f >>= 2;
-    case 13:  __t ^= (X[((__f)& 0x0000000000000003ULL)])<<26;  __f >>= 2;
-    case 14:  __t ^= (X[((__f)& 0x0000000000000003ULL)])<<28;  __f >>= 2;
-    case 15:  __t ^= (X[((__f)& 0x0000000000000003ULL)])<<30;  __f >>= 2;
-    case 16:  __t ^= (X[((__f)& 0x0000000000000003ULL)])<<32;  __f >>= 2;
-    case 17:  __t ^= (X[((__f)& 0x0000000000000003ULL)])<<34;  __f >>= 2;
-    case 18:  __t ^= (X[((__f)& 0x0000000000000003ULL)])<<36;  __f >>= 2;
-    case 19:  __t ^= (X[((__f)& 0x0000000000000003ULL)])<<38;  __f >>= 2;
-    case 20:  __t ^= (X[((__f)& 0x0000000000000003ULL)])<<40;  __f >>= 2;
-    case 21:  __t ^= (X[((__f)& 0x0000000000000003ULL)])<<42;  __f >>= 2;
-    case 22:  __t ^= (X[((__f)& 0x0000000000000003ULL)])<<44;  __f >>= 2;
-    case 23:  __t ^= (X[((__f)& 0x0000000000000003ULL)])<<46;  __f >>= 2;
-    case 24:  __t ^= (X[((__f)& 0x0000000000000003ULL)])<<48;  __f >>= 2;
-    case 25:  __t ^= (X[((__f)& 0x0000000000000003ULL)])<<50;  __f >>= 2;
-    case 26:  __t ^= (X[((__f)& 0x0000000000000003ULL)])<<52;  __f >>= 2;
-    case 27:  __t ^= (X[((__f)& 0x0000000000000003ULL)])<<54;  __f >>= 2;
-    case 28:  __t ^= (X[((__f)& 0x0000000000000003ULL)])<<56;  __f >>= 2;
-    case 29:  __t ^= (X[((__f)& 0x0000000000000003ULL)])<<58;  __f >>= 2;
-    case 30:  __t ^= (X[((__f)& 0x0000000000000003ULL)])<<60;  __f >>= 2;
-    case 31:  __t ^= (X[((__f)& 0x0000000000000003ULL)])<<62;  break;
-    default: m4ri_die("impossible");
-    }
-
-    if(to_x->width-startblock == 1) {
-      const word bitmask_end = __M4RI_LEFT_BITMASK(to_x->ncols % m4ri_radix);
-      _t[startblock] &= ~bitmask_end;
-      _t[startblock] ^= __t & bitmask_end;
-      return;
-    } else {
-      _t[startblock] = __t;
-    }      
-
-    for(j=startblock+1; j<to_x->width -1; j++) {
-      __f = _f[j], __t = _t[j];
-      __t ^= (X[((__f)& 0x0000000000000003ULL)])<<0;   __f >>= 2;
-      __t ^= (X[((__f)& 0x0000000000000003ULL)])<<2;   __f >>= 2;
-      __t ^= (X[((__f)& 0x0000000000000003ULL)])<<4;   __f >>= 2;
-      __t ^= (X[((__f)& 0x0000000000000003ULL)])<<6;   __f >>= 2;
-      __t ^= (X[((__f)& 0x0000000000000003ULL)])<<8;   __f >>= 2;
-      __t ^= (X[((__f)& 0x0000000000000003ULL)])<<10;  __f >>= 2;
-      __t ^= (X[((__f)& 0x0000000000000003ULL)])<<12;  __f >>= 2;
-      __t ^= (X[((__f)& 0x0000000000000003ULL)])<<14;  __f >>= 2;
-      __t ^= (X[((__f)& 0x0000000000000003ULL)])<<16;  __f >>= 2;
-      __t ^= (X[((__f)& 0x0000000000000003ULL)])<<18;  __f >>= 2;
-      __t ^= (X[((__f)& 0x0000000000000003ULL)])<<20;  __f >>= 2;
-      __t ^= (X[((__f)& 0x0000000000000003ULL)])<<22;  __f >>= 2;
-      __t ^= (X[((__f)& 0x0000000000000003ULL)])<<24;  __f >>= 2;
-      __t ^= (X[((__f)& 0x0000000000000003ULL)])<<26;  __f >>= 2;
-      __t ^= (X[((__f)& 0x0000000000000003ULL)])<<28;  __f >>= 2;
-      __t ^= (X[((__f)& 0x0000000000000003ULL)])<<30;  __f >>= 2;
-      __t ^= (X[((__f)& 0x0000000000000003ULL)])<<32;  __f >>= 2;
-      __t ^= (X[((__f)& 0x0000000000000003ULL)])<<34;  __f >>= 2;
-      __t ^= (X[((__f)& 0x0000000000000003ULL)])<<36;  __f >>= 2;
-      __t ^= (X[((__f)& 0x0000000000000003ULL)])<<38;  __f >>= 2;
-      __t ^= (X[((__f)& 0x0000000000000003ULL)])<<40;  __f >>= 2;
-      __t ^= (X[((__f)& 0x0000000000000003ULL)])<<42;  __f >>= 2;
-      __t ^= (X[((__f)& 0x0000000000000003ULL)])<<44;  __f >>= 2;
-      __t ^= (X[((__f)& 0x0000000000000003ULL)])<<46;  __f >>= 2;
-      __t ^= (X[((__f)& 0x0000000000000003ULL)])<<48;  __f >>= 2;
-      __t ^= (X[((__f)& 0x0000000000000003ULL)])<<50;  __f >>= 2;
-      __t ^= (X[((__f)& 0x0000000000000003ULL)])<<52;  __f >>= 2;
-      __t ^= (X[((__f)& 0x0000000000000003ULL)])<<54;  __f >>= 2;
-      __t ^= (X[((__f)& 0x0000000000000003ULL)])<<56;  __f >>= 2;
-      __t ^= (X[((__f)& 0x0000000000000003ULL)])<<58;  __f >>= 2;
-      __t ^= (X[((__f)& 0x0000000000000003ULL)])<<60;  __f >>= 2;
-      __t ^= (X[((__f)& 0x0000000000000003ULL)])<<62;
-      _t[j] = __t;
-    }
-
-    switch(to_x->ncols % m4ri_radix) {
-    case  0: _t[j] ^= ((word)X[(int)((_f[j] & 0xC000000000000000ULL)>>62)])<<62;
-    case 62: _t[j] ^= ((word)X[(int)((_f[j] & 0x3000000000000000ULL)>>60)])<<60;
-    case 60: _t[j] ^= ((word)X[(int)((_f[j] & 0x0C00000000000000ULL)>>58)])<<58;
-    case 58: _t[j] ^= ((word)X[(int)((_f[j] & 0x0300000000000000ULL)>>56)])<<56;
-    case 56: _t[j] ^= ((word)X[(int)((_f[j] & 0x00C0000000000000ULL)>>54)])<<54;
-    case 54: _t[j] ^= ((word)X[(int)((_f[j] & 0x0030000000000000ULL)>>52)])<<52;
-    case 52: _t[j] ^= ((word)X[(int)((_f[j] & 0x000C000000000000ULL)>>50)])<<50;
-    case 50: _t[j] ^= ((word)X[(int)((_f[j] & 0x0003000000000000ULL)>>48)])<<48;
-    case 48: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000C00000000000ULL)>>46)])<<46;
-    case 46: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000300000000000ULL)>>44)])<<44;
-    case 44: _t[j] ^= ((word)X[(int)((_f[j] & 0x00000C0000000000ULL)>>42)])<<42;
-    case 42: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000030000000000ULL)>>40)])<<40;
-    case 40: _t[j] ^= ((word)X[(int)((_f[j] & 0x000000C000000000ULL)>>38)])<<38;
-    case 38: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000003000000000ULL)>>36)])<<36;
-    case 36: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000000C00000000ULL)>>34)])<<34;
-    case 34: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000000300000000ULL)>>32)])<<32;
-    case 32: _t[j] ^= ((word)X[(int)((_f[j] & 0x00000000C0000000ULL)>>30)])<<30;
-    case 30: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000000030000000ULL)>>28)])<<28;
-    case 28: _t[j] ^= ((word)X[(int)((_f[j] & 0x000000000C000000ULL)>>26)])<<26;
-    case 26: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000000003000000ULL)>>24)])<<24;
-    case 24: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000000000C00000ULL)>>22)])<<22;
-    case 22: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000000000300000ULL)>>20)])<<20;
-    case 20: _t[j] ^= ((word)X[(int)((_f[j] & 0x00000000000C0000ULL)>>18)])<<18;
-    case 18: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000000000030000ULL)>>16)])<<16;
-    case 16: _t[j] ^= ((word)X[(int)((_f[j] & 0x000000000000C000ULL)>>14)])<<14;
-    case 14: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000000000003000ULL)>>12)])<<12;
-    case 12: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000000000000C00ULL)>>10)])<<10;
-    case 10: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000000000000300ULL)>> 8)])<< 8;
-    case  8: _t[j] ^= ((word)X[(int)((_f[j] & 0x00000000000000C0ULL)>> 6)])<< 6;
-    case  6: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000000000000030ULL)>> 4)])<< 4;
-    case  4: _t[j] ^= ((word)X[(int)((_f[j] & 0x000000000000000CULL)>> 2)])<< 2;
-    case  2: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000000000000003ULL)>> 0)])<< 0;
-    };
-
-  } else if(A->w == 4) {
-    mzd_t *from_x = B->x;
-    mzd_t *to_x = A->x;
-    word *_f = from_x->rows[br];
-    word *_t = to_x->rows[ar];
-    size_t j;
-    register word __t, __f;
-
-    __f = _f[startblock]>>(4*(start_col%16)), __t = _t[startblock];
-
-    switch(start_col%16) {
-    case  0: __t ^= (X[((__f)& 0x000000000000000FULL)])<<0;   __f >>= 4;
-    case  1: __t ^= (X[((__f)& 0x000000000000000FULL)])<<4;   __f >>= 4;
-    case  2: __t ^= (X[((__f)& 0x000000000000000FULL)])<<8;   __f >>= 4;
-    case  3: __t ^= (X[((__f)& 0x000000000000000FULL)])<<12;  __f >>= 4;
-    case  4: __t ^= (X[((__f)& 0x000000000000000FULL)])<<16;  __f >>= 4;
-    case  5: __t ^= (X[((__f)& 0x000000000000000FULL)])<<20;  __f >>= 4;
-    case  6: __t ^= (X[((__f)& 0x000000000000000FULL)])<<24;  __f >>= 4;
-    case  7: __t ^= (X[((__f)& 0x000000000000000FULL)])<<28;  __f >>= 4;
-    case  8: __t ^= (X[((__f)& 0x000000000000000FULL)])<<32;  __f >>= 4;
-    case  9: __t ^= (X[((__f)& 0x000000000000000FULL)])<<36;  __f >>= 4;
-    case 10: __t ^= (X[((__f)& 0x000000000000000FULL)])<<40;  __f >>= 4;
-    case 11: __t ^= (X[((__f)& 0x000000000000000FULL)])<<44;  __f >>= 4;
-    case 12: __t ^= (X[((__f)& 0x000000000000000FULL)])<<48;  __f >>= 4;
-    case 13: __t ^= (X[((__f)& 0x000000000000000FULL)])<<52;  __f >>= 4;
-    case 14: __t ^= (X[((__f)& 0x000000000000000FULL)])<<56;  __f >>= 4;
-    case 15: __t ^= (X[((__f)& 0x000000000000000FULL)])<<60;  break;
-    default: m4ri_die("impossible");
-    }
-
-    if(to_x->width-startblock == 1) {
-      const word bitmask_end = __M4RI_LEFT_BITMASK(to_x->ncols % m4ri_radix);
-      _t[startblock] &= ~bitmask_end;
-      _t[startblock] ^= __t & bitmask_end;
-      return;
-    } else {
-      _t[startblock] = __t;
-    }      
-
-    for(j=startblock+1; j<to_x->width -1; j++) {
-      __f = _f[j], __t = _t[j];
-      __t ^= (X[((__f)& 0x000000000000000FULL)])<<0;   __f >>= 4;
-      __t ^= (X[((__f)& 0x000000000000000FULL)])<<4;   __f >>= 4;
-      __t ^= (X[((__f)& 0x000000000000000FULL)])<<8;   __f >>= 4;
-      __t ^= (X[((__f)& 0x000000000000000FULL)])<<12;  __f >>= 4;
-      __t ^= (X[((__f)& 0x000000000000000FULL)])<<16;  __f >>= 4;
-      __t ^= (X[((__f)& 0x000000000000000FULL)])<<20;  __f >>= 4;
-      __t ^= (X[((__f)& 0x000000000000000FULL)])<<24;  __f >>= 4;
-      __t ^= (X[((__f)& 0x000000000000000FULL)])<<28;  __f >>= 4;
-      __t ^= (X[((__f)& 0x000000000000000FULL)])<<32;  __f >>= 4;
-      __t ^= (X[((__f)& 0x000000000000000FULL)])<<36;  __f >>= 4;
-      __t ^= (X[((__f)& 0x000000000000000FULL)])<<40;  __f >>= 4;
-      __t ^= (X[((__f)& 0x000000000000000FULL)])<<44;  __f >>= 4;
-      __t ^= (X[((__f)& 0x000000000000000FULL)])<<48;  __f >>= 4;
-      __t ^= (X[((__f)& 0x000000000000000FULL)])<<52;  __f >>= 4;
-      __t ^= (X[((__f)& 0x000000000000000FULL)])<<56;  __f >>= 4;
-      __t ^= (X[((__f)& 0x000000000000000FULL)])<<60;
-      _t[j] = __t;
-    }
-
-    switch(to_x->ncols % m4ri_radix) {
-    case  0: _t[j] ^= ((word)X[(int)((_f[j] & 0xF000000000000000ULL)>>60)])<<60;
-    case 60: _t[j] ^= ((word)X[(int)((_f[j] & 0x0F00000000000000ULL)>>56)])<<56;
-    case 56: _t[j] ^= ((word)X[(int)((_f[j] & 0x00F0000000000000ULL)>>52)])<<52;
-    case 52: _t[j] ^= ((word)X[(int)((_f[j] & 0x000F000000000000ULL)>>48)])<<48;
-    case 48: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000F00000000000ULL)>>44)])<<44;
-    case 44: _t[j] ^= ((word)X[(int)((_f[j] & 0x00000F0000000000ULL)>>40)])<<40;
-    case 40: _t[j] ^= ((word)X[(int)((_f[j] & 0x000000F000000000ULL)>>36)])<<36;
-    case 36: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000000F00000000ULL)>>32)])<<32;
-    case 32: _t[j] ^= ((word)X[(int)((_f[j] & 0x00000000F0000000ULL)>>28)])<<28;
-    case 28: _t[j] ^= ((word)X[(int)((_f[j] & 0x000000000F000000ULL)>>24)])<<24;
-    case 24: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000000000F00000ULL)>>20)])<<20;
-    case 20: _t[j] ^= ((word)X[(int)((_f[j] & 0x00000000000F0000ULL)>>16)])<<16;
-    case 16: _t[j] ^= ((word)X[(int)((_f[j] & 0x000000000000F000ULL)>>12)])<<12;
-    case 12: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000000000000F00ULL)>> 8)])<< 8;
-    case  8: _t[j] ^= ((word)X[(int)((_f[j] & 0x00000000000000F0ULL)>> 4)])<< 4;
-    case  4: _t[j] ^= ((word)X[(int)((_f[j] & 0x000000000000000FULL)>> 0)])<< 0;
-    };
-
-  } else if (A->w == 8) {
-    mzd_t *from_x = B->x;
-    mzd_t *to_x = A->x;
-    word *_f = from_x->rows[br];
-    word *_t = to_x->rows[ar];
-    size_t j;
-    register word __t0 ,__t1, __f0, __f1;
-
-    __f0 = _f[startblock]>>(8*(start_col%8)), __t0 = _t[startblock];
-    switch(start_col%8) {
-    case 0: __t0 ^= (X[((__f0)& 0x00000000000000FFULL)])<<0;  __f0 >>= 8;
-    case 1: __t0 ^= (X[((__f0)& 0x00000000000000FFULL)])<<8;  __f0 >>= 8;
-    case 2: __t0 ^= (X[((__f0)& 0x00000000000000FFULL)])<<16; __f0 >>= 8;
-    case 3: __t0 ^= (X[((__f0)& 0x00000000000000FFULL)])<<24; __f0 >>= 8;
-    case 4: __t0 ^= (X[((__f0)& 0x00000000000000FFULL)])<<32; __f0 >>= 8;
-    case 5: __t0 ^= (X[((__f0)& 0x00000000000000FFULL)])<<40; __f0 >>= 8;
-    case 6: __t0 ^= (X[((__f0)& 0x00000000000000FFULL)])<<48; __f0 >>= 8;
-    case 7: __t0 ^= (X[((__f0)& 0x00000000000000FFULL)])<<56; break;
-    default: m4ri_die("impossible");
-    }
-
-    if(to_x->width-startblock == 1) {
-      const word bitmask_end = __M4RI_LEFT_BITMASK(to_x->ncols % m4ri_radix);
-      _t[startblock] &= ~bitmask_end;
-      _t[startblock] ^= __t0 & bitmask_end;
-      return;
-    } else {
-      _t[startblock] = __t0;
-    }      
-
-    for(j=startblock+1; j+2 < to_x->width; j+=2) {
-      __f0 = _f[j], __t0 = _t[j];
-      __f1 = _f[j+1], __t1 = _t[j+1];
-      __t0 ^= (X[((__f0)& 0x00000000000000FFULL)])<<0;  __f0 >>= 8;
-      __t1 ^= (X[((__f1)& 0x00000000000000FFULL)])<<0;  __f1 >>= 8;
-      __t0 ^= (X[((__f0)& 0x00000000000000FFULL)])<<8;  __f0 >>= 8;
-      __t1 ^= (X[((__f1)& 0x00000000000000FFULL)])<<8;  __f1 >>= 8;
-      __t0 ^= (X[((__f0)& 0x00000000000000FFULL)])<<16; __f0 >>= 8;
-      __t1 ^= (X[((__f1)& 0x00000000000000FFULL)])<<16; __f1 >>= 8;
-      __t0 ^= (X[((__f0)& 0x00000000000000FFULL)])<<24; __f0 >>= 8;
-      __t1 ^= (X[((__f1)& 0x00000000000000FFULL)])<<24; __f1 >>= 8;
-      __t0 ^= (X[((__f0)& 0x00000000000000FFULL)])<<32; __f0 >>= 8;
-      __t1 ^= (X[((__f1)& 0x00000000000000FFULL)])<<32; __f1 >>= 8;
-      __t0 ^= (X[((__f0)& 0x00000000000000FFULL)])<<40; __f0 >>= 8;
-      __t1 ^= (X[((__f1)& 0x00000000000000FFULL)])<<40; __f1 >>= 8;
-      __t0 ^= (X[((__f0)& 0x00000000000000FFULL)])<<48; __f0 >>= 8;
-      __t1 ^= (X[((__f1)& 0x00000000000000FFULL)])<<48; __f1 >>= 8;
-      __t0 ^= (X[((__f0)& 0x00000000000000FFULL)])<<56; __f0 >>= 8;
-      __t1 ^= (X[((__f1)& 0x00000000000000FFULL)])<<56;
-      _t[j] = __t0;
-      _t[j+1] = __t1;
-    }
-
-    for(; j < to_x->width-1; j++) {
-      __f0 = _f[j], __t0 = _t[j];
-      __t0 ^= (X[((__f0)& 0x00000000000000FFULL)])<<0;  __f0 >>= 8;
-      __t0 ^= (X[((__f0)& 0x00000000000000FFULL)])<<8;  __f0 >>= 8;
-      __t0 ^= (X[((__f0)& 0x00000000000000FFULL)])<<16; __f0 >>= 8;
-      __t0 ^= (X[((__f0)& 0x00000000000000FFULL)])<<24; __f0 >>= 8;
-      __t0 ^= (X[((__f0)& 0x00000000000000FFULL)])<<32; __f0 >>= 8;
-      __t0 ^= (X[((__f0)& 0x00000000000000FFULL)])<<40; __f0 >>= 8;
-      __t0 ^= (X[((__f0)& 0x00000000000000FFULL)])<<48; __f0 >>= 8;
-      __t0 ^= (X[((__f0)& 0x00000000000000FFULL)])<<56;
-      _t[j] = __t0;
-    }
-    
-    switch(to_x->ncols % m4ri_radix) {
-    case  0: _t[j] ^= ((word)X[(int)((_f[j] & 0xFF00000000000000ULL)>>56)])<<56;
-    case 56: _t[j] ^= ((word)X[(int)((_f[j] & 0x00FF000000000000ULL)>>48)])<<48;
-    case 48: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000FF0000000000ULL)>>40)])<<40;
-    case 40: _t[j] ^= ((word)X[(int)((_f[j] & 0x000000FF00000000ULL)>>32)])<<32;
-    case 32: _t[j] ^= ((word)X[(int)((_f[j] & 0x00000000FF000000ULL)>>24)])<<24;
-    case 24: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000000000FF0000ULL)>>16)])<<16;
-    case 16: _t[j] ^= ((word)X[(int)((_f[j] & 0x000000000000FF00ULL)>> 8)])<< 8;
-    case  8: _t[j] ^= ((word)X[(int)((_f[j] & 0x00000000000000FFULL)>> 0)])<< 0;
-    };
-
-  } else if (A->w == 16) {
-    mzd_t *from_x = B->x;
-    mzd_t *to_x = A->x;
-    word *_f = from_x->rows[br];
-    word *_t = to_x->rows[ar];
-    size_t j;
-    register word __t, __f;
-
-    __f = _f[startblock]>>(16*(start_col%4)), __t = _t[startblock];
-    switch(start_col%4) {
-    case 0: __t ^= (X[((__f)& 0x000000000000FFFFULL)])<<0;  __f >>= 16;
-    case 1: __t ^= (X[((__f)& 0x000000000000FFFFULL)])<<16; __f >>= 16;
-    case 2: __t ^= (X[((__f)& 0x000000000000FFFFULL)])<<32; __f >>= 16;
-    case 3: __t ^= (X[((__f)& 0x000000000000FFFFULL)])<<48; break;
-    default: m4ri_die("impossible");
-    }
-    if(to_x->width-startblock == 1) {
-      const word bitmask_end = __M4RI_LEFT_BITMASK(to_x->ncols % m4ri_radix);
-      _t[startblock] &= ~bitmask_end;
-      _t[startblock] ^= __t & bitmask_end;
-      return;
-    } else {
-      _t[startblock] = __t;
-    }      
-
-    for(j=startblock+1; j+4<to_x->width; j+=4) {
-      __f = _f[j], __t = _t[j];
-      __t ^= (X[((__f)& 0x000000000000FFFFULL)])<<0;  __f >>= 16;
-      __t ^= (X[((__f)& 0x000000000000FFFFULL)])<<16; __f >>= 16;
-      __t ^= (X[((__f)& 0x000000000000FFFFULL)])<<32; __f >>= 16;
-      __t ^= (X[((__f)& 0x000000000000FFFFULL)])<<48;
-      _t[j] = __t;
-
-      __f = _f[j+1], __t = _t[j+1];
-      __t ^= (X[((__f)& 0x000000000000FFFFULL)])<<0;  __f >>= 16;
-      __t ^= (X[((__f)& 0x000000000000FFFFULL)])<<16; __f >>= 16;
-      __t ^= (X[((__f)& 0x000000000000FFFFULL)])<<32; __f >>= 16;
-      __t ^= (X[((__f)& 0x000000000000FFFFULL)])<<48;
-      _t[j+1] = __t;
-
-
-      __f = _f[j+2], __t = _t[j+2];
-      __t ^= (X[((__f)& 0x000000000000FFFFULL)])<<0;  __f >>= 16;
-      __t ^= (X[((__f)& 0x000000000000FFFFULL)])<<16; __f >>= 16;
-      __t ^= (X[((__f)& 0x000000000000FFFFULL)])<<32; __f >>= 16;
-      __t ^= (X[((__f)& 0x000000000000FFFFULL)])<<48;
-      _t[j+2] = __t;
-
-      __f = _f[j+3], __t = _t[j+3];
-      __t ^= (X[((__f)& 0x000000000000FFFFULL)])<<0;  __f >>= 16;
-      __t ^= (X[((__f)& 0x000000000000FFFFULL)])<<16; __f >>= 16;
-      __t ^= (X[((__f)& 0x000000000000FFFFULL)])<<32; __f >>= 16;
-      __t ^= (X[((__f)& 0x000000000000FFFFULL)])<<48;
-      _t[j+3] = __t;
-    }
-    for( ; j<to_x->width-1; j++) {
-      __f = _f[j], __t = _t[j];
-      __t ^= (X[((__f)& 0x000000000000FFFFULL)])<<0;  __f >>= 16;
-      __t ^= (X[((__f)& 0x000000000000FFFFULL)])<<16; __f >>= 16;
-      __t ^= (X[((__f)& 0x000000000000FFFFULL)])<<32; __f >>= 16;
-      __t ^= (X[((__f)& 0x000000000000FFFFULL)])<<48;
-      _t[j] = __t;
-    }
-
-    switch(to_x->ncols % m4ri_radix) {
-    case  0: _t[j] ^= ((word)X[(int)((_f[j] & 0xFFFF000000000000ULL)>>48)])<<48;
-    case 48: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000FFFF00000000ULL)>>32)])<<32;
-    case 32: _t[j] ^= ((word)X[(int)((_f[j] & 0x00000000FFFF0000ULL)>>16)])<<16;
-    case 16: _t[j] ^= ((word)X[(int)((_f[j] & 0x000000000000FFFFULL)>> 0)])<< 0;
-    };
-
-  }  else {
-    for(rci_t j=start_col; j<B->ncols; j++) {
-      mzed_add_elem(A, ar, j, X[mzed_read_elem(B, br, j)]);
-    }
-  }
-}
-
+void mzed_add_multiple_of_row(mzed_t *A, rci_t ar, const mzed_t *B, rci_t br, word *X, rci_t start_col);
 
 /**
  * \brief Recale the row r in A by X starting c.
@@ -905,8 +534,6 @@ static inline void mzed_add_multiple_of_row(mzed_t *A, rci_t ar, const mzed_t *B
  * \param X Multiplier 
  *
  * \ingroup RowOperations
- *
- * \wordoffset
  */
 
 static inline void mzed_rescale_row(mzed_t *A, rci_t r, rci_t c, const word *X) {
@@ -943,8 +570,6 @@ static inline void mzed_row_swap(mzed_t *M, const rci_t rowa, const rci_t rowb) 
  * \param j Source row index.
  *
  * \ingroup RowOperations
- *
- * \wordoffset
  */
 
 static inline void mzed_copy_row(mzed_t* B, rci_t i, const mzed_t* A, rci_t j) {
@@ -959,13 +584,29 @@ static inline void mzed_copy_row(mzed_t* B, rci_t i, const mzed_t* A, rci_t j) {
  * \param colb Column index.
  *
  * \ingroup RowOperations
- *
- * \wordoffset
  */
  
 static inline void mzed_col_swap(mzed_t *M, const rci_t cola, const rci_t colb) {
   for(rci_t i=0; i<M->w; i++)
     mzd_col_swap(M->x,M->w*cola+i, M->w*colb+i);
+}
+
+/**
+ * \brief Swap the two columns cola and colb but only between start_row and stop_row.
+ * 
+ * \param M Matrix.
+ * \param cola Column index.
+ * \param colb Column index.
+ * \param start_row Row index.
+ * \param stop_row Row index (exclusive).
+ *
+ * \ingroup RowOperations
+ */
+
+static inline void mzed_col_swap_in_rows(mzed_t *A, const rci_t cola, const rci_t colb, const rci_t start_row, rci_t stop_row) {
+  for(int e=0; e < A->finite_field->degree; e++) {
+    mzd_col_swap_in_rows(A->x, A->w*cola+e, A->w*colb+e, start_row, stop_row);
+  };
 }
 
 /**
@@ -979,8 +620,6 @@ static inline void mzed_col_swap(mzed_t *M, const rci_t cola, const rci_t colb) 
  * \note this can be done much faster with mzed_combine.
  *
  * \ingroup RowOperations
- *
- * \wordoffset
  */
 
 static inline void mzed_row_add(mzed_t *M, const rci_t sourcerow, const rci_t destrow) {
@@ -995,8 +634,6 @@ static inline void mzed_row_add(mzed_t *M, const rci_t sourcerow, const rci_t de
  * \param A Matrix
  *
  * \ingroup RowOperations
- *
- * \wordoffset
  */
 
 static inline rci_t mzed_first_zero_row(mzed_t *A) {
@@ -1012,8 +649,6 @@ static inline rci_t mzed_first_zero_row(mzed_t *A) {
  * \param coloffset Column offset
  *
  * \ingroup RowOperations
- *
- * \wordoffset
  */
 
 static inline void mzed_row_clear_offset(mzed_t *M, const rci_t row, const rci_t coloffset) {
@@ -1023,18 +658,14 @@ static inline void mzed_row_clear_offset(mzed_t *M, const rci_t row, const rci_t
 /**
  * \brief Gaussian elimination.
  * 
- * This will do Gaussian elimination on the matrix A.  If full=0, then
- * it will do triangular style elimination, and if full=1, it will do
+ * Perform Gaussian elimination on the matrix A.  If full=0, then it
+ * will do triangular style elimination, and if full=1, it will do
  * Gauss-Jordan style, or full elimination.
  *
  * \param A Matrix
- * \param full Gauss-Jordan style or upper triangular form only.
- *
- * \wordoffset
+ * \param full Gauss-Jordan style or upper unit-triangular form only.
  *
  * \ingroup Echelon
- *
- * \wordoffset
  */
 
 rci_t mzed_echelonize_naive(mzed_t *A, int full);
@@ -1051,20 +682,4 @@ rci_t mzed_echelonize_naive(mzed_t *A, int full);
 
 void mzed_print(const mzed_t *M);
 
-/**
- * \brief Swap the two columns cola and colb but only between start_row and stop_row.
- * 
- * \param M Matrix.
- * \param cola Column index.
- * \param colb Column index.
- * \param start_row Row index.
- * \param stop_row Row index (exclusive).
- */
-
-static inline void mzed_col_swap_in_rows(mzed_t *A, const rci_t cola, const rci_t colb, const rci_t start_row, rci_t stop_row) {
-  for(int e=0; e < A->finite_field->degree; e++) {
-    mzd_col_swap_in_rows(A->x, A->w*cola+e, A->w*colb+e, start_row, stop_row);
-  };
-}
-
-#endif //MATRIX_H
+#endif //M4RIE_MATRIX_H
