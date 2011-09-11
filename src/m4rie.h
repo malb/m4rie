@@ -52,6 +52,8 @@ extern "C" {
 #include "strassen.h"
 #include "bitslice.h"
 #include "trsm.h"
+#include "ple.h"
+#include "permutation.h"
 
 #ifdef __cplusplus
 }

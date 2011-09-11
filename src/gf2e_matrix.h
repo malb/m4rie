@@ -1051,71 +1051,20 @@ rci_t mzed_echelonize_naive(mzed_t *A, int full);
 
 void mzed_print(const mzed_t *M);
 
-/**************** TODO: *****************/
+/**
+ * \brief Swap the two columns cola and colb but only between start_row and stop_row.
+ * 
+ * \param M Matrix.
+ * \param cola Column index.
+ * \param colb Column index.
+ * \param start_row Row index.
+ * \param stop_row Row index (exclusive).
+ */
 
-
-/* /\** */
-/*  * \brief Transpose a matrix. */
-/*  * */
-/*  * This function uses the fact that: */
-/* \verbatim */
-/*    [ A B ]T    [AT CT] */
-/*    [ C D ]  =  [BT DT]  */
-/*  \endverbatim  */
-/*  * and thus rearranges the blocks recursively.  */
-/*  * */
-/*  * \param DST Preallocated return matrix, may be NULL for automatic creation. */
-/*  * \param A Matrix */
-/*  *\/ */
-
-/* mzed_t *mzed_transpose(mzed_t *DST, const mzed_t *A ); */
- 
-/* /\** */
-/*  * \brief Find the next nonzero entry in M starting at start_row and start_col.  */
-/*  * */
-/*  * This function walks down rows in the inner loop and columns in the */
-/*  * outer loop. If a nonzero entry is found this function returns 1 and */
-/*  * zero otherwise. */
-/*  * */
-/*  * If and only if a nonzero entry is found r and c are updated. */
-/*  * */
-/*  * \param M Matrix */
-/*  * \param start_row Index of row where to start search */
-/*  * \param start_col Index of column where to start search */
-/*  * \param r Row index updated if pivot is found */
-/*  * \param c Column index updated if pivot is found */
-/*  *\/ */
-
-/* int mzed_find_pivot(mzed_t *M, rci_t start_row, rci_t start_col, rci_t *r, rci_t *c); */
-
-/* /\** */
-/*  * \brief Return the number of nonzero entries divided by nrows * */
-/*  * ncols */
-/*  * */
-/*  * If res = 0 then 100 samples per row are made, if res > 0 the */
-/*  * function takes res sized steps within each row (res = 1 uses every */
-/*  * word). */
-/*  * */
-/*  * \param A Matrix */
-/*  * \param res Resolution of sampling */
-/*  *\/ */
-
-/* double mzed_density(mzed_t *A, int res); */
-
-/* /\** */
-/*  * \brief Return the number of nonzero entries divided by nrows * */
-/*  * ncols considering only the submatrix starting at (r,c). */
-/*  * */
-/*  * If res = 0 then 100 samples per row are made, if res > 0 the */
-/*  * function takes res sized steps within each row (res = 1 uses every */
-/*  * word). */
-/*  * */
-/*  * \param A Matrix */
-/*  * \param res Resolution of sampling */
-/*  * \param r Row to start counting */
-/*  * \param c Column to start counting */
-/*  *\/ */
-
-/* double _mzed_density(mzed_t *A, int res, rci_t r, rci_t c); */
+static inline void mzed_col_swap_in_rows(mzed_t *A, const rci_t cola, const rci_t colb, const rci_t start_row, rci_t stop_row) {
+  for(int e=0; e < A->finite_field->degree; e++) {
+    mzd_col_swap_in_rows(A->x, A->w*cola+e, A->w*colb+e, start_row, stop_row);
+  };
+}
 
 #endif //MATRIX_H

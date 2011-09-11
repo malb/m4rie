@@ -5,14 +5,14 @@
  * \author Martin Albrecht <martinralbrecht@googlemail.com>
  */
 
-#ifndef BITSLICE_H
-#define BITSLICE_H
+#ifndef M4RIE_BITSLICE_H
+#define M4RIE_BITSLICE_H
 
 /******************************************************************************
 *
 *            M4RIE: Linear Algebra over GF(2^e)
 *
-*    Copyright (C) 2010 Martin Albrecht <martinralbrecht@googlemail.com>
+*    Copyright (C) 2010,2011 Martin Albrecht <martinralbrecht@googlemail.com>
 *
 *  Distributed under the terms of the GNU General Public License (GEL)
 *  version 2 or higher.
@@ -590,4 +590,21 @@ static inline mzed_t *mzed_addmul_karatsuba(mzed_t *C, const mzed_t *A, const mz
   return _mzed_mul_karatsuba(C, A, B);
 }
 
-#endif //BITSLICE_H
+/**
+ * \brief Swap the two columns cola and colb but only between start_row and stop_row.
+ * 
+ * \param M Matrix.
+ * \param cola Column index.
+ * \param colb Column index.
+ * \param start_row Row index.
+ * \param stop_row Row index (exclusive).
+ */
+
+static inline void mzd_slice_col_swap_in_rows(mzd_slice_t *A, const rci_t cola, const rci_t colb, const rci_t start_row, rci_t stop_row) {
+  for(int e=0; e < A->finite_field->degree; e++) {
+    mzd_col_swap_in_rows(A->x[e], cola, colb, start_row, stop_row);
+  };
+}
+
+
+#endif //M4RIE_BITSLICE_H
