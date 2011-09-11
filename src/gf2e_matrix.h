@@ -530,9 +530,11 @@ static inline int mzed_is_zero(mzed_t *A) {
 static inline void mzed_add_multiple_of_row(mzed_t *A, rci_t ar, const mzed_t *B, rci_t br, word *X, rci_t start_col) {
   assert(A->ncols == B->ncols && A->finite_field == B->finite_field);
   assert(A->x->offset == 0 && B->x->offset == 0);
+  assert(start_col < A->ncols);
+
+  const size_t startblock = (A->w*start_col)/m4ri_radix;
 
   if(A->w == 2) {
-    size_t startblock = start_col/m4ri_radix;
     mzd_t *from_x = B->x;
     mzd_t *to_x = A->x;
     word *_f = from_x->rows[br];
@@ -578,7 +580,7 @@ static inline void mzed_add_multiple_of_row(mzed_t *A, rci_t ar, const mzed_t *B
     default: m4ri_die("impossible");
     }
 
-    if(to_x->width == 1) {
+    if(to_x->width-startblock == 1) {
       const word bitmask_end = __M4RI_LEFT_BITMASK(to_x->ncols % m4ri_radix);
       _t[startblock] &= ~bitmask_end;
       _t[startblock] ^= __t & bitmask_end;
@@ -660,7 +662,6 @@ static inline void mzed_add_multiple_of_row(mzed_t *A, rci_t ar, const mzed_t *B
     };
 
   } else if(A->w == 4) {
-    size_t startblock = start_col/m4ri_radix;
     mzd_t *from_x = B->x;
     mzd_t *to_x = A->x;
     word *_f = from_x->rows[br];
@@ -690,7 +691,7 @@ static inline void mzed_add_multiple_of_row(mzed_t *A, rci_t ar, const mzed_t *B
     default: m4ri_die("impossible");
     }
 
-    if(to_x->width == 1) {
+    if(to_x->width-startblock == 1) {
       const word bitmask_end = __M4RI_LEFT_BITMASK(to_x->ncols % m4ri_radix);
       _t[startblock] &= ~bitmask_end;
       _t[startblock] ^= __t & bitmask_end;
@@ -740,7 +741,6 @@ static inline void mzed_add_multiple_of_row(mzed_t *A, rci_t ar, const mzed_t *B
     };
 
   } else if (A->w == 8) {
-    size_t startblock = start_col/m4ri_radix;
     mzd_t *from_x = B->x;
     mzd_t *to_x = A->x;
     word *_f = from_x->rows[br];
@@ -761,7 +761,7 @@ static inline void mzed_add_multiple_of_row(mzed_t *A, rci_t ar, const mzed_t *B
     default: m4ri_die("impossible");
     }
 
-    if(to_x->width == 1) {
+    if(to_x->width-startblock == 1) {
       const word bitmask_end = __M4RI_LEFT_BITMASK(to_x->ncols % m4ri_radix);
       _t[startblock] &= ~bitmask_end;
       _t[startblock] ^= __t0 & bitmask_end;
@@ -818,7 +818,6 @@ static inline void mzed_add_multiple_of_row(mzed_t *A, rci_t ar, const mzed_t *B
     };
 
   } else if (A->w == 16) {
-    size_t startblock = start_col/m4ri_radix;
     mzd_t *from_x = B->x;
     mzd_t *to_x = A->x;
     word *_f = from_x->rows[br];
@@ -834,7 +833,7 @@ static inline void mzed_add_multiple_of_row(mzed_t *A, rci_t ar, const mzed_t *B
     case 3: __t ^= (X[((__f)& 0x000000000000FFFFULL)])<<48; break;
     default: m4ri_die("impossible");
     }
-    if(to_x->width == 1) {
+    if(to_x->width-startblock == 1) {
       const word bitmask_end = __M4RI_LEFT_BITMASK(to_x->ncols % m4ri_radix);
       _t[startblock] &= ~bitmask_end;
       _t[startblock] ^= __t & bitmask_end;
