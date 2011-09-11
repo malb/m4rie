@@ -1,0 +1,6 @@
+#define matrix_t mzd_slice_t
+#define _matrix_trsm_lower_left _mzd_slice_trsm_lower_left
+#define matrix_trsm_lower_left_naive mzd_slice_trsm_lower_left_naive
+#define matrix_init_window mzd_slice_init_window
+#define matrix_addmul mzd_slice_addmul
+#define matrix_free_window mzd_slice_free_window
