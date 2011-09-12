@@ -43,6 +43,11 @@ int test_addmul(gf2e *ff, rci_t m, rci_t n, rci_t l) {
   mzed_t *C2 = mzed_copy(NULL, C0);
   mzed_t *C3 = mzed_copy(NULL, C0);
   mzed_t *C4 = mzed_copy(NULL, C0);
+
+  mzed_set_canary(C1);
+  mzed_set_canary(C2);
+  mzed_set_canary(C3);
+  mzed_set_canary(C4);
         
   mzed_addmul_travolta(C0, A, B);
   mzed_addmul_naive(C1, A, B);
@@ -58,12 +63,20 @@ int test_addmul(gf2e *ff, rci_t m, rci_t n, rci_t l) {
     m4rie_check( mzed_cmp(C3, C4) == 0);
   }
 
+  m4rie_check( mzed_canary_is_alive(A) );
+  m4rie_check( mzed_canary_is_alive(B) );
+  m4rie_check( mzed_canary_is_alive(C1) );
+  m4rie_check( mzed_canary_is_alive(C2) );
+  m4rie_check( mzed_canary_is_alive(C3) );
+  m4rie_check( mzed_canary_is_alive(C4) );
+        
   mzed_free(A);
   mzed_free(B);
   mzed_free(C0);
   mzed_free(C1);
   mzed_free(C2);
   mzed_free(C3);
+  mzed_free(C4);
 
   return fail_ret;
 }
@@ -93,12 +106,20 @@ int test_mul(gf2e *ff, rci_t m, rci_t n, rci_t l) {
     m4rie_check( mzed_cmp(C3, C4) == 0);
   }
 
+  m4rie_check( mzed_canary_is_alive((mzed_t*)A) );
+  m4rie_check( mzed_canary_is_alive((mzed_t*)B) );
+  m4rie_check( mzed_canary_is_alive(C1) );
+  m4rie_check( mzed_canary_is_alive(C2) );
+  m4rie_check( mzed_canary_is_alive(C3) );
+        
+
   mzed_free((mzed_t*)A);
   mzed_free((mzed_t*)B);
   mzed_free(C0);
   mzed_free(C1);
   mzed_free(C2);
   mzed_free(C3);
+  mzed_free(C4);
 
   return fail_ret;
 }

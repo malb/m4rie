@@ -1,20 +1,164 @@
 #include <m4rie.h>
 
-# define m4rie_check(expr)						\
+#define m4rie_check(expr)						\
   if (!expr) {								\
     fail_ret += 1;                                                      \
-    printf("%s in %s:%d failed\n",__STRING(expr), __FILE__, __LINE__);  \
+    printf("\n%s in %s:%d failed\n",__STRING(expr), __FILE__, __LINE__);  \
   } 
 
+const word m4rie_canary = (word)"canary!";
+
+static inline void mzed_set_canary(mzed_t *A) {
+  const word mask_begin = __M4RI_RIGHT_BITMASK(m4ri_radix - A->x->offset);
+  const word mask_end   = __M4RI_LEFT_BITMASK((A->x->offset + A->x->ncols)%m4ri_radix);
+  const rci_t n = A->x->width-1;
+
+  for(rci_t i=0; i<A->nrows; i++) {
+    A->x->rows[i][0] = (A->x->rows[i][0] & mask_begin) | (m4rie_canary & ~mask_begin);
+    A->x->rows[i][n] = (A->x->rows[i][n] & mask_end)   | (m4rie_canary & ~mask_end);
+  }
+}
+
+static inline void mzed_clear_canary(mzed_t *A) {
+  const word mask_begin = __M4RI_RIGHT_BITMASK(m4ri_radix - A->x->offset);
+  const word mask_end   = __M4RI_LEFT_BITMASK((A->x->offset + A->x->ncols)%m4ri_radix);
+  const rci_t n = A->x->width-1;
+
+  for(rci_t i=0; i<A->nrows; i++) {
+    A->x->rows[i][0] &= mask_begin;
+    A->x->rows[i][n] &= mask_end;
+  }
+}
+
+static inline int mzed_canary_is_alive(mzed_t *A) {
+  const word mask_begin = __M4RI_RIGHT_BITMASK(m4ri_radix - A->x->offset);
+  const word mask_end   = __M4RI_LEFT_BITMASK((A->x->offset + A->x->ncols)%m4ri_radix);
+  const rci_t n = A->x->width-1;
+
+  if(n == 0) {
+    for(rci_t i=0; i<A->nrows; i++) {
+      if ((A->x->rows[i][0] & ~mask_begin & ~mask_begin) !=  (m4rie_canary & ~mask_begin & ~mask_begin)) {
+        return 0;
+      }
+    }
+  } else {
+    for(rci_t i=0; i<A->nrows; i++) {
+      if ((A->x->rows[i][0] & ~mask_begin) !=  (m4rie_canary & ~mask_begin)) {
+        return 0;
+      }
+      if ((A->x->rows[i][n] & ~mask_end)   !=  (m4rie_canary & ~mask_end)) {
+        return 0;
+      }
+    }
+  }
+  return 1;
+};
+
+static inline void mzd_slice_set_canary(mzd_slice_t *A) {
+  const word mask_begin = __M4RI_RIGHT_BITMASK(m4ri_radix - A->x[0]->offset);
+  const word mask_end   = __M4RI_LEFT_BITMASK((A->x[0]->offset + A->ncols)%m4ri_radix);
+  const rci_t n = A->x[0]->width-1;
+
+  if(n != 0) {
+    for(int e=0; e<A->finite_field->degree; e++) {
+      for(rci_t i=0; i<A->nrows; i++) {
+        A->x[e]->rows[i][0] = (A->x[e]->rows[i][0] & mask_begin) | (m4rie_canary & ~mask_begin);
+        A->x[e]->rows[i][n] = (A->x[e]->rows[i][n] & mask_end)   | (m4rie_canary & ~mask_end);
+      }
+    }
+  } else {
+    for(int e=0; e<A->finite_field->degree; e++) {
+      for(rci_t i=0; i<A->nrows; i++) {
+        A->x[e]->rows[i][0] = (A->x[e]->rows[i][0] & mask_begin & mask_end) | (m4rie_canary & ~(mask_begin & mask_end));
+      }
+    }
+  }
+}
+
+static inline void mzd_slice_clear_canary(mzd_slice_t *A) {
+  const word mask_begin = __M4RI_RIGHT_BITMASK(m4ri_radix - A->x[0]->offset);
+  const word mask_end   = __M4RI_LEFT_BITMASK((A->x[0]->offset + A->ncols)%m4ri_radix);
+  const rci_t n = A->x[0]->width-1;
+
+  for(int e=0; e<A->finite_field->degree; e++) {
+    for(rci_t i=0; i<A->nrows; i++) {
+      A->x[e]->rows[i][0] &=mask_begin;
+      A->x[e]->rows[i][n] &=mask_end;
+    }
+  }
+}
+
+static inline int mzd_slice_canary_is_alive(mzd_slice_t *A) {
+  const word mask_begin = __M4RI_RIGHT_BITMASK(m4ri_radix - A->x[0]->offset);
+  const word mask_end   = __M4RI_LEFT_BITMASK((A->x[0]->offset + A->ncols)%m4ri_radix);
+  const rci_t n = A->x[0]->width-1;
+
+  for(int e=0; e<A->finite_field->degree; e++) {
+    for(rci_t i=0; i<A->nrows; i++) {
+      if ((A->x[e]->rows[i][0] & ~mask_begin) != (m4rie_canary & ~mask_begin)) {
+        return 0;
+      }
+      if ((A->x[e]->rows[i][n] & ~mask_end)   != (m4rie_canary & ~mask_end)) {
+        return 0;
+      }
+    }
+    return 1;
+  }
+};
 
 static inline mzed_t *random_mzed_t(gf2e *ff, int m, int n) {
   mzed_t *A  = mzed_init(ff,m,n);
   mzed_randomize(A);
+  mzed_set_canary(A);
   return A;
 }
 
 static inline mzd_slice_t *random_mzd_slice_t(gf2e *ff, int m, int n) {
-  mzd_slice_t *A  = mzd_slice_init(ff,m,n);
+  mzd_slice_t *A = mzd_slice_init(ff,m,n);
   mzd_slice_randomize(A);
+  mzd_slice_set_canary(A);
+  return A;
+}
+
+static inline mzed_t *random_mzed_t_rank(gf2e *ff, const rci_t m, const rci_t n, const rci_t r) {
+  mzed_t *U = mzed_init(ff, m, n);
+  mzed_t *Ur = mzed_init_window(U, 0, 0, r, U->ncols);
+  mzed_t *L = mzed_init(ff, m, m);
+
+  mzed_randomize(L);
+  mzed_randomize(Ur);
+
+  for(rci_t i=0; i<r; i++) {
+    for(rci_t j=i+1; j<L->ncols; j++) {
+      mzed_write_elem(L, i, j, 0);
+    }
+    mzed_write_elem(L, i, i, 1); 
+  }
+  for(rci_t i=r; i<L->nrows; i++) {
+    for(rci_t j=r+1; j < L->ncols; j++) {
+      mzed_write_elem(L, i, j, 0);
+    }
+  }
+
+  for(rci_t i=0; i<r; i++) {
+    mzed_write_elem(U, i, i, 1);
+    for(rci_t j=0; j<i; j++) {
+      mzed_write_elem(U, i, j, 0);
+    }
+  }
+  mzed_t *A = mzed_mul(NULL, L, U);
+  mzed_free(L);
+  mzed_free_window(Ur);
+  mzed_free(U);
+
+  for(rci_t i=0; i<A->nrows; i++) {
+    const rci_t ii = random() % A->nrows;
+    mzed_row_swap(A, i, ii);
+  };
+  for(rci_t i=0; i<A->ncols; i++) {
+    const rci_t ii = random() % A->ncols;
+    mzed_col_swap(A, i, ii);
+  };
+  mzed_set_canary(A);
   return A;
 }

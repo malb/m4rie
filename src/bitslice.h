@@ -192,8 +192,19 @@ static inline mzd_slice_t *mzd_slice_add(mzd_slice_t *C, const mzd_slice_t *A, c
 #define _mzd_slice_sub _mzd_slice_add
 
 static inline void mzd_slice_randomize(mzd_slice_t *A) {
-  for(int i=0; i<-A->depth; i++) {
-    mzd_randomize(A->x[i]);
+  switch(A->depth) {
+  case 10: mzd_randomize(A->x[9]);
+  case  9: mzd_randomize(A->x[8]);
+  case  8: mzd_randomize(A->x[7]);
+  case  7: mzd_randomize(A->x[6]);
+  case  6: mzd_randomize(A->x[5]);
+  case  5: mzd_randomize(A->x[4]);
+  case  4: mzd_randomize(A->x[3]);
+  case  3: mzd_randomize(A->x[2]);
+  case  2: mzd_randomize(A->x[1]);
+  case  1: mzd_randomize(A->x[0]); break;
+  default:
+    m4ri_die("impossible");   
   }
 }
  

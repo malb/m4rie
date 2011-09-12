@@ -3,52 +3,11 @@
 
 using namespace M4RIE;
 
-mzed_t *random_mzed_t_ple(gf2e *ff, const rci_t m, const rci_t n, const rci_t r) {
-  mzed_t *U = mzed_init(ff, m, n);
-  mzed_t *Ur = mzed_init_window(U, 0, 0, r, U->ncols);
-  mzed_t *L = mzed_init(ff, m, m);
-
-  mzed_randomize(L);
-  mzed_randomize(Ur);
-
-  for(rci_t i=0; i<r; i++) {
-    for(rci_t j=i+1; j<L->ncols; j++) {
-      mzed_write_elem(L, i, j, 0);
-    }
-    mzed_write_elem(L, i, i, 1); 
-  }
-  for(rci_t i=r; i<L->nrows; i++) {
-    for(rci_t j=r+1; j < L->ncols; j++) {
-      mzed_write_elem(L, i, j, 0);
-    }
-  }
-
-  for(rci_t i=0; i<r; i++) {
-    mzed_write_elem(U, i, i, 1);
-    for(rci_t j=0; j<i; j++) {
-      mzed_write_elem(U, i, j, 0);
-    }
-  }
-  mzed_t *A = mzed_mul(NULL, L, U);
-  mzed_free(L);
-  mzed_free_window(Ur);
-  mzed_free(U);
-
-  for(rci_t i=0; i<A->nrows; i++) {
-    const rci_t ii = random() % A->nrows;
-    mzed_row_swap(A, i, ii);
-  };
-  for(rci_t i=0; i<A->ncols; i++) {
-    const rci_t ii = random() % A->ncols;
-    mzed_col_swap(A, i, ii);
-  };
-  return A;
-}
 
 int test_ple(gf2e *ff, const rci_t m, const rci_t n, const rci_t r) {
   int fail_ret = 0;
 
-  mzed_t *A  = random_mzed_t_ple(ff, m, n, r);
+  mzed_t *A  = random_mzed_t_rank(ff, m, n, r);
   mzed_t *LE = mzed_copy(NULL, A);
   mzed_t *L = mzed_init(ff, m, m);
   mzed_t *E = mzed_init(ff, m, n);
@@ -56,26 +15,36 @@ int test_ple(gf2e *ff, const rci_t m, const rci_t n, const rci_t r) {
   mzp_t *P = mzp_init(m);
   mzp_t *Q = mzp_init(n);
 
+  mzed_set_canary(LE);
+
+  mzed_set_canary(L);
+  mzed_set_canary(E);
+
   rci_t rbar = mzed_ple_naive(LE,P, Q);
-  
+
   m4rie_check( rbar == r);
+  m4rie_check( mzed_canary_is_alive(LE) );
 
   for(rci_t j=0; j<r; j++) {
     for(rci_t i=j; i<LE->nrows; i++) {
       mzed_write_elem(L,i,j, mzed_read_elem(LE,i,j));
     }
   }
+  m4rie_check( mzed_canary_is_alive(L) );
+
   for(rci_t i=0; i<r; i++) {
     mzed_write_elem(E, i, Q->values[i], 1);
     for(rci_t j=Q->values[i]+1; j< LE->ncols; j++) {
       mzed_write_elem(E, i, j, mzed_read_elem(LE, i, j));
     }
   }
+  m4rie_check( mzed_canary_is_alive(E) );
 
   mzed_t *B = mzed_mul(NULL, L, E);
 
   mzed_apply_p_left(A, P);
 
+  m4rie_check( mzed_canary_is_alive(A) );
   m4rie_check( mzed_cmp(A, B) == 0);
 
   mzed_free(A);

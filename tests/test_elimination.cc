@@ -8,6 +8,10 @@ int test_equality(gf2e *ff, rci_t m, rci_t n) {
   mzed_t *A0 = random_mzed_t(ff, m, n);
   mzed_t *A1 = mzed_copy(NULL, A0);
   mzed_t *A2 = mzed_copy(NULL, A0);
+
+  mzed_set_canary(A1);
+  mzed_set_canary(A2);
+
   mzed_echelonize_travolta(A0,1);
   mzed_echelonize_naive(A1,1);
   mzed_echelonize(A2,1);
@@ -15,6 +19,10 @@ int test_equality(gf2e *ff, rci_t m, rci_t n) {
   m4rie_check( mzed_cmp(A0, A1) == 0);
   m4rie_check( mzed_cmp(A1, A2) == 0);
   m4rie_check( mzed_cmp(A2, A0) == 0);
+
+  m4rie_check( mzed_canary_is_alive(A0) );
+  m4rie_check( mzed_canary_is_alive(A1) );
+  m4rie_check( mzed_canary_is_alive(A2) );
 
   mzed_free(A0);
   mzed_free(A1);

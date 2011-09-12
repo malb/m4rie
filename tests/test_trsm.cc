@@ -40,6 +40,7 @@ mzed_t *random_mzed_t_lower_left(gf2e *ff, rci_t m) {
       mzed_write_elem(L, i, i, random()&bitmask) ;
     }
   }
+  mzed_set_canary(L);
   return L;
 };
 
@@ -54,9 +55,9 @@ mzd_slice_t *random_mzd_slice_t_lower_left(gf2e *ff, rci_t m) {
       mzd_slice_write_elem(L, i, i, random()&bitmask) ;
     }
   }
+  mzd_slice_set_canary(L);
   return L;
 };
-
 
 int test_mzed_trsm_lower_left(gf2e *ff, rci_t m, rci_t n) {
   int fail_ret = 0;
@@ -66,9 +67,19 @@ int test_mzed_trsm_lower_left(gf2e *ff, rci_t m, rci_t n) {
   mzed_t *B = random_mzed_t(ff, m, n);
   mzed_t *X = mzed_copy(NULL, B);
 
+  mzed_set_canary(H);
+  mzed_set_canary(X);
+
   mzed_trsm_lower_left(L, X);
 
+  m4rie_check(mzed_canary_is_alive(L));
+  m4rie_check(mzed_canary_is_alive(X));
+
   mzed_addmul(B, L, X);
+
+  m4rie_check( mzed_canary_is_alive(B));
+  m4rie_check( mzed_canary_is_alive(L));
+  m4rie_check( mzed_canary_is_alive(X));
 
   m4rie_check(mzed_is_zero(B) == 1);
   m4rie_check(mzed_cmp(L,H) == 0);
@@ -82,6 +93,8 @@ int test_mzed_trsm_lower_left(gf2e *ff, rci_t m, rci_t n) {
   B = random_mzed_t(ff, m, n);
   X = mzed_copy(NULL, B);
 
+  mzed_set_canary(X);
+
   const int bitmask = (1<<ff->degree)-1;
   for(rci_t i=0; i<m; i++) {
     while(mzed_read_elem(L, i, i) == 0) {
@@ -89,9 +102,16 @@ int test_mzed_trsm_lower_left(gf2e *ff, rci_t m, rci_t n) {
     }
   };
   H = mzed_copy(NULL, L);
+  mzed_set_canary(H);
 
   mzed_trsm_lower_left(L, X);
+
+  m4rie_check( mzed_canary_is_alive(L) );
+  m4rie_check( mzed_canary_is_alive(X) );
+
   m4rie_check(mzed_cmp(L,H) == 0);
+
+  mzed_set_canary(L);
 
   for(rci_t i=0; i<m; i++) {
     for(rci_t j=i+1; j<m; j++) {
@@ -100,6 +120,10 @@ int test_mzed_trsm_lower_left(gf2e *ff, rci_t m, rci_t n) {
   }
   mzed_addmul(B, L, X);
 
+  m4rie_check( mzed_canary_is_alive(B) );
+  m4rie_check( mzed_canary_is_alive(L) );
+  m4rie_check( mzed_canary_is_alive(X) );
+  
   m4rie_check(mzed_is_zero(B) == 1);
 
   mzed_free(L);
@@ -118,9 +142,22 @@ int test_mzd_slice_trsm_lower_left(gf2e *ff, rci_t m, rci_t n) {
   mzd_slice_t *B = random_mzd_slice_t(ff, m, n);
   mzd_slice_t *X = mzd_slice_copy(NULL, B);
 
+  mzd_slice_set_canary(H);
+  mzd_slice_set_canary(X);
+
   mzd_slice_trsm_lower_left(L, X);
 
+  m4rie_check( mzd_slice_canary_is_alive(L) );
+  m4rie_check( mzd_slice_canary_is_alive(X) );
+
+  /**
+   * @TODO:  mzd_slice_addmul is not 'canary safe' because mzd_addmul() isn't
+   */
+  mzd_slice_clear_canary(X);
   mzd_slice_addmul(B, L, X);
+
+  m4rie_check( mzd_slice_canary_is_alive(B) );
+  m4rie_check( mzd_slice_canary_is_alive(L) );
 
   m4rie_check(mzd_slice_is_zero(B) == 1);
   m4rie_check(mzd_slice_cmp(L,H) == 0);
@@ -132,7 +169,9 @@ int test_mzd_slice_trsm_lower_left(gf2e *ff, rci_t m, rci_t n) {
 
   L = random_mzd_slice_t(ff, m, m);
   B = random_mzd_slice_t(ff, m, n);
+
   X = mzd_slice_copy(NULL, B);
+  mzd_slice_set_canary(X);
 
   const int bitmask = (1<<ff->degree)-1;
   for(rci_t i=0; i<m; i++) {
@@ -141,8 +180,13 @@ int test_mzd_slice_trsm_lower_left(gf2e *ff, rci_t m, rci_t n) {
     }
   };
   H = mzd_slice_copy(NULL, L);
+  mzd_slice_set_canary(H);
 
   mzd_slice_trsm_lower_left(L, X);
+
+  m4rie_check( mzd_slice_canary_is_alive(L) );
+  m4rie_check( mzd_slice_canary_is_alive(X) );
+  
   m4rie_check(mzd_slice_cmp(L,H) == 0);
 
   for(rci_t i=0; i<m; i++) {
@@ -150,7 +194,14 @@ int test_mzd_slice_trsm_lower_left(gf2e *ff, rci_t m, rci_t n) {
       mzd_slice_write_elem(L, i, j, 0);
     }
   }
+  /**
+   * @TODO:  mzd_slice_addmul is not 'canary safe' because mzd_addmul() isn't
+   */
+  mzd_slice_clear_canary(X);
   mzd_slice_addmul(B, L, X);
+
+  m4rie_check( mzd_slice_canary_is_alive(B) );
+  m4rie_check( mzd_slice_canary_is_alive(L) );
 
   m4rie_check(mzd_slice_is_zero(B) == 1);
 
