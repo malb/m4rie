@@ -145,27 +145,12 @@ void mzed_make_table(const mzed_t *A, rci_t r, rci_t c, mzed_t *T,  rci_t *L) {
   mzd_set_ui(T->x,0);
   L[0] = 0;
 
-  mzed_copy_row(T, 1, A, r);
-  L[1] = 1;
-
-  for(size_t i=2; i< __M4RI_TWOPOW(A->finite_field->degree); i++) {
+  for(size_t i=1; i< __M4RI_TWOPOW(A->finite_field->degree); i++) {
     word *X = A->finite_field->mul[i];
     L[i] = i;
     mzed_add_multiple_of_row(T, i, A, r, X, c);
   }
 }
-
-void mzed_make_table_ple(const mzed_t *A, rci_t r, rci_t c, mzed_t *T,  rci_t *L) {
-  mzd_set_ui(T->x,0);
-  L[0] = 0;
-
-  for(size_t i=1; i< __M4RI_TWOPOW(A->finite_field->degree); i++) {
-    word *X = A->finite_field->mul[i];
-    L[i] = i;
-    mzed_add_multiple_of_row(T, i, A, r, X, c+1);
-  }
-}
-
 
 rci_t mzed_echelonize_travolta(mzed_t *A, int full) {
   gf2e* ff = A->finite_field;
@@ -320,9 +305,9 @@ rci_t mzed_ple_travolta(mzed_t *A, mzp_t *P, mzp_t *Q) {
       Q->values[row_pos] = j;
       mzed_row_swap(A, row_pos, i);
 
-      mzed_rescale_row(A, row_pos, j+1, ff->mul[ff->inv[tmp]]);
       if (j+1 < A->ncols) {
-        mzed_make_table_ple( A, row_pos, j, T0, L0);      
+        mzed_rescale_row(A, row_pos, j+1, ff->mul[ff->inv[tmp]]);
+        mzed_make_table( A, row_pos, j+1, T0, L0);      
         mzd_process_rows(A->x, row_pos+1, A->nrows, j*A->w, A->w, T0->x, L0);
       }
       row_pos++;

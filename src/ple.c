@@ -22,18 +22,6 @@
 #include "ple.h"
 #include "travolta.h"
 
-rci_t mzed_ple(mzed_t *A, mzp_t *P, mzp_t *Q) {
-  if (A->finite_field->degree <= __M4RIE_MAX_KARATSUBA_DEGREE) {
-    mzd_slice_t *a = mzed_slice(NULL, A);
-    rci_t r = mzd_slice_ple(a, P, Q);
-    mzed_cling(A, a);
-    mzd_slice_free(a);
-    return r;
-  } else {
-    return mzed_ple_naive(A, P, Q);
-  }
-}
-
 rci_t mzed_ple_naive(mzed_t *A, mzp_t *P, mzp_t *Q) {
   rci_t col_pos = 0;
   rci_t row_pos = 0;
@@ -59,9 +47,9 @@ rci_t mzed_ple_naive(mzed_t *A, mzp_t *P, mzp_t *Q) {
       Q->values[row_pos] = j;
       mzed_row_swap(A, row_pos, i);
 
-      mzed_rescale_row(A, row_pos, j+1, ff->mul[ff->inv[tmp]]);
-
       if(j+1 < A->ncols) {
+        mzed_rescale_row(A, row_pos, j+1, ff->mul[ff->inv[tmp]]);
+
         for(rci_t l=row_pos+1; l<A->nrows; l++) {
           if ((tmp = mzed_read_elem(A,l,j))) 
             mzed_add_multiple_of_row(A, l, A, row_pos, ff->mul[tmp], j+1);
@@ -83,14 +71,28 @@ rci_t mzed_ple_naive(mzed_t *A, mzp_t *P, mzp_t *Q) {
   return row_pos;
 }
 
+rci_t _mzed_ple(mzed_t *A, mzp_t *P, mzp_t *Q, rci_t cutoff) {
+  if (A->finite_field->degree <= __M4RIE_MAX_KARATSUBA_DEGREE) {
+    mzd_slice_t *a = mzed_slice(NULL, A);
+    rci_t r = _mzd_slice_ple(a, P, Q, cutoff);
+    mzed_cling(A, a);
+    mzd_slice_free(a);
+    return r;
+  } else {
+    return mzed_ple_naive(A, P, Q);
+  }
+}
 
-rci_t mzd_slice_ple(mzd_slice_t *A, mzp_t *P, mzp_t *Q) {
+rci_t _mzd_slice_ple(mzd_slice_t *A, mzp_t *P, mzp_t *Q, rci_t cutoff) {
   assert(A->x[0]->offset == 0);
 
   const rci_t ncols = A->ncols;
   const rci_t nrows = A->nrows;
 
-  if (ncols <= m4ri_radix || A->depth * A->ncols * A->nrows <= __M4RIE_PLE_CUTOFF) {
+  if (cutoff == 0)
+    cutoff = __M4RIE_PLE_CUTOFF;
+
+  if (ncols <= m4ri_radix || A->depth * A->ncols * A->nrows <= cutoff) {
     mzed_t *Abar = mzed_cling(NULL, A);
     rci_t r = mzed_ple_travolta(Abar, P, Q);
     mzed_slice(A, Abar);
@@ -111,7 +113,7 @@ rci_t mzd_slice_ple(mzd_slice_t *A, mzp_t *P, mzp_t *Q) {
   mzp_t *P1 = mzp_init_window(P, 0, nrows);
   mzp_t *Q1 = mzp_init_window(Q, 0, A0->ncols);
 
-  rci_t  r1 = mzd_slice_ple(A0, P1, Q1);
+  rci_t  r1 = _mzd_slice_ple(A0, P1, Q1, cutoff);
 
   /*           r1           n1
    *   ------------------------------------------
@@ -138,7 +140,7 @@ rci_t mzd_slice_ple(mzd_slice_t *A, mzp_t *P, mzp_t *Q) {
   mzp_t *P2 = mzp_init_window(P, r1, nrows);
   mzp_t *Q2 = mzp_init_window(Q, n1, ncols);
 
-  rci_t r2 = mzd_slice_ple(A11, P2, Q2);
+  rci_t r2 = _mzd_slice_ple(A11, P2, Q2, cutoff);
 
   /*           n
    *   -------------------

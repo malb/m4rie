@@ -32,8 +32,18 @@
 #include "bitslice.h"
 
 rci_t mzed_ple_naive(mzed_t *A, mzp_t *P, mzp_t *Q);
-rci_t mzd_slice_ple(mzd_slice_t *A, mzp_t *P, mzp_t *Q);
-rci_t mzed_ple(mzed_t *A, mzp_t *P, mzp_t *Q);
+
+rci_t _mzd_slice_ple(mzd_slice_t *A, mzp_t *P, mzp_t *Q, rci_t cutoff);
+
+static inline rci_t mzd_slice_ple(mzd_slice_t *A, mzp_t *P, mzp_t *Q) {
+  return _mzd_slice_ple(A, P, Q, 0);
+}
+
+rci_t _mzed_ple(mzed_t *A, mzp_t *P, mzp_t *Q, rci_t cutoff);
+
+static inline rci_t mzed_ple(mzed_t *A, mzp_t *P, mzp_t *Q) {
+  return _mzed_ple(A, P, Q, 0);
+}
 
 
 #define __M4RIE_PLE_CUTOFF 256*256
