@@ -17,7 +17,22 @@
 *                  http://www.gnu.org/licenses/
 ******************************************************************************/
 
+#include "permutation.h"
+#include "trsm.h"
 #include "ple.h"
+#include "travolta.h"
+
+rci_t mzed_ple(mzed_t *A, mzp_t *P, mzp_t *Q) {
+  if (A->finite_field->degree <= __M4RIE_MAX_KARATSUBA_DEGREE) {
+    mzd_slice_t *a = mzed_slice(NULL, A);
+    rci_t r = mzd_slice_ple(a, P, Q);
+    mzed_cling(A, a);
+    mzd_slice_free(a);
+    return r;
+  } else {
+    return mzed_ple_naive(A, P, Q);
+  }
+}
 
 rci_t mzed_ple_naive(mzed_t *A, mzp_t *P, mzp_t *Q) {
   rci_t col_pos = 0;
@@ -58,9 +73,105 @@ rci_t mzed_ple_naive(mzed_t *A, mzp_t *P, mzp_t *Q) {
       break;
     }
   }
-
+  for (rci_t i = row_pos; i < A->nrows; ++i)
+    P->values[i] = i;
+  for (rci_t i = row_pos; i < A->ncols; ++i)
+    Q->values[i] = i;
   for (rci_t i=0; i < row_pos; i++) {
     mzed_col_swap_in_rows(A, i, Q->values[i], i, A->nrows);
   }
   return row_pos;
+}
+
+
+rci_t mzd_slice_ple(mzd_slice_t *A, mzp_t *P, mzp_t *Q) {
+  assert(A->x[0]->offset == 0);
+
+  const rci_t ncols = A->ncols;
+  const rci_t nrows = A->nrows;
+
+  if (ncols <= m4ri_radix || A->depth * A->ncols * A->nrows <= __M4RIE_PLE_CUTOFF) {
+    mzed_t *Abar = mzed_cling(NULL, A);
+    rci_t r = mzed_ple_travolta(Abar, P, Q);
+    mzed_slice(A, Abar);
+    mzed_free(Abar);
+    return r;
+  }
+
+  /*                     n1
+   *   ------------------------------------------
+   *   | A0              | A1                   |
+   *   ------------------------------------------
+   */
+
+  rci_t n1 = (((ncols - 1) / m4ri_radix + 1) >> 1) * m4ri_radix;
+
+  mzd_slice_t *A0 = mzd_slice_init_window(A,  0,  0, nrows,    n1);
+  mzd_slice_t *A1 = mzd_slice_init_window(A,  0, n1, nrows, ncols);
+  mzp_t *P1 = mzp_init_window(P, 0, nrows);
+  mzp_t *Q1 = mzp_init_window(Q, 0, A0->ncols);
+
+  rci_t  r1 = mzd_slice_ple(A0, P1, Q1);
+
+  /*           r1           n1
+   *   ------------------------------------------
+   *   | A00    |           | A01               |
+   * r1------------------------------------------ 
+   *   | A10    |           | A11               |
+   *   ------------------------------------------
+   */
+
+  mzd_slice_t *A00 = mzd_slice_init_window(A,  0,  0, r1, r1);
+  mzd_slice_t *A10 = mzd_slice_init_window(A, r1,  0, nrows, r1);
+  mzd_slice_t *A01 = mzd_slice_init_window(A,  0, n1, r1, ncols);
+  mzd_slice_t *A11 = mzd_slice_init_window(A, r1, n1, nrows, ncols);
+
+  if (r1) {
+    /* Computation of the Schur complement */
+    mzd_slice_apply_p_left(A1, P1);
+    mzd_slice_trsm_lower_left(A00, A01);
+    mzd_slice_addmul(A11, A10, A01);
+  }
+  mzp_free_window(P1);
+  mzp_free_window(Q1);
+
+  mzp_t *P2 = mzp_init_window(P, r1, nrows);
+  mzp_t *Q2 = mzp_init_window(Q, n1, ncols);
+
+  rci_t r2 = mzd_slice_ple(A11, P2, Q2);
+
+  /*           n
+   *   -------------------
+   *   |      A0b        |
+   *   r1-----------------
+   *   |      A1b        |
+   *   -------------------
+   */
+  
+  /* Update A10 */
+  mzd_slice_apply_p_left(A10, P2);
+  
+  /* Update P */
+  for (rci_t i = 0; i < nrows - r1; ++i)
+    P2->values[i] += r1;
+  
+  /* Update the A0b block (permutation + rotation) */
+  for(rci_t i=0, j=n1; j < ncols; ++i, ++j)
+    Q2->values[i] += n1;
+  for(rci_t i=n1, j = r1; i < n1 + r2; ++i, ++j)
+    Q->values[j] = Q->values[i];
+  
+  _mzd_slice_compress_l(A, r1, n1, r2);
+  
+  mzp_free_window(Q2);
+  mzp_free_window(P2);
+  
+  mzd_slice_free_window(A0);
+  mzd_slice_free_window(A1);
+  mzd_slice_free_window(A00);
+  mzd_slice_free_window(A01);
+  mzd_slice_free_window(A10);
+  mzd_slice_free_window(A11);
+  
+  return r1 + r2;
 }

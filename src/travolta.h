@@ -106,7 +106,7 @@ mzed_t *_mzed_mul_travolta(mzed_t *C, const mzed_t *A, const mzed_t *B);
  * \ingroup Echelon
  */
 
-size_t mzed_echelonize_travolta(mzed_t *A, int full);
+rci_t mzed_echelonize_travolta(mzed_t *A, int full);
 
 /**
  * \brief Invert the matrix A using Gauss-Travolta elimination. 
@@ -119,6 +119,14 @@ size_t mzed_echelonize_travolta(mzed_t *A, int full);
  */
 
 mzed_t *mzed_invert_travolta(mzed_t *B, const mzed_t *A);
+
+/**
+ * \brief L*E = P*A
+ *
+ * \ingroup PLE
+ */
+
+rci_t mzed_ple_travolta(mzed_t *A, mzp_t *P, mzp_t *Q);
 
 /**
  * \brief The function looks up 6 entries from position i,startcol in

@@ -155,7 +155,19 @@ void mzed_make_table(const mzed_t *A, rci_t r, rci_t c, mzed_t *T,  rci_t *L) {
   }
 }
 
-size_t mzed_echelonize_travolta(mzed_t *A, int full) {
+void mzed_make_table_ple(const mzed_t *A, rci_t r, rci_t c, mzed_t *T,  rci_t *L) {
+  mzd_set_ui(T->x,0);
+  L[0] = 0;
+
+  for(size_t i=1; i< __M4RI_TWOPOW(A->finite_field->degree); i++) {
+    word *X = A->finite_field->mul[i];
+    L[i] = i;
+    mzed_add_multiple_of_row(T, i, A, r, X, c+1);
+  }
+}
+
+
+rci_t mzed_echelonize_travolta(mzed_t *A, int full) {
   gf2e* ff = A->finite_field;
 
   size_t r,c;
@@ -278,6 +290,58 @@ size_t mzed_echelonize_travolta(mzed_t *A, int full) {
   mzed_free(T0); mzed_free(T1); mzed_free(T2);
   mzed_free(T3); mzed_free(T4); mzed_free(T5);
   return r;
+}
+
+rci_t mzed_ple_travolta(mzed_t *A, mzp_t *P, mzp_t *Q) {
+  rci_t col_pos = 0;
+  rci_t row_pos = 0;
+  word tmp = 0;
+  gf2e *ff = A->finite_field;
+  rci_t i,j;
+  int found = 0;
+
+  mzed_t *T0 = mzed_init(A->finite_field, __M4RI_TWOPOW(A->finite_field->degree), A->ncols);
+  rci_t *L0 = (rci_t*)m4ri_mm_calloc(__M4RI_TWOPOW(A->finite_field->degree), sizeof(rci_t));
+
+  while (row_pos < A->nrows && col_pos < A->ncols) {
+    found = 0;
+    for(j=col_pos; j<A->ncols; j++) {
+      for(i=row_pos; i<A->nrows; i++) {
+        if( (tmp = mzed_read_elem(A, i,j)) != 0) {
+          found = 1;
+          break;
+        }
+      }
+      if (found)
+        break;
+    }
+    if (found) {
+      P->values[row_pos] = i;
+      Q->values[row_pos] = j;
+      mzed_row_swap(A, row_pos, i);
+
+      mzed_rescale_row(A, row_pos, j+1, ff->mul[ff->inv[tmp]]);
+      if (j+1 < A->ncols) {
+        mzed_make_table_ple( A, row_pos, j, T0, L0);      
+        mzd_process_rows(A->x, row_pos+1, A->nrows, j*A->w, A->w, T0->x, L0);
+      }
+      row_pos++;
+      col_pos = j + 1;
+    } else {  
+      break;
+    }
+  }
+  for (rci_t i = row_pos; i < A->nrows; ++i)
+    P->values[i] = i;
+  for (rci_t i = row_pos; i < A->ncols; ++i)
+    Q->values[i] = i;
+  for (rci_t i=0; i < row_pos; i++) {
+    mzed_col_swap_in_rows(A, i, Q->values[i], i, A->nrows);
+  }
+  mzed_free(T0);
+  m4ri_mm_free(L0);
+
+  return row_pos;
 }
 
 mzed_t *_mzed_mul_travolta0(mzed_t *C, const mzed_t *A, const mzed_t *B) {

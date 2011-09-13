@@ -29,7 +29,13 @@
 
 #include <m4ri/m4ri.h>
 #include "gf2e_matrix.h"
+#include "bitslice.h"
 
 rci_t mzed_ple_naive(mzed_t *A, mzp_t *P, mzp_t *Q);
+rci_t mzd_slice_ple(mzd_slice_t *A, mzp_t *P, mzp_t *Q);
+rci_t mzed_ple(mzed_t *A, mzp_t *P, mzp_t *Q);
+
+
+#define __M4RIE_PLE_CUTOFF 256*256
 
 #endif //M4RIE_PLE_H

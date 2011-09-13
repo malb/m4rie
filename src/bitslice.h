@@ -31,6 +31,12 @@
 #include "gf2e_matrix.h"
 
 /**
+ * Degree up to which Karatsuba multiplication is implemented.
+ */
+
+#define __M4RIE_MAX_KARATSUBA_DEGREE 4
+
+/**
  * Dense matrices over GF(2^k) represented as slices of matrices over GF(2).
  */
 
@@ -284,6 +290,23 @@ static inline void mzd_slice_copy_row(mzd_slice_t* B, size_t i, const mzd_slice_
 static inline void mzd_slice_col_swap(mzd_slice_t *A, const rci_t cola, const rci_t colb) {
   for(int i=0; i<A->depth; i++)
     mzd_col_swap(A->x[i], cola, colb);
+}
+
+
+/**
+ * \brief Swap the two columns cola and colb but only between start_row and stop_row.
+ * 
+ * \param M Matrix.
+ * \param cola Column index.
+ * \param colb Column index.
+ * \param start_row Row index.
+ * \param stop_row Row index (exclusive).
+ */
+
+static inline void mzd_slice_col_swap_in_rows(mzd_slice_t *A, const rci_t cola, const rci_t colb, const rci_t start_row, rci_t stop_row) {
+  for(int e=0; e < A->finite_field->degree; e++) {
+    mzd_col_swap_in_rows(A->x[e], cola, colb, start_row, stop_row);
+  };
 }
 
 static inline void mzd_slice_row_add(mzd_slice_t *A, const rci_t sourcerow, const rci_t destrow) {
@@ -588,8 +611,6 @@ static inline mzed_t *mzed_mul_karatsuba(mzed_t *C, const mzed_t *A, const mzed_
  * \param B Input matrix B.
  *
  * \sa _mzd_slice_mul_karatsuba
- *
- * \wordoffset
  */
 
 static inline mzed_t *mzed_addmul_karatsuba(mzed_t *C, const mzed_t *A, const mzed_t *B) {
@@ -601,19 +622,20 @@ static inline mzed_t *mzed_addmul_karatsuba(mzed_t *C, const mzed_t *A, const mz
   return _mzed_mul_karatsuba(C, A, B);
 }
 
-/**
- * \brief Swap the two columns cola and colb but only between start_row and stop_row.
- * 
- * \param M Matrix.
- * \param cola Column index.
- * \param colb Column index.
- * \param start_row Row index.
- * \param stop_row Row index (exclusive).
- */
-
-static inline void mzd_slice_col_swap_in_rows(mzd_slice_t *A, const rci_t cola, const rci_t colb, const rci_t start_row, rci_t stop_row) {
-  for(int e=0; e < A->finite_field->degree; e++) {
-    mzd_col_swap_in_rows(A->x[e], cola, colb, start_row, stop_row);
+static inline void _mzd_slice_compress_l(mzd_slice_t *A, const rci_t r1, const rci_t n1, const rci_t r2) {
+  switch(A->finite_field->degree) {
+  case 10: _mzd_compress_l(A->x[9], r1, n1, r2);
+  case  9: _mzd_compress_l(A->x[8], r1, n1, r2);
+  case  8: _mzd_compress_l(A->x[7], r1, n1, r2);
+  case  7: _mzd_compress_l(A->x[6], r1, n1, r2);
+  case  6: _mzd_compress_l(A->x[5], r1, n1, r2);
+  case  5: _mzd_compress_l(A->x[4], r1, n1, r2);
+  case  4: _mzd_compress_l(A->x[3], r1, n1, r2);
+  case  3: _mzd_compress_l(A->x[2], r1, n1, r2);
+  case  2: _mzd_compress_l(A->x[1], r1, n1, r2);
+  case  1: _mzd_compress_l(A->x[0], r1, n1, r2); break;
+  default:
+    m4ri_die("impossible");
   };
 }
 

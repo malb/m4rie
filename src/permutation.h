@@ -28,6 +28,8 @@
 ******************************************************************************/
 
 #include <m4ri/permutation.h>
+#include "gf2e_matrix.h"
+#include "bitslice.h"
 
 /**
  * Apply the permutation P to A from the left.
@@ -40,7 +42,7 @@
 
 static inline void mzed_apply_p_left(mzed_t *A, mzp_t const *P) {
   mzd_apply_p_left(A->x, P);
-};
+}
 
 /**
  * Apply the permutation P to A from the left but transpose P before.
@@ -104,7 +106,7 @@ static inline void mzd_slice_apply_p_left(mzd_slice_t *A, mzp_t const *P) {
   for(int i=0; i<A->depth; i++) {
     mzd_apply_p_left(A->x[i], P);
   }
-};
+}
 
 /**
  * Apply the permutation P to A from the left but transpose P before.

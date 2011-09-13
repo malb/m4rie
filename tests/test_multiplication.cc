@@ -30,8 +30,6 @@
 
 using namespace M4RIE;
 
-#define MAX_KARATSUBA_DEGREE 4
-
 int test_addmul(gf2e *ff, rci_t m, rci_t n, rci_t l) {
   int fail_ret = 0;
 
@@ -58,7 +56,7 @@ int test_addmul(gf2e *ff, rci_t m, rci_t n, rci_t l) {
   m4rie_check( mzed_cmp(C1, C2) == 0);
   m4rie_check( mzed_cmp(C2, C3) == 0);
 
-  if (ff->degree <= MAX_KARATSUBA_DEGREE) {
+  if (ff->degree <= __M4RIE_MAX_KARATSUBA_DEGREE) {
     mzed_addmul_karatsuba(C4, A, B);
     m4rie_check( mzed_cmp(C3, C4) == 0);
   }
@@ -101,7 +99,7 @@ int test_mul(gf2e *ff, rci_t m, rci_t n, rci_t l) {
   m4rie_check( mzed_cmp(C1, C2) == 0);
   m4rie_check( mzed_cmp(C2, C3) == 0);
 
-  if (ff->degree <= MAX_KARATSUBA_DEGREE) {
+  if (ff->degree <= __M4RIE_MAX_KARATSUBA_DEGREE) {
     mzed_mul_karatsuba(C4, A, B);
     m4rie_check( mzed_cmp(C3, C4) == 0);
   }

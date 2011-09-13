@@ -3,8 +3,55 @@
 
 using namespace M4RIE;
 
+int test_mzd_slice_ple(gf2e *ff, const rci_t m, const rci_t n, const rci_t r) {
+  int fail_ret = 0;
 
-int test_ple(gf2e *ff, const rci_t m, const rci_t n, const rci_t r) {
+  mzed_t *a = random_mzed_t_rank(ff, m, n, r);
+  mzd_slice_t *A = mzed_slice(NULL, a);
+  mzed_free(a);
+
+  mzd_slice_t *LE = mzd_slice_copy(NULL, A);
+  mzd_slice_t *L = mzd_slice_init(ff, m, m);
+  mzd_slice_t *E = mzd_slice_init(ff, m, n);
+
+  mzp_t *P = mzp_init(m);
+  mzp_t *Q = mzp_init(n);
+
+  rci_t rbar = mzd_slice_ple(LE, P, Q);
+
+  m4rie_check( rbar == r);
+
+  for(rci_t j=0; j<r; j++) {
+    for(rci_t i=j; i<LE->nrows; i++) {
+      mzd_slice_write_elem(L,i,j, mzd_slice_read_elem(LE,i,j));
+    }
+  }
+
+  for(rci_t i=0; i<r; i++) {
+    mzd_slice_write_elem(E, i, Q->values[i], 1);
+    for(rci_t j=Q->values[i]+1; j< LE->ncols; j++) {
+      mzd_slice_write_elem(E, i, j, mzd_slice_read_elem(LE, i, j));
+    }
+  }
+
+  mzd_slice_t *B = mzd_slice_mul(NULL, L, E);
+
+  mzd_slice_apply_p_left(A, P);
+
+  m4rie_check( mzd_slice_cmp(A, B) == 0);
+
+  mzd_slice_free(A);
+  mzd_slice_free(B);
+  mzd_slice_free(LE);
+  mzd_slice_free(L);
+  mzd_slice_free(E);
+  mzp_free(P);
+  mzp_free(Q);
+
+  return fail_ret;
+}
+
+int test_mzed_ple(gf2e *ff, const rci_t m, const rci_t n, const rci_t r) {
   int fail_ret = 0;
 
   mzed_t *A  = random_mzed_t_rank(ff, m, n, r);
@@ -67,11 +114,25 @@ int test_batch(gf2e *ff, const rci_t m, const rci_t n, const rci_t r) {
   int fail_ret = 0;
 
   if(m == n) {
-    m4rie_check(   test_ple(ff, m, n, r) == 0); printf("."); fflush(0);
+    m4rie_check(   test_mzed_ple(ff, m, n, r) == 0); printf("."); fflush(0);
     printf(" ");
+    if(ff->degree <= 4) {
+      m4rie_check(   test_mzd_slice_ple(ff, m, n, r) == 0); printf("."); fflush(0);
+      printf(" ");
+    } else {
+      printf("  ");
+    }
+    fflush(0);
   } else {
-    m4rie_check(   test_ple(ff, m, n, r) == 0); printf("."); fflush(0);
-    m4rie_check(   test_ple(ff, n, m, r) == 0); printf("."); fflush(0);
+    m4rie_check(   test_mzed_ple(ff, m, n, r) == 0); printf("."); fflush(0);
+    m4rie_check(   test_mzed_ple(ff, n, m, r) == 0); printf("."); fflush(0);
+    if(ff->degree <= 4) {
+      m4rie_check(   test_mzd_slice_ple(ff, m, n, r) == 0); printf("."); fflush(0);
+      m4rie_check(   test_mzd_slice_ple(ff, n, m, r) == 0); printf("."); fflush(0);
+    } else {
+      printf("  ");
+    }
+    fflush(0);
   }
 
   if (fail_ret == 0)

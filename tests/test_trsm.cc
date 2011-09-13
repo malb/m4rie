@@ -219,7 +219,7 @@ int test_batch(gf2e *ff, rci_t m, rci_t n) {
   printf("trsm: k: %2d, minpoly: 0x%03x m: %5d, n: %5d ",(int)ff->degree, (unsigned int)ff->minpoly, (int)m,(int)n);
 
   m4rie_check(test_mzed_trsm_lower_left(ff, m, m) == 0); printf("."); fflush(0);
-  if(ff->degree <= 4) {
+  if(ff->degree <= __M4RIE_MAX_KARATSUBA_DEGREE) {
     m4rie_check(test_mzd_slice_trsm_lower_left(ff, m, m) == 0); printf("."); fflush(0);
   } else {
     printf(" "); fflush(0);
