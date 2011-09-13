@@ -1,0 +1,94 @@
+#include <gf2e_cxx/finite_field_givaro.h>
+#include <m4rie/m4rie.h>
+#include <cpucycles.h>
+#include "benchmarking.h"
+
+using namespace M4RIE;
+
+struct ple_params {
+  rci_t k; 
+  rci_t m;
+  rci_t n;
+  rci_t c;
+  rci_t r;
+  char const *algorithm;  
+};
+
+int run(void *_p, unsigned long long *data, int *data_len) {
+  struct ple_params *p = (struct ple_params *)_p;
+  *data_len = 2;
+
+  FiniteField *F = (FiniteField*)(new GFqDom<int>(2,p->k));
+  gf2e *ff = gf2e_init_givgfq(F);
+  mzed_t *A = mzed_init(ff, p->m, p->n);
+  mzed_randomize(A);
+
+  mzp_t *P = mzp_init(p->m);
+  mzp_t *Q = mzp_init(p->n);
+
+  data[1] = cpucycles();
+  data[0] = walltime(0.0);
+
+  if(strcmp(p->algorithm,"default")==0)
+    p->r = _mzed_ple(A, P, Q, p->c);
+  else if(strcmp(p->algorithm,"travolta")==0)
+    p->r = mzed_ple_travolta(A, P, Q);
+  else if(strcmp(p->algorithm,"naive")==0)
+    p->r = mzed_ple_naive(A, P, Q);
+  else
+    p->r = mzed_echelonize(A, 1);
+  data[1] = cpucycles() - data[1];
+  data[0] = walltime(data[0]);
+
+  mzed_free(A);
+  mzp_free(P);
+  mzp_free(Q);
+  gf2e_free(ff);
+  delete F;
+  return 0;
+}
+
+void print_help() {
+  printf("bench_smallops:\n\n");
+  printf("REQUIRED\n");
+  printf("  e -- integer between 2 and 10\n");
+  printf("  m -- integer > 0\n");
+  printf("  n -- integer > 0\n");
+  printf("  algorithm -- default\n");
+  printf("               travolta\n");
+  printf("               naive\n");
+  printf("  c -- cutoff (for 'default')\n");
+  printf("\n");
+  bench_print_global_options(stdout);
+}
+
+int main(int argc, char **argv) {
+  global_options(&argc, &argv);
+
+  if (argc < 4) {
+    print_help();
+    m4ri_die("");
+  }
+
+  struct ple_params params;
+
+  params.k = atoi(argv[1]);
+  params.m = atoi(argv[2]);
+  params.n = atoi(argv[3]);
+  if (argc >= 5)
+    params.algorithm = argv[4];
+  else
+    params.algorithm = (char*)"default";
+  if (argc >= 6)
+    params.c = atoi(argv[5]);
+  else
+    params.c = 0;
+
+  srandom(17);
+  unsigned long long data[2];
+  run_bench(run, (void*)&params, data, 2);
+
+  double cc_per_op = ((double)data[1])/ ( (double)params.m * (double)params.n * powl((double)params.r,0.807) );
+
+  printf("e: %2d, m: %5d, n: %5d, , algo: %10s, last r: %5d, cpu cycles: %10llu, cc/(mnr^0.807): %.5lf, wall time: %lf\n", params.k, params.m, params.n, params.algorithm, params.r, data[1], cc_per_op, data[0] / 1000000.0);
+}
