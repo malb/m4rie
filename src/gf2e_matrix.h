@@ -254,8 +254,6 @@ mzed_t *mzed_add(mzed_t *C, const mzed_t *A, const mzed_t *B);
  * \param A Matrix
  * \param B Matrix
  *
- * \wordoffset
- *
  * \ingroup Addition
  */
 
@@ -268,8 +266,6 @@ mzed_t *_mzed_add(mzed_t *C, const mzed_t *A, const mzed_t *B);
  * \param A Matrix
  * \param B Matrix
  *
- * \wordoffset
- *
  * \ingroup Addition
  */
 
@@ -281,8 +277,6 @@ mzed_t *_mzed_add(mzed_t *C, const mzed_t *A, const mzed_t *B);
  * \param C Preallocated difference matrix, may be NULL for automatic creation.
  * \param A Matrix
  * \param B Matrix
- *
- * \wordoffset
  *
  * \ingroup Addition
  */
@@ -437,7 +431,7 @@ void mzed_set_ui(mzed_t *A, word value);
 
 
 /**
- * Get the element at position (row,col) from the matrix A.
+ * \brief Get the element at position (row,col) from the matrix A.
  *
  * \param A Source matrix.
  * \param row Starting row.
@@ -451,7 +445,7 @@ static inline word mzed_read_elem(const mzed_t *A, const rci_t row, const rci_t 
 }
 
 /**
- * At the element elem to the element at position (row,col) in the matrix A.
+ * \brief At the element elem to the element at position (row,col) in the matrix A.
  *
  * \param A Target matrix.
  * \param row Starting row.
@@ -466,7 +460,7 @@ static inline void mzed_add_elem(mzed_t *a, const rci_t row, const rci_t col, co
 }
 
 /**
- * Write the element elem to the position (row,col) in the matrix A.
+ * \brief Write the element elem to the position (row,col) in the matrix A.
  *
  * \param A Target matrix.
  * \param row Starting row.
@@ -910,8 +904,6 @@ static inline void mzed_rescale_row(mzed_t *A, rci_t r, rci_t start_col, const w
  * \param rowb Row index.
  *
  * \ingroup RowOperations
- *
- * \wordoffset
  */
 
 static inline void mzed_row_swap(mzed_t *M, const rci_t rowa, const rci_t rowb) {
@@ -1032,8 +1024,6 @@ rci_t mzed_echelonize_naive(mzed_t *A, int full);
 
 /**
  * \brief Print a matrix to stdout. 
- *
- * The output will contain colons between every 4-th column.
  *
  * \param M Matrix
  *
