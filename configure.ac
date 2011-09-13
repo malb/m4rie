@@ -18,9 +18,6 @@ AC_CONFIG_HEADERS(src/config.h)
 
 AC_PROG_CXX
 
-m4_include([m4/ax_check_compiler_flags.m4])dnl
-m4_include([m4/ax_openmp.m4])dnl
-
 AC_PROG_CC_C99()
 
 

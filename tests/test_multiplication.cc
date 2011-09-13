@@ -41,6 +41,11 @@ int test_addmul(gf2e *ff, rci_t m, rci_t n, rci_t l) {
   mzed_t *C2 = mzed_copy(NULL, C0);
   mzed_t *C3 = mzed_copy(NULL, C0);
   mzed_t *C4 = mzed_copy(NULL, C0);
+
+  mzed_set_canary(C1);
+  mzed_set_canary(C2);
+  mzed_set_canary(C3);
+  mzed_set_canary(C4);
         
   mzed_addmul_travolta(C0, A, B);
   mzed_addmul_naive(C1, A, B);
@@ -51,17 +56,25 @@ int test_addmul(gf2e *ff, rci_t m, rci_t n, rci_t l) {
   m4rie_check( mzed_cmp(C1, C2) == 0);
   m4rie_check( mzed_cmp(C2, C3) == 0);
 
-  if (ff->degree <= 3) {
+  if (ff->degree <= __M4RIE_MAX_KARATSUBA_DEGREE) {
     mzed_addmul_karatsuba(C4, A, B);
     m4rie_check( mzed_cmp(C3, C4) == 0);
   }
 
+  m4rie_check( mzed_canary_is_alive(A) );
+  m4rie_check( mzed_canary_is_alive(B) );
+  m4rie_check( mzed_canary_is_alive(C1) );
+  m4rie_check( mzed_canary_is_alive(C2) );
+  m4rie_check( mzed_canary_is_alive(C3) );
+  m4rie_check( mzed_canary_is_alive(C4) );
+        
   mzed_free(A);
   mzed_free(B);
   mzed_free(C0);
   mzed_free(C1);
   mzed_free(C2);
   mzed_free(C3);
+  mzed_free(C4);
 
   return fail_ret;
 }
@@ -86,10 +99,17 @@ int test_mul(gf2e *ff, rci_t m, rci_t n, rci_t l) {
   m4rie_check( mzed_cmp(C1, C2) == 0);
   m4rie_check( mzed_cmp(C2, C3) == 0);
 
-  if (ff->degree <= 3) {
+  if (ff->degree <= __M4RIE_MAX_KARATSUBA_DEGREE) {
     mzed_mul_karatsuba(C4, A, B);
     m4rie_check( mzed_cmp(C3, C4) == 0);
   }
+
+  m4rie_check( mzed_canary_is_alive((mzed_t*)A) );
+  m4rie_check( mzed_canary_is_alive((mzed_t*)B) );
+  m4rie_check( mzed_canary_is_alive(C1) );
+  m4rie_check( mzed_canary_is_alive(C2) );
+  m4rie_check( mzed_canary_is_alive(C3) );
+        
 
   mzed_free((mzed_t*)A);
   mzed_free((mzed_t*)B);
@@ -97,6 +117,7 @@ int test_mul(gf2e *ff, rci_t m, rci_t n, rci_t l) {
   mzed_free(C1);
   mzed_free(C2);
   mzed_free(C3);
+  mzed_free(C4);
 
   return fail_ret;
 }
@@ -148,7 +169,7 @@ int test_scalar(gf2e *ff, rci_t m, rci_t n) {
 
 int test_batch(gf2e *ff, rci_t m, rci_t l, rci_t n) {
   int fail_ret = 0;
-  printf("mul: k: %2d, minpoly: 0x%03x m: %5d, l: %5d, n: %5d ",ff->degree, ff->minpoly, m, l, n);
+  printf("mul: k: %2d, minpoly: 0x%03x m: %5d, l: %5d, n: %5d ",(int)ff->degree, (unsigned int)ff->minpoly, (int)m, (int)l, (int)n);
 
   m4rie_check(test_scalar(ff, m, m) == 0); printf("."); fflush(0);
   m4rie_check(test_scalar(ff, l, l) == 0); printf("."); fflush(0);
@@ -199,8 +220,6 @@ int main(int argc, char **argv) {
 
   for(int k=2; k<=10; k++) {
     fail_ret += test_batch(ff[k],   1,   1,   1);
-    if(fail_ret)
-      return fail_ret;
     fail_ret += test_batch(ff[k],   1,   2,   3);
     fail_ret += test_batch(ff[k],  11,  12,  13);
     fail_ret += test_batch(ff[k],  21,  22,  23);

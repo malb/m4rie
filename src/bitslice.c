@@ -1,5 +1,23 @@
-#include "bitslice.h"
+/******************************************************************************
+*
+*            M4RIE: Linear Algebra over GF(2^e)
+*
+*    Copyright (C) 2010,2011 Martin Albrecht <martinralbrecht@googlemail.com>
+*
+*  Distributed under the terms of the GNU General Public License (GEL)
+*  version 2 or higher.
+*
+*    This code is distributed in the hope that it will be useful,
+*    but WITHOUT ANY WARRANTY; without even the implied warranty of
+*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+*    General Public License for more details.
+*
+*  The full text of the GPL is available at:
+*
+*                  http://www.gnu.org/licenses/
+******************************************************************************/
 
+#include "bitslice.h"
 
 mzd_slice_t *mzed_slice(mzd_slice_t *A, const mzed_t *Z) {
   if (A == NULL)
@@ -49,7 +67,7 @@ mzd_slice_t *_mzed_slice2(mzd_slice_t *A, const mzed_t *Z) {
   size_t j, j2 = 0;
   register word t0,t1;
 
-  const word mask_end = __M4RI_LEFT_BITMASK(A->ncols & m4ri_radix);
+  const word mask_end = __M4RI_LEFT_BITMASK(A->ncols % m4ri_radix);
   const word one = m4ri_one;
 
   for(size_t i=0; i<A->nrows; i++) {
@@ -145,9 +163,12 @@ mzd_slice_t *_mzed_slice2(mzd_slice_t *A, const mzed_t *Z) {
       t1 |= (z[j+0] & one<<(56 + 1)) >> 29; t1 |= (z[j+0] & one<<(58 + 1)) >> 30; t1 |= (z[j+0] & one<<(60 + 1)) >> 31; t1 |= (z[j+0] & one<<(62 + 1)) >> 32; 
       break;
     default:
-      m4ri_die("impossible\n");
+      m4ri_die("impossible");
     }
+    a0[j2] &= ~mask_end;
     a0[j2] |= t0 & mask_end;
+
+    a1[j2] &= ~mask_end;
     a1[j2] |= t1 & mask_end;
   }
     
@@ -158,6 +179,8 @@ mzed_t *_mzed_cling2(mzed_t *A, const mzd_slice_t *Z) {
   size_t j,j2 = 0;
   register word aw0;
   register word aw1;
+
+  const word mask_end = __M4RI_LEFT_BITMASK((2*A->ncols) % m4ri_radix);
 
   /** A0 **/
   for(size_t i=0; i<A->nrows; i++) {
@@ -239,7 +262,7 @@ mzed_t *_mzed_cling2(mzed_t *A, const mzd_slice_t *Z) {
       a[j+0] |= (z0[j2] & m4ri_one<< 30 ) << 30;
       a[j+0] |= (z0[j2] & m4ri_one<< 31 ) << 31;
 
-      a[j+1] = 0;
+      a[j+1] &= ~mask_end;
       switch((2*A->ncols) % m4ri_radix) {
       case  0:      a[j+1] |= (z0[j2] & m4ri_one<<63) >>  1;
       case 62:      a[j+1] |= (z0[j2] & m4ri_one<<62) >>  2;
@@ -276,7 +299,7 @@ mzed_t *_mzed_cling2(mzed_t *A, const mzd_slice_t *Z) {
       }
     
     } else {  /* only one word */
-      a[j+0] = 0;
+      a[j+0] &= ~mask_end;
       switch((2*A->ncols) % m4ri_radix) {
       case  0:      a[j+0] |= (z0[j2] & m4ri_one<<31) << 31;
       case 62:      a[j+0] |= (z0[j2] & m4ri_one<<30) << 30;
@@ -475,7 +498,7 @@ mzd_slice_t *_mzed_slice4(mzd_slice_t *A, const mzed_t *Z) {
 
   const word one = m4ri_one;
 
-  const word mask_end = __M4RI_LEFT_BITMASK(A->ncols & m4ri_radix);
+  const word mask_end = __M4RI_LEFT_BITMASK(A->ncols % m4ri_radix);
 
   /* A0 */
   for(size_t i=0; i<A->nrows; i++) {
@@ -700,7 +723,7 @@ mzed_t *_mzed_cling4(mzed_t *A, const mzd_slice_t *Z) {
   register word t0, t1, t2, t3;
   const word one = m4ri_one;
 
-  const word mask_end = __M4RI_LEFT_BITMASK( (4*A->ncols) & m4ri_radix );
+  const word mask_end = __M4RI_LEFT_BITMASK( (4*A->ncols) % m4ri_radix );
 
   for(size_t i=0; i<A->nrows; i++) {
     word *z0 = Z->x[0]->rows[i];
@@ -974,70 +997,11 @@ void mzd_slice_set_ui(mzd_slice_t *A, word value) {
 }
 
 
-mzed_t *mzed_mul_karatsuba(mzed_t *C, const mzed_t *A, const mzed_t *B) {
-  if (A->ncols != B->nrows || A->finite_field != B->finite_field) {
-    m4ri_die("mzed_mul: rows, columns and fields must match.\n");
-  }
-  if (C != NULL) {
-    if (C->finite_field != A->finite_field || C->nrows != A->nrows || C->ncols != B->ncols) {
-      m4ri_die("mzed_mul: rows and columns of returned matrix must match.\n");
-    }
-    mzed_set_ui(C,0);
-  }
 
-  C = _mzed_mul_karatsuba(C, A, B);
 
-  return C; 
-}
-
-mzed_t *mzed_addmul_karatsuba(mzed_t *C, const mzed_t *A, const mzed_t *B) {
-  assert(C != NULL);
-
-  if (A->ncols != B->nrows || A->finite_field != B->finite_field) {
-    m4ri_die("mzed_mul: rows, columns and fields must match.\n");
-  }
-  if (C->finite_field != A->finite_field || C->nrows != A->nrows || C->ncols != B->ncols) {
-    m4ri_die("mzed_mul: rows and columns of returned matrix must match.\n");
-  }
-
-  C = _mzed_mul_karatsuba(C, A, B);
-
-  return C; 
-}
-
-mzed_t *_mzed_mul_karatsuba(mzed_t *C, const mzed_t *A, const mzed_t *B) {
-  mzd_slice_t *As,*Bs,*Cs;
-  if(C)
-    Cs = mzed_slice(NULL,C);
-  else
-    Cs = NULL;
-  As = mzed_slice(NULL,A);
-  Bs = mzed_slice(NULL,B);
-
-  switch(A->finite_field->degree) {
-  case  2:
-    Cs = _mzd_slice_mul_karatsuba2(Cs, As, Bs); break;
-  case  3:
-    Cs = _mzd_slice_mul_karatsuba3(Cs, As, Bs); break;
-  case  4:
-  case  5:
-  case  6:
-  case  7:
-  case  8:
-  case  9:
-  case 10:
-  default:
-    m4ri_die("mzed_mul_karatsuba: only implemented for GF(2^2)");
-  }
-  C = mzed_cling(C, Cs);
-
-  mzd_slice_free(As);
-  mzd_slice_free(Bs);
-  mzd_slice_free(Cs);
-  return C;
-}
 
 mzd_slice_t *_mzd_slice_mul_karatsuba2(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B) {
+  // two temporaries
   if (C == NULL)
     C = mzd_slice_init(A->finite_field, A->nrows, B->ncols);
 
@@ -1049,6 +1013,7 @@ mzd_slice_t *_mzd_slice_mul_karatsuba2(mzd_slice_t *C, const mzd_slice_t *A, con
   mzd_free(T0);
 
   T0 = mzd_add(NULL, A->x[1], A->x[0]); /*T0 = A1 + A0 */
+
   mzd_t *T1 = mzd_add(NULL, B->x[1], B->x[0]); /*T1 = B1 + B0 */
 
   mzd_addmul(C->x[1], T0, T1, 0); /* C1 += A0*B0 + T0*T1 */
@@ -1058,10 +1023,12 @@ mzd_slice_t *_mzd_slice_mul_karatsuba2(mzd_slice_t *C, const mzd_slice_t *A, con
   return C;
 }
 
-
 mzd_slice_t *_mzd_slice_mul_karatsuba3(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B) {
+  /* using three temporary matrices */
   if (C == NULL)
     C = mzd_slice_init(A->finite_field, A->nrows, B->ncols);
+
+  C = _mzd_slice_adapt_depth(C,4);
   
   const mzd_t *a0 = A->x[0];
   const mzd_t *a1 = A->x[1];
@@ -1074,10 +1041,7 @@ mzd_slice_t *_mzd_slice_mul_karatsuba3(mzd_slice_t *C, const mzd_slice_t *A, con
   mzd_t *t0 = mzd_init(a0->nrows, a0->ncols);
   mzd_t *t1 = mzd_init(b0->nrows, b0->ncols);
 
-  mzd_t *t2 = mzd_init(a0->nrows, b0->ncols);
-  mzd_t *t3 = mzd_init(a0->nrows, b0->ncols);
-
-  mzd_t *X[5] = {C->x[0], C->x[1], C->x[2], t2, t3};
+  mzd_t **X = C->x;
 
   mzd_add(t0, a0, a1);
   mzd_add(t1, b0, b1);
@@ -1107,28 +1071,142 @@ mzd_slice_t *_mzd_slice_mul_karatsuba3(mzd_slice_t *C, const mzd_slice_t *A, con
   mzd_add(X[3], X[3], t0);
 
   mzd_mul(t0, a2, b2, 0); /* + a2b2(-X^2-X^3+X^4) */
-  mzd_add(X[2], X[2], t0);
-  mzd_add(X[3], X[3], t0);
-  mzd_add(X[4], X[4], t0);
+  
+  /* modular reductions and final additions */
 
-  mzd_free(t0);
+  if( (A->finite_field->minpoly & 1<<2) == 0)
+    mzd_add(X[3], X[3], t0);
+  else
+    mzd_add(X[2], X[2], t0);
+  mzd_add(X[1], X[1], t0);
 
-  /* modular reduction */
-
-  if(A->finite_field->minpoly & 1<<2) {
-    mzd_add(X[3],X[3],X[4]);
+  if(A->finite_field->minpoly & 1<<2) 
     mzd_add(X[2],X[2],X[3]);
-  }
-  else { //if (A->finite_field->minpoly & 1<<1) {
-    mzd_add(X[2],X[2],X[4]);
+  else  //if (A->finite_field->minpoly & 1<<1) {=
     mzd_add(X[1],X[1],X[3]);
-  }
-  mzd_add(X[1],X[1],X[4]);
   mzd_add(X[0],X[0],X[3]);
 
+  mzd_free(t0);
+  _mzd_slice_adapt_depth(C,3);
 
-  mzd_free(t2);
-  mzd_free(t3);
+  return C;
+}
+
+static void _poly2_addmul(mzd_t **X, const mzd_t **a, const mzd_t **b) {
+  mzd_t *t0 = mzd_init(a[0]->nrows, a[0]->ncols);
+  mzd_t *t1 = mzd_init(b[0]->nrows, b[0]->ncols);
+
+  mzd_add(t0, a[0], a[1]);
+  mzd_add(t1, b[0], b[1]);
+
+  mzd_addmul(X[1], t0, t1, 0); /* + (a0+a1)(b0+b1)X */
+
+  mzd_free(t0);
+  mzd_free(t1);
+
+  t0 = mzd_init(a[0]->nrows, b[0]->ncols);
+
+  mzd_mul(t0, a[0], b[0], 0); /* + a0b0(1-X) */
+  mzd_add(X[0], X[0], t0);
+  mzd_add(X[1], X[1], t0);
+
+  mzd_mul(t0, a[1], b[1], 0); /* + a1b1(X+X^2) */
+  mzd_add(X[1], X[1], t0);
+  mzd_add(X[2], X[2], t0);
+
+  mzd_free(t0);
+}
+
+static void _poly_add(mzd_t **c, const mzd_t **a, const mzd_t **b,const int length) {
+  switch(length) {
+  case 4: mzd_add(c[3], a[3], b[3]);
+  case 3: mzd_add(c[2], a[2], b[2]);
+  case 2: mzd_add(c[1], a[1], b[1]);
+  case 1: mzd_add(c[0], a[0], b[0]);
+    break;
+  case 0:
+  default:
+    m4ri_die("this should never happen.");
+  } 
+}
+
+mzd_slice_t *_mzd_slice_mul_karatsuba4(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B) {
+  /* using five + two = 7 temporary matrices */
+
+  if (C == NULL)
+    C = mzd_slice_init(A->finite_field, A->nrows, B->ncols);
+
+  C = _mzd_slice_adapt_depth(C,5);
+  
+  const mzd_t *a0[2] = {A->x[0],A->x[1]};
+  const mzd_t *a1[2] = {A->x[2],A->x[3]};
+  const mzd_t *b0[2] = {B->x[0],B->x[1]};
+  const mzd_t *b1[2] = {B->x[2],B->x[3]};
+
+  mzd_t *X[2][3] = { {C->x[0],C->x[1],C->x[2]}, 
+                     {C->x[2],C->x[3],C->x[4]} };
+
+  mzd_t *t0[3];
+  mzd_t *t1[2];
+
+  t0[0] = mzd_init(A->nrows, A->ncols);
+  t0[1] = mzd_init(A->nrows, A->ncols);
+  t1[0] = mzd_init(B->nrows, B->ncols);
+  t1[1] = mzd_init(B->nrows, B->ncols);
+
+  _poly_add(t0, a0, a1, 2);
+  _poly_add(t1, b0, b1, 2);
+
+  _poly2_addmul(X[1], (const mzd_t**)t0, (const mzd_t**)t1);
+
+  mzd_free(t0[0]);  mzd_free(t0[1]);
+  mzd_free(t1[0]);  mzd_free(t1[1]);
+
+  t0[0] = mzd_init(A->nrows, B->ncols);
+  t0[1] = mzd_init(A->nrows, B->ncols);
+  t0[2] = mzd_init(A->nrows, B->ncols);
+
+  _poly2_addmul(t0, a0, b0);
+  _poly_add(X[0], (const mzd_t**)X[0], (const mzd_t**)t0, 3);
+  _poly_add(X[1], (const mzd_t**)X[1], (const mzd_t**)t0, 3);
+
+  mzd_set_ui(t0[0], 0);
+  mzd_set_ui(t0[1], 0);
+  mzd_set_ui(t0[2], 0);
+  
+  _poly2_addmul(t0, a1, b1);
+  _poly_add(X[1], (const mzd_t**)X[1], (const mzd_t**)t0, 3);
+
+  /* we would now do 
+   *
+   *    _poly_add(X[2], (const mzd_t**)X[2], (const mzd_t**)t0, 3);
+   *
+   * but we want avoid C->x[6] and C->x[5], hence we combine it with the
+   * modular reduction.
+   */
+
+  mzd_add(C->x[4], C->x[4], t0[0]);
+  if(A->finite_field->minpoly & 1<<3) {
+    mzd_add(t0[1], t0[1], t0[2]);
+    mzd_add(C->x[4], C->x[4], t0[1]);
+    mzd_add(C->x[3], C->x[3], C->x[4]);
+  }
+  if(A->finite_field->minpoly & 1<<2) {
+    mzd_add(C->x[4], C->x[4], t0[2]);
+    mzd_add(C->x[3], C->x[3], t0[1]);
+    mzd_add(C->x[2], C->x[2], C->x[4]);
+  }
+  if(A->finite_field->minpoly & 1<<1) {
+    mzd_add(C->x[3], C->x[3], t0[2]);
+    mzd_add(C->x[2], C->x[2], t0[1]);
+    mzd_add(C->x[1], C->x[1], C->x[4]);
+  }
+  mzd_add(C->x[2], C->x[2], t0[2]);
+  mzd_add(C->x[1], C->x[1], t0[1]);
+  mzd_add(C->x[0], C->x[0], C->x[4]);
+
+  mzd_free(t0[0]); mzd_free(t0[1]); mzd_free(t0[2]); 
+  _mzd_slice_adapt_depth(C,4);
 
   return C;
 }

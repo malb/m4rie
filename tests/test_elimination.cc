@@ -1,38 +1,92 @@
+#include "testing.h"
 #include <gf2e_cxx/finite_field_givaro.h>
-#include <m4rie/m4rie.h>
 
 using namespace M4RIE;
 
+int test_equality(gf2e *ff, rci_t m, rci_t n) {
+  int fail_ret = 0;
+  mzed_t *A0 = random_mzed_t(ff, m, n);
+  mzed_t *A1 = mzed_copy(NULL, A0);
+  mzed_t *A2 = mzed_copy(NULL, A0);
+
+  mzed_set_canary(A1);
+  mzed_set_canary(A2);
+
+  mzed_echelonize_travolta(A0,1);
+  mzed_echelonize_naive(A1,1);
+  mzed_echelonize(A2,1);
+  
+  m4rie_check( mzed_cmp(A0, A1) == 0);
+  m4rie_check( mzed_cmp(A1, A2) == 0);
+  m4rie_check( mzed_cmp(A2, A0) == 0);
+
+  m4rie_check( mzed_canary_is_alive(A0) );
+  m4rie_check( mzed_canary_is_alive(A1) );
+  m4rie_check( mzed_canary_is_alive(A2) );
+
+  mzed_free(A0);
+  mzed_free(A1);
+  mzed_free(A2);
+
+  return fail_ret;
+}
+
+int test_batch(gf2e *ff, rci_t m, rci_t n) {
+  int fail_ret = 0;
+  printf("elim: k: %2d, minpoly: 0x%03x m: %5d, n: %5d ",(int)ff->degree, (unsigned int)ff->minpoly, (int)m, (int)n);
+
+  if(m == n) {
+    m4rie_check(   test_equality(ff, m, n) == 0); printf("."); fflush(0);
+    printf(" ");
+  } else {
+    m4rie_check(   test_equality(ff, m, n) == 0); printf("."); fflush(0);
+    m4rie_check(   test_equality(ff, n, m) == 0); printf("."); fflush(0);
+  }
+
+  if (fail_ret == 0)
+    printf(" passed\n");
+  else
+    printf(" FAILED\n");
+
+  return fail_ret;
+}
+
 int main(int argc, char **argv) {
-  int fail = 0;
-  for(size_t k=2; k<=10; k++) {
+  srandom(17);
+
+  gf2e *ff[10];
+  int fail_ret = 0;
+
+  for(int k=2; k<=10; k++) {
     FiniteField *F = (FiniteField*)(new GFqDom<int>(2,k));
-    gf2e *ff = gf2e_init_givgfq(F);
-    for(size_t i=0; i<(k*1024/(1<<k)); i++) {
-      size_t m = random() & 255;
-      size_t n = random() & 255;
-      m = m ? (m) : 1;
-      n = n ? (n) : 1;
-      mzed_t *A0 = mzed_init(ff,m,n);
-      mzed_randomize(A0);
-      mzed_t *A1 = mzed_copy(NULL, A0);
-      mzed_t *A2 = mzed_copy(NULL, A0);
-      mzed_echelonize_travolta(A0,1);
-      mzed_echelonize_naive(A1,1);
-      mzed_echelonize(A2,1);
-      printf("elim: m: %5d, n: %5d, k: %2d ... ",m,n,k);
-      if (!mzed_cmp(A0,A1) && !mzed_cmp(A1,A2)) {
-        printf("pass\n");
-      } else {
-        printf("FAIL\n");
-        fail = 1;
-      }
-      mzed_free(A0);
-      mzed_free(A1);
-      mzed_free(A2);
-    }
-    gf2e_free(ff);
+    ff[k] = gf2e_init_givgfq(F);
     delete F;
   }
-  return fail;
+
+  for(int k=2; k<=10; k++) {
+    fail_ret += test_batch(ff[k],   1,   1);
+    fail_ret += test_batch(ff[k],   1,   2);
+    fail_ret += test_batch(ff[k],  11,  12);
+    fail_ret += test_batch(ff[k],  21,  22);
+    fail_ret += test_batch(ff[k],  13,   2);
+    fail_ret += test_batch(ff[k],  32,  33);
+    fail_ret += test_batch(ff[k],  63,  64);
+    fail_ret += test_batch(ff[k], 127, 128);
+    fail_ret += test_batch(ff[k], 200,  20);
+    fail_ret += test_batch(ff[k],   1,   1);
+    fail_ret += test_batch(ff[k],   1,   3);
+    fail_ret += test_batch(ff[k],  11,  13);
+    fail_ret += test_batch(ff[k],  21,  23);
+    fail_ret += test_batch(ff[k],  13,  90);
+    fail_ret += test_batch(ff[k],  32,  34);
+    fail_ret += test_batch(ff[k],  63,  65);
+    fail_ret += test_batch(ff[k], 127, 129);
+    fail_ret += test_batch(ff[k], 200, 112);
+  };
+
+  for(int k=2; k<=10; k++) {
+    gf2e_free(ff[k]);
+  }
+
+  return fail_ret;
 }

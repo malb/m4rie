@@ -379,7 +379,7 @@ rci_t _mzed_strassen_cutoff(const mzed_t *C, const mzed_t *A, const mzed_t *B) {
     break;
   }
 
-  if (cutoff < 2*__M4RI_TWOPOW(C->finite_field->degree))
-    cutoff = 2*__M4RI_TWOPOW(C->finite_field->degree);
+  if (cutoff < 2*__M4RI_TWOPOW(A->finite_field->degree))
+    cutoff = 2*__M4RI_TWOPOW(A->finite_field->degree);
   return cutoff;
 }
