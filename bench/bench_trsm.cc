@@ -93,12 +93,29 @@ int run_mzd_slice(void *_p, unsigned long long *data, int *data_len) {
   return 0;
 }
 
+void print_help() {
+  printf("bench_trsm:\n\n");
+  printf("REQUIRED\n");
+  printf("  e -- integer between 2 and 10\n");
+  printf("  m -- integer > 0\n");
+  printf("  n -- integer > 0\n");
+  printf("  matrix_type - mzed_t\n");
+  printf("              - mzd_slice_t\n");
+  printf("  direction - lower_left\n");
+  printf("  algorithm -- default\n");
+  printf("               naive\n");
+  printf("  c -- cutoff (for 'default')\n");
+  printf("\n");
+  bench_print_global_options(stdout);
+}
 
 int main(int argc, char **argv) {
   global_options(&argc, &argv);
 
-  if (argc < 6)
-    m4ri_die("syntax: e m n matrix_type direction algorithm\n");
+  if (argc < 6) {
+    print_help();
+    m4ri_die("");
+  }
 
   struct elim_params params;
 

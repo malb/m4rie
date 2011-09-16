@@ -49,7 +49,7 @@ int run(void *_p, unsigned long long *data, int *data_len) {
 }
 
 void print_help() {
-  printf("bench_smallops:\n\n");
+  printf("bench_ple:\n\n");
   printf("REQUIRED\n");
   printf("  e -- integer between 2 and 10\n");
   printf("  m -- integer > 0\n");
@@ -83,6 +83,10 @@ int main(int argc, char **argv) {
     params.c = atoi(argv[5]);
   else
     params.c = 0;
+  if(argc >= 7) {
+    print_help();
+    m4ri_die("");
+  }
 
   srandom(17);
   unsigned long long data[2];
@@ -90,5 +94,5 @@ int main(int argc, char **argv) {
 
   double cc_per_op = ((double)data[1])/ ( (double)params.m * (double)params.n * powl((double)params.r,0.807) );
 
-  printf("e: %2d, m: %5d, n: %5d, , algo: %10s, last r: %5d, cpu cycles: %10llu, cc/(mnr^0.807): %.5lf, wall time: %lf\n", params.k, params.m, params.n, params.algorithm, params.r, data[1], cc_per_op, data[0] / 1000000.0);
+  printf("e: %2d, m: %5d, n: %5d, algorithm: %10s, cutoff: %10d, cpu cycles: %10llu, cc/(mnr^0.807): %.5lf, wall time: %lf\n", params.k, params.m, params.n, params.algorithm, params.c, data[1], cc_per_op, data[0] / 1000000.0);
 }
