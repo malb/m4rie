@@ -97,7 +97,7 @@ void print_help() {
   printf("bench_trsm:\n\n");
   printf("REQUIRED\n");
   printf("  e -- integer between 2 and 10\n");
-  printf("  m -- integer > 0\n");
+  printf("  m -- integer > 0, dimension of U or L\n");
   printf("  n -- integer > 0\n");
   printf("  matrix_type - mzed_t\n");
   printf("              - mzd_slice_t\n");
@@ -145,7 +145,7 @@ int main(int argc, char **argv) {
     run_bench(run_mzd_slice, (void*)&params, data, 2);
   else
     m4ri_die("unknown type '%s'",params.matrix_type);
-  double cc_per_op = ((double)data[1])/ ( (double)params.m * (double)params.m * powl((double)params.n,0.807) );
+  double cc_per_op = ((double)data[1])/ ( powl((double)params.m,__M4RIE_OMEGA-1) * params.n );
 
   printf("e: %2d, m: %5d, n: %5d, cutoff: %4d, cpu cycles: %10llu, cc/(mmn^0.807): %.5lf, wall time: %lf\n", params.e, params.m, params.n, params.cutoff, data[1], cc_per_op, data[0] / 1000000.0);
 }

@@ -33,4 +33,5 @@ extern int papi_array_len;
 char* papi_event_name(int event);
 #endif
 
+#define __M4RIE_OMEGA 2.80735492205760
 #endif //BENCHMARKETING_H

@@ -92,7 +92,7 @@ int main(int argc, char **argv) {
   unsigned long long data[2];
   run_bench(run, (void*)&params, data, 2);
 
-  double cc_per_op = ((double)data[1])/ ( (double)params.m * (double)params.n * powl((double)params.r,0.807) );
+  double cc_per_op = ((double)data[1])/ ( (double)params.m * (double)params.n * powl((double)params.r,__M4RIE_OMEGA-2) );
 
   printf("e: %2d, m: %5d, n: %5d, algorithm: %10s, cutoff: %10d, cpu cycles: %10llu, cc/(mnr^0.807): %.5lf, wall time: %lf\n", params.k, params.m, params.n, params.algorithm, params.c, data[1], cc_per_op, data[0] / 1000000.0);
 }

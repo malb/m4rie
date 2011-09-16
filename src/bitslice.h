@@ -588,7 +588,7 @@ static inline mzed_t *_mzed_mul_karatsuba(mzed_t *C, const mzed_t *A, const mzed
   As = mzed_slice(NULL,A);
   Bs = mzed_slice(NULL,B);
 
-  _mzd_slice_mul_karatsuba(Cs, As, Bs);
+  Cs = _mzd_slice_mul_karatsuba(Cs, As, Bs);
 
   C = mzed_cling(C, Cs);
 
