@@ -32,6 +32,22 @@
 
 #define MZED_TRSM_CUTOFF 64
 
+void _mzed_trsm_upper_left(const mzed_t *U, mzed_t *B, const rci_t cutoff);
+
+void mzed_trsm_upper_left_naive(const mzed_t *U, mzed_t *B);
+
+static inline void mzed_trsm_upper_left(const mzed_t *U, mzed_t *B) {
+  _mzed_trsm_upper_left(U, B, MZED_TRSM_CUTOFF);
+}
+
+void _mzd_slice_trsm_upper_left(const mzd_slice_t *U, mzd_slice_t *B, const rci_t cutoff);
+
+void mzd_slice_trsm_upper_left_naive(const mzd_slice_t *U, mzd_slice_t *B);
+
+static inline void mzd_slice_trsm_upper_left(const mzd_slice_t *U, mzd_slice_t *B) {
+  _mzd_slice_trsm_upper_left(U, B, MZED_TRSM_CUTOFF);
+}
+
 void _mzed_trsm_lower_left(const mzed_t *L, mzed_t *B, const rci_t cutoff);
 
 void mzed_trsm_lower_left_naive(const mzed_t *L, mzed_t *B);
@@ -47,6 +63,7 @@ void mzd_slice_trsm_lower_left_naive(const mzd_slice_t *L, mzd_slice_t *B);
 static inline void mzd_slice_trsm_lower_left(const mzd_slice_t *L, mzd_slice_t *B) {
   _mzd_slice_trsm_lower_left(L, B, MZED_TRSM_CUTOFF);
 }
+
 
 
 
