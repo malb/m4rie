@@ -100,7 +100,8 @@ mzed_t *mzed_addmul(mzed_t *C, const mzed_t *A, const mzed_t *B) {
 }
 
 mzed_t *_mzed_mul(mzed_t *C, const mzed_t *A, const mzed_t *B) {
-  if (A->finite_field->degree <= 4)
+  if (A->finite_field->degree <= __M4RIE_MAX_KARATSUBA_DEGREE && \
+      A->nrows >= 512 && A->ncols >= 512 && B->ncols >= 512)
     return _mzed_mul_karatsuba(C, A, B);
 
   const rci_t cutoff = _mzed_strassen_cutoff(C, A, B);
@@ -108,7 +109,8 @@ mzed_t *_mzed_mul(mzed_t *C, const mzed_t *A, const mzed_t *B) {
 }
 
 mzed_t *_mzed_addmul(mzed_t *C, const mzed_t *A, const mzed_t *B) {
-  if (A->finite_field->degree <= 3)
+  if (A->finite_field->degree <= __M4RIE_MAX_KARATSUBA_DEGREE && \
+      A->nrows >= 512 && A->ncols >= 512 && B->ncols >= 512)
     return _mzed_mul_karatsuba(C, A, B);
 
   const rci_t cutoff = _mzed_strassen_cutoff(C, A, B);
@@ -137,6 +139,7 @@ mzed_t *_mzed_mul_naive(mzed_t *C, const mzed_t *A, const mzed_t *B) {
   return C;
 }
 
+
 mzed_t *mzed_mul_scalar(mzed_t *C, const word a, const mzed_t *B) {
   /**
    * The algorithm proceeds as follows:
@@ -158,33 +161,11 @@ mzed_t *mzed_mul_scalar(mzed_t *C, const word a, const mzed_t *B) {
     return C;
   }
 
-  word *mul = calloc(1<<16, sizeof(word));
-
-  const word mask_16 = (1<<16)-1;
-  const word mask_w = (1<<B->w)-1;
-
   /**
    * 1) We generate a lookup table of 16-bit wide entries
-   *
-   * @todo: this is a bit of overkill, we could do better
    */
-  for(word i=0; i<1<<16; i++) {
-    switch(C->w) {
-    case 2:
-      mul[i]  = x[(i&mask_w)] | x[((i>>2)&mask_w)]<<2 | x[((i>>4)&mask_w)]<<4 | x[((i>>6)&mask_w)]<<6;
-      mul[i] |= x[((i>>8)&mask_w)]<<8 | x[((i>>10)&mask_w)]<<10 | x[((i>>12)&mask_w)]<<12 | x[((i>>14)&mask_w)]<<14;
-      break;
-    case 4:
-      mul[i]  = x[(i&mask_w)] | x[((i>>4)&mask_w)]<<4 | x[((i>>8)&mask_w)]<<8 | x[((i>>12)&mask_w)]<<12;
-      break;
-    case 8:
-      mul[i]  = x[(i&mask_w)] | x[((i>>8)&mask_w)]<<8;
-      break;
-    case 16:
-      mul[i]  = x[(i&mask_w)];
-      break;
-    };
-  }
+  const word mask_16 = (1<<16)-1;
+  const word *mul = (const word*)gf2e_t16_init(B->finite_field, a);
 
   /**
    * 2) We use that lookup table to do 4 lookups per word
@@ -210,7 +191,7 @@ mzed_t *mzed_mul_scalar(mzed_t *C, const word a, const mzed_t *B) {
     c_row[C->x->width-1] &= ~B->x->high_bitmask;
     c_row[C->x->width-1] |= mul[a3]<<48 | mul[a2]<<32 | mul[a1]<<16 | mul[a0];
   }
-  free(mul);
+  gf2e_t16_free((word*)mul);
   return C;
 }
 
