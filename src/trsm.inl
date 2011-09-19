@@ -53,7 +53,7 @@ void _matrix_trsm_lower_left(const matrix_t *L, matrix_t *B, const rci_t cutoff)
 void _matrix_trsm_upper_left(matrix_t const *U, matrix_t *B, const rci_t cutoff) {
   assert((U->finite_field == B->finite_field) && (U->nrows == U->ncols) && (B->nrows == U->ncols));
 
-  if (U->nrows < cutoff) {
+  if (U->nrows <= cutoff || B->ncols <= cutoff) {
     matrix_trsm_upper_left_naive(U,B);
     return;
   }
@@ -72,16 +72,19 @@ void _matrix_trsm_upper_left(matrix_t const *U, matrix_t *B, const rci_t cutoff)
             \| |______|
    \endverbatim 
    */
+
+  rci_t c = U->nrows/2;
+  c = MAX((c - c%m4ri_radix),m4ri_radix);
     
-  matrix_t *B0  = matrix_init_window(B,  0,  0, cutoff, B->ncols);
-  matrix_t *B1  = matrix_init_window(B,  cutoff, 0, B->nrows, B->ncols);
-  const matrix_t *U00 = (const matrix_t *)matrix_init_window(U,  0,  0, cutoff, cutoff);
-  const matrix_t *U01 = (const matrix_t *)matrix_init_window(U,  0, cutoff, cutoff, B->nrows);
-  const matrix_t *U11 = (const matrix_t *)matrix_init_window(U, cutoff, cutoff, B->nrows, B->nrows);
+  matrix_t *B0  = matrix_init_window(B,  0,  0, c, B->ncols);
+  matrix_t *B1  = matrix_init_window(B,  c, 0, B->nrows, B->ncols);
+  const matrix_t *U00 = (const matrix_t *)matrix_init_window(U,  0,  0, c, c);
+  const matrix_t *U01 = (const matrix_t *)matrix_init_window(U,  0, c, c, B->nrows);
+  const matrix_t *U11 = (const matrix_t *)matrix_init_window(U, c, c, B->nrows, B->nrows);
   
   _matrix_trsm_upper_left(U11, B1, cutoff);
   matrix_addmul(B0, U01, B1);
-  matrix_trsm_upper_left_naive(U00, B0);
+  _matrix_trsm_upper_left(U00, B0, cutoff);
   
   matrix_free_window(B0);
   matrix_free_window(B1);    
