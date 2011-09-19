@@ -293,6 +293,13 @@ void mzed_add_multiple_of_row(mzed_t *A, rci_t ar, const mzed_t *B, rci_t br, wo
   assert(A->x->offset == B->x->offset);
   assert(start_col < A->ncols);
 
+  if (X[2] == 0) {
+    return;
+  } else if(X[2] == 2) {
+    mzed_add_row(A, ar, B, br, start_col);
+    return;
+  }
+
   const rci_t start = A->x->offset + A->w*start_col;
   const wi_t startblock = start/m4ri_radix;
   const word bitmask_end = __M4RI_LEFT_BITMASK((A->x->offset + A->x->ncols) % m4ri_radix);

@@ -143,12 +143,19 @@ size_t _mzed_gauss_submatrix_full(mzed_t *A, size_t r, size_t c, size_t end_row,
 
 void mzed_make_table(const mzed_t *A, rci_t r, rci_t c, mzed_t *T,  rci_t *L) {
   mzd_set_ui(T->x,0);
-  L[0] = 0;
 
-  for(size_t i=1; i< __M4RI_TWOPOW(A->finite_field->degree); i++) {
-    word *X = A->finite_field->mul[i];
+  for(size_t i=0; i< __M4RI_TWOPOW(A->finite_field->degree); i+=2) {
     L[i] = i;
-    mzed_add_multiple_of_row(T, i, A, r, X, c);
+    mzed_add_multiple_of_row(T, i, A, r, A->finite_field->mul[i], c);
+
+    L[i+1] = i+1;
+#if 0
+    mzed_add_multiple_of_row(T, i+1, A, r, A->finite_field->mul[i+1], c);
+#else
+    mzed_copy_row(T, i+1, T, i);
+    mzed_add_row(T, i+1, A, r, c);
+#endif
+
   }
 }
 

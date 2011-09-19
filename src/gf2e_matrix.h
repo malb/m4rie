@@ -520,6 +520,42 @@ static inline int mzed_is_zero(mzed_t *A) {
 void mzed_add_multiple_of_row(mzed_t *A, rci_t ar, const mzed_t *B, rci_t br, word *X, rci_t start_col);
 
 /**
+ *  Compute A[ar,c] = A[ar,c] + B[br,c] for all c >= startcol.
+ *
+ * \param A Matrix.
+ * \param ar Row index in A.
+ * \param B Matrix.
+ * \param br Row index in B.
+ * \param start_col Column index.
+ *
+ * \ingroup RowOperations
+ */
+
+static inline void mzed_add_row(mzed_t *A, rci_t ar, const mzed_t *B, rci_t br, rci_t start_col) {
+  assert(A->ncols == B->ncols && A->finite_field == B->finite_field);
+  assert(A->x->offset == B->x->offset);
+  assert(start_col < A->ncols);
+
+  const rci_t start = A->x->offset + A->w*start_col;
+  const wi_t startblock = start/m4ri_radix;
+  const word bitmask_begin = __M4RI_RIGHT_BITMASK(m4ri_radix - (start%m4ri_radix));
+  const word bitmask_end = __M4RI_LEFT_BITMASK((A->x->offset + A->x->ncols) % m4ri_radix);
+
+  word *_a = A->x->rows[ar];
+  const word *_b = B->x->rows[br];
+  wi_t j;
+
+  if (A->x->width - startblock > 1) {
+    _a[startblock] ^= _b[startblock] & bitmask_begin;
+    for(j=startblock+1; j<A->x->width-1; j++)
+      _a[j] ^= _b[j];
+    _a[j] ^= _b[j] & bitmask_end;    
+  } else {
+    _a[startblock] ^= _b[startblock] & (bitmask_begin & bitmask_end);
+  }
+}
+
+/**
  * \brief Recale the row r in A by X starting c.
  * 
  * \param A Matrix
