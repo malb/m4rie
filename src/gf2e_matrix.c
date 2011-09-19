@@ -261,22 +261,22 @@ void mzed_print(const mzed_t *A) {
       word tmp = mzed_read_elem(A,i,j);
       printf("[");
       switch(A->finite_field->degree) {
-      case 16:  (tmp&(1ULL<<15)) ? printf("1") : printf("0");
-      case 15:  (tmp&(1ULL<<14)) ? printf("1") : printf("0");
-      case 14:  (tmp&(1ULL<<13)) ? printf("1") : printf("0");
-      case 13:  (tmp&(1ULL<<12)) ? printf("1") : printf("0");
-      case 12:  (tmp&(1ULL<<11)) ? printf("1") : printf("0");
-      case 11:  (tmp&(1ULL<<10)) ? printf("1") : printf("0");
-      case 10:  (tmp&(1ULL<< 9)) ? printf("1") : printf("0");
-      case  9:  (tmp&(1ULL<< 8)) ? printf("1") : printf("0");
-      case  8:  (tmp&(1ULL<< 7)) ? printf("1") : printf("0");
-      case  7:  (tmp&(1ULL<< 6)) ? printf("1") : printf("0");
-      case  6:  (tmp&(1ULL<< 5)) ? printf("1") : printf("0");
-      case  5:  (tmp&(1ULL<< 4)) ? printf("1") : printf("0");
-      case  4:  (tmp&(1ULL<< 3)) ? printf("1") : printf("0");
-      case  3:  (tmp&(1ULL<< 2)) ? printf("1") : printf("0");
-      case  2:  (tmp&(1ULL<< 1)) ? printf("1") : printf("0");
-      case  1:  (tmp&(1ULL<< 0)) ? printf("1") : printf("0");
+      case 16:  (tmp&(1ULL<<15)) ? printf("1") : printf(" ");
+      case 15:  (tmp&(1ULL<<14)) ? printf("1") : printf(" ");
+      case 14:  (tmp&(1ULL<<13)) ? printf("1") : printf(" ");
+      case 13:  (tmp&(1ULL<<12)) ? printf("1") : printf(" ");
+      case 12:  (tmp&(1ULL<<11)) ? printf("1") : printf(" ");
+      case 11:  (tmp&(1ULL<<10)) ? printf("1") : printf(" ");
+      case 10:  (tmp&(1ULL<< 9)) ? printf("1") : printf(" ");
+      case  9:  (tmp&(1ULL<< 8)) ? printf("1") : printf(" ");
+      case  8:  (tmp&(1ULL<< 7)) ? printf("1") : printf(" ");
+      case  7:  (tmp&(1ULL<< 6)) ? printf("1") : printf(" ");
+      case  6:  (tmp&(1ULL<< 5)) ? printf("1") : printf(" ");
+      case  5:  (tmp&(1ULL<< 4)) ? printf("1") : printf(" ");
+      case  4:  (tmp&(1ULL<< 3)) ? printf("1") : printf(" ");
+      case  3:  (tmp&(1ULL<< 2)) ? printf("1") : printf(" ");
+      case  2:  (tmp&(1ULL<< 1)) ? printf("1") : printf(" ");
+      case  1:  (tmp&(1ULL<< 0)) ? printf("1") : printf(" ");
         break;
       default: m4ri_die("degree %lz too big\n", A->finite_field->degree);
       }
@@ -290,22 +290,24 @@ void mzed_print(const mzed_t *A) {
 
 void mzed_add_multiple_of_row(mzed_t *A, rci_t ar, const mzed_t *B, rci_t br, word *X, rci_t start_col) {
   assert(A->ncols == B->ncols && A->finite_field == B->finite_field);
-  assert(A->x->offset == 0 && B->x->offset == 0);
+  assert(A->x->offset == B->x->offset);
   assert(start_col < A->ncols);
 
-  const size_t startblock = (A->w*start_col)/m4ri_radix;
+  const rci_t start = A->x->offset + A->w*start_col;
+  const wi_t startblock = start/m4ri_radix;
+  const word bitmask_end = __M4RI_LEFT_BITMASK((A->x->offset + A->x->ncols) % m4ri_radix);
+
+  mzd_t *from_x = B->x;
+  mzd_t *to_x = A->x;
+  word *_f = from_x->rows[br];
+  word *_t = to_x->rows[ar];
+  wi_t j;
+
+  register word __f = _f[startblock]>>(start%m4ri_radix);
+  register word __t = _t[startblock];
 
   if(A->w == 2) {
-    mzd_t *from_x = B->x;
-    mzd_t *to_x = A->x;
-    word *_f = from_x->rows[br];
-    word *_t = to_x->rows[ar];
-    int j;
-    register word __t, __f;
-
-    __f = _f[startblock]>>(2*(start_col%32)), __t = _t[startblock];
-
-    switch(start_col % 32) {
+    switch( (start/2) % 32) {
     case  0:  __t ^= (X[((__f)& 0x0000000000000003ULL)])<<0;   __f >>= 2;
     case  1:  __t ^= (X[((__f)& 0x0000000000000003ULL)])<<2;   __f >>= 2;
     case  2:  __t ^= (X[((__f)& 0x0000000000000003ULL)])<<4;   __f >>= 2;
@@ -342,7 +344,6 @@ void mzed_add_multiple_of_row(mzed_t *A, rci_t ar, const mzed_t *B, rci_t br, wo
     }
 
     if(to_x->width-startblock == 1) {
-      const word bitmask_end = __M4RI_LEFT_BITMASK(to_x->ncols % m4ri_radix);
       _t[startblock] &= ~bitmask_end;
       _t[startblock] ^= __t & bitmask_end;
       return;
@@ -387,7 +388,7 @@ void mzed_add_multiple_of_row(mzed_t *A, rci_t ar, const mzed_t *B, rci_t br, wo
       _t[j] = __t;
     }
 
-    switch(to_x->ncols % m4ri_radix) {
+    switch((to_x->offset + to_x->ncols) % m4ri_radix) {
     case  0: _t[j] ^= ((word)X[(int)((_f[j] & 0xC000000000000000ULL)>>62)])<<62;
     case 62: _t[j] ^= ((word)X[(int)((_f[j] & 0x3000000000000000ULL)>>60)])<<60;
     case 60: _t[j] ^= ((word)X[(int)((_f[j] & 0x0C00000000000000ULL)>>58)])<<58;
@@ -423,16 +424,7 @@ void mzed_add_multiple_of_row(mzed_t *A, rci_t ar, const mzed_t *B, rci_t br, wo
     };
 
   } else if(A->w == 4) {
-    mzd_t *from_x = B->x;
-    mzd_t *to_x = A->x;
-    word *_f = from_x->rows[br];
-    word *_t = to_x->rows[ar];
-    size_t j;
-    register word __t, __f;
-
-    __f = _f[startblock]>>(4*(start_col%16)), __t = _t[startblock];
-
-    switch(start_col%16) {
+    switch( (start/4) % 16 ) {
     case  0: __t ^= (X[((__f)& 0x000000000000000FULL)])<<0;   __f >>= 4;
     case  1: __t ^= (X[((__f)& 0x000000000000000FULL)])<<4;   __f >>= 4;
     case  2: __t ^= (X[((__f)& 0x000000000000000FULL)])<<8;   __f >>= 4;
@@ -453,7 +445,6 @@ void mzed_add_multiple_of_row(mzed_t *A, rci_t ar, const mzed_t *B, rci_t br, wo
     }
 
     if(to_x->width-startblock == 1) {
-      const word bitmask_end = __M4RI_LEFT_BITMASK(to_x->ncols % m4ri_radix);
       _t[startblock] &= ~bitmask_end;
       _t[startblock] ^= __t & bitmask_end;
       return;
@@ -482,7 +473,7 @@ void mzed_add_multiple_of_row(mzed_t *A, rci_t ar, const mzed_t *B, rci_t br, wo
       _t[j] = __t;
     }
 
-    switch(to_x->ncols % m4ri_radix) {
+    switch((to_x->offset + to_x->ncols) % m4ri_radix) {
     case  0: _t[j] ^= ((word)X[(int)((_f[j] & 0xF000000000000000ULL)>>60)])<<60;
     case 60: _t[j] ^= ((word)X[(int)((_f[j] & 0x0F00000000000000ULL)>>56)])<<56;
     case 56: _t[j] ^= ((word)X[(int)((_f[j] & 0x00F0000000000000ULL)>>52)])<<52;
@@ -502,15 +493,10 @@ void mzed_add_multiple_of_row(mzed_t *A, rci_t ar, const mzed_t *B, rci_t br, wo
     };
 
   } else if (A->w == 8) {
-    mzd_t *from_x = B->x;
-    mzd_t *to_x = A->x;
-    word *_f = from_x->rows[br];
-    word *_t = to_x->rows[ar];
-    size_t j;
     register word __t0 ,__t1, __f0, __f1;
 
     __f0 = _f[startblock]>>(8*(start_col%8)), __t0 = _t[startblock];
-    switch(start_col%8) {
+    switch( (start/8) % 8 ) {
     case 0: __t0 ^= (X[((__f0)& 0x00000000000000FFULL)])<<0;  __f0 >>= 8;
     case 1: __t0 ^= (X[((__f0)& 0x00000000000000FFULL)])<<8;  __f0 >>= 8;
     case 2: __t0 ^= (X[((__f0)& 0x00000000000000FFULL)])<<16; __f0 >>= 8;
@@ -523,7 +509,6 @@ void mzed_add_multiple_of_row(mzed_t *A, rci_t ar, const mzed_t *B, rci_t br, wo
     }
 
     if(to_x->width-startblock == 1) {
-      const word bitmask_end = __M4RI_LEFT_BITMASK(to_x->ncols % m4ri_radix);
       _t[startblock] &= ~bitmask_end;
       _t[startblock] ^= __t0 & bitmask_end;
       return;
@@ -567,7 +552,7 @@ void mzed_add_multiple_of_row(mzed_t *A, rci_t ar, const mzed_t *B, rci_t br, wo
       _t[j] = __t0;
     }
     
-    switch(to_x->ncols % m4ri_radix) {
+    switch((to_x->offset + to_x->ncols) % m4ri_radix) {
     case  0: _t[j] ^= ((word)X[(int)((_f[j] & 0xFF00000000000000ULL)>>56)])<<56;
     case 56: _t[j] ^= ((word)X[(int)((_f[j] & 0x00FF000000000000ULL)>>48)])<<48;
     case 48: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000FF0000000000ULL)>>40)])<<40;
@@ -587,7 +572,7 @@ void mzed_add_multiple_of_row(mzed_t *A, rci_t ar, const mzed_t *B, rci_t br, wo
     register word __t, __f;
 
     __f = _f[startblock]>>(16*(start_col%4)), __t = _t[startblock];
-    switch(start_col%4) {
+    switch( (start/16)%4 ) {
     case 0: __t ^= (X[((__f)& 0x000000000000FFFFULL)])<<0;  __f >>= 16;
     case 1: __t ^= (X[((__f)& 0x000000000000FFFFULL)])<<16; __f >>= 16;
     case 2: __t ^= (X[((__f)& 0x000000000000FFFFULL)])<<32; __f >>= 16;
@@ -595,7 +580,6 @@ void mzed_add_multiple_of_row(mzed_t *A, rci_t ar, const mzed_t *B, rci_t br, wo
     default: m4ri_die("impossible");
     }
     if(to_x->width-startblock == 1) {
-      const word bitmask_end = __M4RI_LEFT_BITMASK(to_x->ncols % m4ri_radix);
       _t[startblock] &= ~bitmask_end;
       _t[startblock] ^= __t & bitmask_end;
       return;
@@ -642,7 +626,7 @@ void mzed_add_multiple_of_row(mzed_t *A, rci_t ar, const mzed_t *B, rci_t br, wo
       _t[j] = __t;
     }
 
-    switch(to_x->ncols % m4ri_radix) {
+    switch((to_x->offset + to_x->ncols) % m4ri_radix) {
     case  0: _t[j] ^= ((word)X[(int)((_f[j] & 0xFFFF000000000000ULL)>>48)])<<48;
     case 48: _t[j] ^= ((word)X[(int)((_f[j] & 0x0000FFFF00000000ULL)>>32)])<<32;
     case 32: _t[j] ^= ((word)X[(int)((_f[j] & 0x00000000FFFF0000ULL)>>16)])<<16;

@@ -165,6 +165,52 @@ int test_mzed_trsm_upper_left(gf2e *ff, rci_t m, rci_t n) {
   return fail_ret;
 }
 
+int test_mzed_trsm_upper_left_echelonize(gf2e *ff, rci_t m, rci_t n) {
+  const int bitmask = (1<<ff->degree)-1;
+
+  int fail_ret = 0;
+
+  mzed_t *A = random_mzed_t(ff, m, m+n);
+  mzed_t *U = mzed_init_window(A, 0, 0, m, m);
+  mzed_t *B = mzed_init_window(A, 0, m, m, m+n);
+
+
+  for(rci_t i=0; i<m; i++) {
+    for(rci_t j=0; j<i; j++) {
+      mzed_write_elem(U, i, j, 0);
+    }
+    while(mzed_read_elem(U, i, i) == 0) {
+      mzed_write_elem(U, i, i, random()&bitmask) ;
+    }
+  }
+  mzed_t *C = mzed_copy(NULL, A);
+  mzed_echelonize(C, 1);
+
+  mzed_trsm_upper_left(U, B);
+
+  mzed_set_ui(U, 0);
+
+  for(rci_t i=0; i<m; i++) {
+    mzed_write_elem(U, i, i, 1);
+  }
+
+  m4rie_check(mzed_cmp(C,A) == 0);
+
+  if (mzed_cmp(C,A) != 0) {
+    mzed_print(C);
+    printf("\n");
+    mzed_print(A);
+  }
+
+  mzed_free(A);
+  mzed_free_window(U);
+  mzed_free_window(B);
+  mzed_free(C);
+  
+  return fail_ret;
+}
+
+
 int test_mzed_trsm_lower_left(gf2e *ff, rci_t m, rci_t n) {
   int fail_ret = 0;
 
@@ -408,6 +454,9 @@ int test_batch(gf2e *ff, rci_t m, rci_t n) {
   m4rie_check(test_mzed_trsm_lower_left(ff, n, m) == 0); printf("."); fflush(0);
   m4rie_check(test_mzed_trsm_upper_left(ff, n, m) == 0); printf("."); fflush(0);
 
+  // m4rie_check(test_mzed_trsm_upper_left_echelonize(ff, m, n) == 0); printf("."); fflush(0);
+  // m4rie_check(test_mzed_trsm_upper_left_echelonize(ff, n, m) == 0); printf("."); fflush(0);
+
   if(ff->degree <= __M4RIE_MAX_KARATSUBA_DEGREE) {
     m4rie_check(test_mzd_slice_trsm_lower_left(ff, m, n) == 0); printf("."); fflush(0);
     m4rie_check(test_mzd_slice_trsm_lower_left(ff, n, m) == 0); printf("."); fflush(0);
@@ -445,6 +494,7 @@ int main(int argc, char **argv) {
     fail_ret += test_batch(ff[k],  13,   2);
     fail_ret += test_batch(ff[k],  32,  33);
     fail_ret += test_batch(ff[k],  63,  64);
+    fail_ret += test_batch(ff[k],  65,  1);
     fail_ret += test_batch(ff[k], 127, 128);
     fail_ret += test_batch(ff[k], 200,  20);
   };

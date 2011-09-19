@@ -320,7 +320,6 @@ static inline mzd_slice_t *mzd_slice_submatrix(mzd_slice_t *S, const mzd_slice_t
 static inline mzd_slice_t *mzd_slice_init_window(const mzd_slice_t *A, 
                                                  const size_t lowr, const size_t lowc, 
                                                  const size_t highr, const size_t highc) {
-  assert(lowc%m4ri_radix == 0);
   mzd_slice_t *B = (mzd_slice_t *)m4ri_mm_malloc(sizeof(mzd_slice_t));
   B->finite_field = A->finite_field;
   B->depth = A->depth;
@@ -911,11 +910,7 @@ static inline void mzd_slice_row_clear_offset(mzd_slice_t *A, const rci_t row, c
  * \ingroup StringConversions
  */
 
-static inline void mzd_slice_print(const mzd_slice_t *A) {
-  mzed_t *B = mzed_cling(NULL, A);
-  mzed_print(B);
-  mzed_free(B);
-}
+void mzd_slice_print(const mzd_slice_t *A);
 
 /**
  * \brief Unpack the matrix Z over GF(2^2) into bitslice representation.

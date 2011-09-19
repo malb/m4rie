@@ -5,6 +5,79 @@
 
 using namespace M4RIE;
 
+int test_offset(gf2e *ff, int m, int n) {
+  const rci_t n_offset = 13;
+  const rci_t m_offset = 17;
+
+  int fail_ret = 0;
+
+  mzd_slice_t *A = random_mzd_slice_t(ff, m+m_offset, n+n_offset);
+  mzd_slice_t *B = mzd_slice_init_window(A, m_offset, n_offset, m+m_offset, n+n_offset);
+
+  mzed_t *a = random_mzed_t(ff, m+m_offset, n+n_offset);
+  mzed_t *b = mzed_init_window(a, m_offset, n_offset, m+m_offset, n+n_offset);
+
+  mzd_slice_set_ui(B, 1);
+
+  mzd_slice_set_canary(B);
+  mzed_set_canary(b);
+
+  mzed_cling(b, B);
+
+  for(rci_t i=0; i<m; i++) {
+    for(rci_t j=0; j<n; j++) {
+      m4rie_check( mzed_read_elem(b, i, j) == mzd_slice_read_elem(B, i, j) );
+    }
+  }
+
+  mzed_randomize(b);
+
+  m4rie_check( mzd_slice_canary_is_alive(B) );
+  m4rie_check( mzed_canary_is_alive(b) );
+
+  mzd_slice_set_canary(B);
+  mzed_set_canary(b);
+
+  mzed_slice(B, b);
+
+  for(rci_t i=0; i<m; i++) {
+    for(rci_t j=0; j<n; j++) {
+      m4rie_check( mzed_read_elem(b, i, j) == mzd_slice_read_elem(B, i, j) );
+    }
+  }
+
+  m4rie_check( mzd_slice_canary_is_alive(B) );
+  m4rie_check( mzed_canary_is_alive(b) );
+
+  mzed_set_canary(b);
+
+  for(rci_t i=1; i<m; i++) {
+    mzed_add_multiple_of_row(b, i, b, 0, b->finite_field->mul[1], 0);
+    mzed_rescale_row(b, i, 0, b->finite_field->mul[1]);
+  }
+
+  m4rie_check( mzed_canary_is_alive(b) );
+
+  for(rci_t i=1; i<m; i++) {
+    mzed_add_multiple_of_row(b, i, b, 0, b->finite_field->mul[1], 0);
+    mzed_rescale_row(b, i, 0, b->finite_field->mul[1]);
+  }
+
+  for(rci_t i=0; i<m; i++) {
+    for(rci_t j=0; j<n; j++) {
+      m4rie_check( mzed_read_elem(b, i, j) == mzd_slice_read_elem(B, i, j) );
+    }
+  }
+
+  mzed_free(a);
+  mzed_free_window(b);
+  mzd_slice_free(A);
+  mzd_slice_free_window(B);
+
+  return fail_ret; 
+};
+
+
 int test_slice(gf2e *ff, int m, int n) {
   int fail_ret = 0;
 
@@ -136,18 +209,22 @@ int test_batch(gf2e *ff, int m, int n) {
   m4rie_check( test_slice(ff, m, n) == 0); printf("."); 
   m4rie_check( test_add(ff, m, n) == 0) ; printf("."); 
   m4rie_check( test_slice_known_answers(ff, m, n) == 0); printf(".");
+  m4rie_check( test_offset(ff, m, n) == 0); printf(".");
 
   m4rie_check( test_slice(ff, m, m) == 0); printf("."); 
   m4rie_check( test_add(ff, m, m) == 0) ; printf("."); 
   m4rie_check( test_slice_known_answers(ff, m, m) == 0); printf(".");
+  m4rie_check( test_offset(ff, m, m) == 0); printf(".");
 
   m4rie_check( test_slice(ff, n, m) == 0); printf("."); 
   m4rie_check( test_add(ff, n, m) == 0) ; printf("."); 
   m4rie_check( test_slice_known_answers(ff, n, m) == 0); printf(".");
+  m4rie_check( test_offset(ff, n, m) == 0); printf(".");
 
   m4rie_check( test_slice(ff, n, n) == 0); printf("."); 
   m4rie_check( test_add(ff, n, n) == 0) ; printf("."); 
   m4rie_check( test_slice_known_answers(ff, n, n) == 0); printf(".");
+  m4rie_check( test_offset(ff, n, n) == 0); printf(".");
 
   if (fail_ret == 0)
     printf(" passed\n");
@@ -168,6 +245,7 @@ int main(int argc, char **argv) {
   }
 
   for(int k=2; k<=__M4RIE_MAX_KARATSUBA_DEGREE; k++) {
+    fail_ret += test_batch(ff[k],   4,   3);
     fail_ret += test_batch(ff[k],   1,   2);
     fail_ret += test_batch(ff[k],  10,  11);
     fail_ret += test_batch(ff[k],  20,  19);

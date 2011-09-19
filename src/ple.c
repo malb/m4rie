@@ -177,3 +177,16 @@ rci_t _mzd_slice_ple(mzd_slice_t *A, mzp_t *P, mzp_t *Q, rci_t cutoff) {
   
   return r1 + r2;
 }
+
+
+rci_t _mzd_slice_pluq(mzd_slice_t *A, mzp_t *P, mzp_t *Q, rci_t cutoff) {
+  rci_t r = _mzd_slice_ple(A, P, Q, cutoff);
+  if(r && r < A->nrows) {
+    mzd_slice_t *A0 = mzd_slice_init_window(A, 0, 0, r, A->ncols);
+    mzd_slice_apply_p_right_trans_tri(A0, Q);
+    mzd_slice_free_window(A0);
+  } else {
+    mzd_slice_apply_p_right_trans_tri(A, Q);
+  }
+  return r;
+}

@@ -153,5 +153,22 @@ static inline void mzd_slice_apply_p_right_trans(mzd_slice_t *A, mzp_t const *P)
   }
 }
 
+/**
+ * Apply the permutation P to A from the right, but only on the upper
+ * the matrix A above the main diagonal.
+ *
+ * This is equivalent to column swaps walking from 0 to length-1 and
+ * is used to compress PLE to PLUQ.
+ *
+ * \param A Matrix.
+ * \param P Permutation.
+ */
+
+static inline void mzd_slice_apply_p_right_trans_tri(mzd_slice_t *A, mzp_t const *P) {
+  for(int i=0; i<A->depth; i++) {
+    mzd_apply_p_right_trans_tri(A->x[i], P);
+  }
+}
+
 
 #endif // M4RIE_PERMUTATION_H

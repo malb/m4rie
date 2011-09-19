@@ -36,8 +36,8 @@
  *
  * Modifies A in place to store lower triangular L below (and on) the
  * main diagonal and E -- a echelon form of A -- above the main
- * diagonal. P and Q are updated with row and column permutations
- * respectively.
+ * diagonal (pivots are stored in Q). P and Q are updated with row and
+ * column permutations respectively.
  *
  * This function uses naive cubic PLE decomposition depending on the
  * size of the underlying field.
@@ -60,8 +60,8 @@ rci_t mzed_ple_naive(mzed_t *A, mzp_t *P, mzp_t *Q);
  *
  * Modifies A in place to store lower triangular L below (and on) the
  * main diagonal and E -- a echelon form of A -- above the main
- * diagonal. P and Q are updated with row and column permutations
- * respectively.
+ * diagonal (pivots are stored in Q). P and Q are updated with row and
+ * column permutations respectively.
  *
  * This function uses either asymptotically fast PLE decomposition by
  * reducing it to matrix multiplication or naive cubic PLE
@@ -89,8 +89,8 @@ rci_t _mzd_slice_ple(mzd_slice_t *A, mzp_t *P, mzp_t *Q, rci_t cutoff);
  *
  * Modifies A in place to store lower triangular L below (and on) the
  * main diagonal and E -- a echelon form of A -- above the main
- * diagonal. P and Q are updated with row and column permutations
- * respectively.
+ * diagonal (pivots are stored in Q). P and Q are updated with row and
+ * column permutations respectively.
  *
  * This function implements asymptotically fast PLE decomposition by
  * reducing it to matrix multiplication.
@@ -107,16 +107,27 @@ rci_t _mzd_slice_ple(mzd_slice_t *A, mzp_t *P, mzp_t *Q, rci_t cutoff);
  */
 
 static inline rci_t mzd_slice_ple(mzd_slice_t *A, mzp_t *P, mzp_t *Q) {
+  assert(P->length == A->nrows);
+  assert(Q->length == A->ncols);
   return _mzd_slice_ple(A, P, Q, 0);
 }
+
+rci_t _mzd_slice_pluq(mzd_slice_t *A, mzp_t *P, mzp_t *Q, rci_t cutoff);
+
+static inline rci_t mzd_slice_pluq(mzd_slice_t *A, mzp_t *P, mzp_t *Q) {
+  assert(P->length == A->nrows);
+  assert(Q->length == A->ncols);
+  return _mzd_slice_pluq(A, P, Q, 0);
+}
+
 
 /**
  * \brief PLE decomposition: L*E = P*A 
  *
  * Modifies A in place to store lower triangular L below (and on) the
  * main diagonal and E -- a echelon form of A -- above the main
- * diagonal. P and Q are updated with row and column permutations
- * respectively.
+ * diagonal (pivots are stored in Q). P and Q are updated with row and
+ * column permutations respectively.
  *
  * This function uses either asymptotically fast PLE decomposition by
  * reducing it to matrix multiplication or naive cubic PLE
@@ -144,8 +155,8 @@ rci_t _mzed_ple(mzed_t *A, mzp_t *P, mzp_t *Q, rci_t cutoff);
  *
  * Modifies A in place to store lower triangular L below (and on) the
  * main diagonal and E -- a echelon form of A -- above the main
- * diagonal. P and Q are updated with row and column permutations
- * respectively.
+ * diagonal (pivots are stored in Q). P and Q are updated with row and
+ * column permutations respectively.
  *
  * This function uses either asymptotically fast PLE decomposition by
  * reducing it to matrix multiplication or naive cubic PLE

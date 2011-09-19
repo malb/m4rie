@@ -531,21 +531,19 @@ void mzed_add_multiple_of_row(mzed_t *A, rci_t ar, const mzed_t *B, rci_t br, wo
  */
 
 static inline void mzed_rescale_row(mzed_t *A, rci_t r, rci_t start_col, const word *X) {
-  assert(A->x->offset == 0);
   assert(start_col < A->ncols);
 
-  const size_t startblock = (A->w*start_col)/m4ri_radix;
+  const rci_t start = A->x->offset + A->w*start_col;
+  const wi_t startblock = start/m4ri_radix;
   word *_a = A->x->rows[r];
+  const word bitmask_begin = __M4RI_RIGHT_BITMASK(m4ri_radix - (start%m4ri_radix));
+  const word bitmask_end = __M4RI_LEFT_BITMASK((A->x->offset + A->x->ncols) % m4ri_radix);
+  register word __a = _a[startblock]>>(start%m4ri_radix);
+  register word __t = 0;    
   int j;
-  register word __a, __t;
 
   if(A->w == 2) {    
-    const word bitmask_begin = __M4RI_RIGHT_BITMASK(m4ri_radix - ((2*start_col)%m4ri_radix));
-    const word bitmask_end = __M4RI_LEFT_BITMASK(A->x->ncols % m4ri_radix);
-
-    __a = _a[startblock]>>(2*(start_col%32));
-    __t = 0;
-    switch(start_col % 32) {
+    switch( (start/2) % 32 ) {
     case  0:  __t ^= (X[((__a)& 0x0000000000000003ULL)])<<0;   __a >>= 2;
     case  1:  __t ^= (X[((__a)& 0x0000000000000003ULL)])<<2;   __a >>= 2;
     case  2:  __t ^= (X[((__a)& 0x0000000000000003ULL)])<<4;   __a >>= 2;
@@ -627,7 +625,7 @@ static inline void mzed_rescale_row(mzed_t *A, rci_t r, rci_t start_col, const w
     }
 
     __t = _a[j] & ~bitmask_end;
-    switch(A->x->ncols % m4ri_radix) {
+    switch((A->x->offset+A->x->ncols) % m4ri_radix) {
     case  0: __t ^= ((word)X[(int)((_a[j] & 0xC000000000000000ULL)>>62)])<<62;
     case 62: __t ^= ((word)X[(int)((_a[j] & 0x3000000000000000ULL)>>60)])<<60;
     case 60: __t ^= ((word)X[(int)((_a[j] & 0x0C00000000000000ULL)>>58)])<<58;
@@ -664,13 +662,7 @@ static inline void mzed_rescale_row(mzed_t *A, rci_t r, rci_t start_col, const w
     _a[j] = __t;
 
   } else if(A->w == 4) {
-
-    const word bitmask_begin = __M4RI_RIGHT_BITMASK(m4ri_radix - ((4*start_col)%m4ri_radix));
-    const word bitmask_end = __M4RI_LEFT_BITMASK(A->x->ncols % m4ri_radix);
-
-    __a = _a[startblock]>>(4*(start_col%16));
-    __t = 0;
-    switch(start_col%16) {
+    switch( (start/4)%16 ) {
     case  0: __t ^= (X[((__a)& 0x000000000000000FULL)])<<0;   __a >>= 4;
     case  1: __t ^= (X[((__a)& 0x000000000000000FULL)])<<4;   __a >>= 4;
     case  2: __t ^= (X[((__a)& 0x000000000000000FULL)])<<8;   __a >>= 4;
@@ -720,7 +712,7 @@ static inline void mzed_rescale_row(mzed_t *A, rci_t r, rci_t start_col, const w
     }
 
     __t = _a[j] & ~bitmask_end;
-    switch(A->x->ncols % m4ri_radix) {
+    switch( (A->x->offset + A->x->ncols) % m4ri_radix) {
     case  0: __t ^= ((word)X[(int)((_a[j] & 0xF000000000000000ULL)>>60)])<<60;
     case 60: __t ^= ((word)X[(int)((_a[j] & 0x0F00000000000000ULL)>>56)])<<56;
     case 56: __t ^= ((word)X[(int)((_a[j] & 0x00F0000000000000ULL)>>52)])<<52;
@@ -742,15 +734,12 @@ static inline void mzed_rescale_row(mzed_t *A, rci_t r, rci_t start_col, const w
 
   } else if (A->w == 8) {
 
-    const word bitmask_begin = __M4RI_RIGHT_BITMASK(m4ri_radix - ((8*start_col)%m4ri_radix));
-    const word bitmask_end = __M4RI_LEFT_BITMASK(A->x->ncols % m4ri_radix);
-
-    register word __a0 = _a[startblock]>>(8*(start_col%8));
+    register word __a0 = _a[startblock]>>(start%m4ri_radix);
     register word __a1;
     register word __t0 = 0;
     register word __t1;
 
-    switch(start_col%8) {
+    switch( (start/8) %8 ) {
     case 0: __t0 ^= (X[((__a0)& 0x00000000000000FFULL)])<<0;  __a0 >>= 8;
     case 1: __t0 ^= (X[((__a0)& 0x00000000000000FFULL)])<<8;  __a0 >>= 8;
     case 2: __t0 ^= (X[((__a0)& 0x00000000000000FFULL)])<<16; __a0 >>= 8;
@@ -807,7 +796,7 @@ static inline void mzed_rescale_row(mzed_t *A, rci_t r, rci_t start_col, const w
     }
     
     __t = _a[j] & ~bitmask_end;
-    switch(A->x->ncols % m4ri_radix) {
+    switch( (A->x->offset + A->x->ncols) % m4ri_radix ) {
     case  0: __t ^= ((word)X[(int)((_a[j] & 0xFF00000000000000ULL)>>56)])<<56;
     case 56: __t ^= ((word)X[(int)((_a[j] & 0x00FF000000000000ULL)>>48)])<<48;
     case 48: __t ^= ((word)X[(int)((_a[j] & 0x0000FF0000000000ULL)>>40)])<<40;
@@ -820,12 +809,7 @@ static inline void mzed_rescale_row(mzed_t *A, rci_t r, rci_t start_col, const w
     _a[j] = __t;
 
   } else if (A->w == 16) {
-    const word bitmask_begin = __M4RI_RIGHT_BITMASK(m4ri_radix - ((16*start_col)%m4ri_radix));
-    const word bitmask_end = __M4RI_LEFT_BITMASK(A->x->ncols % m4ri_radix);
-
-    __a = _a[startblock]>>(16*(start_col%4));
-    __t = 0;
-    switch(start_col%4) {
+    switch( (start/16) %4 ) {
     case 0: __t ^= (X[((__a)& 0x000000000000FFFFULL)])<<0;  __a >>= 16;
     case 1: __t ^= (X[((__a)& 0x000000000000FFFFULL)])<<16; __a >>= 16;
     case 2: __t ^= (X[((__a)& 0x000000000000FFFFULL)])<<32; __a >>= 16;
@@ -881,7 +865,7 @@ static inline void mzed_rescale_row(mzed_t *A, rci_t r, rci_t start_col, const w
     }
 
     __t = _a[j] & ~bitmask_end;
-    switch(A->x->ncols % m4ri_radix) {
+    switch( (A->x->offset + A->x->ncols) % m4ri_radix) {
     case  0: __t ^= ((word)X[(int)((_a[j] & 0xFFFF000000000000ULL)>>48)])<<48;
     case 48: __t ^= ((word)X[(int)((_a[j] & 0x0000FFFF00000000ULL)>>32)])<<32;
     case 32: __t ^= ((word)X[(int)((_a[j] & 0x00000000FFFF0000ULL)>>16)])<<16;

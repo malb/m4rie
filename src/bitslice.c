@@ -20,10 +20,13 @@
 #include "bitslice.h"
 
 mzd_slice_t *mzed_slice(mzd_slice_t *A, const mzed_t *Z) {
-  if (A == NULL)
+  if (A == NULL) {
+    assert(Z->x->offset == 0);
     A = mzd_slice_init(Z->finite_field, Z->nrows, Z->ncols);
-  else
+  } else {
+    assert(Z->x->offset == (Z->w*A->x[0]->offset)%m4ri_radix);
     mzd_slice_set_ui(A, 0);
+  }
 
   switch(Z->finite_field->degree) {
   case  2: return _mzed_slice2(A,Z);
@@ -36,16 +39,20 @@ mzd_slice_t *mzed_slice(mzd_slice_t *A, const mzed_t *Z) {
   case  9:
   case 10:
   default:
-    m4ri_die("Slicing not implemented for this degree.");
+    m4ri_die("slicing not implemented for this degree");
   }
   return A;
 }
 
 mzed_t *mzed_cling(mzed_t *A, const mzd_slice_t *Z) {
-  if (A == NULL)
+  if (A == NULL) {
+    assert(Z->x[0]->offset == 0);
     A = mzed_init(Z->finite_field, Z->nrows, Z->ncols);
-  else
+  }
+  else {
+    assert(A->x->offset == (A->w*Z->x[0]->offset)%m4ri_radix);
     mzed_set_ui(A, 0);
+  }
 
   switch(Z->finite_field->degree) {
   case  2: return _mzed_cling2(A,Z);
@@ -58,16 +65,18 @@ mzed_t *mzed_cling(mzed_t *A, const mzd_slice_t *Z) {
   case  9:
   case 10:
   default:
-    m4ri_die("Clinging not implemented for this degree.");
+    m4ri_die("clinging not implemented for this degree");
   }
   return A;
 }
 
 mzd_slice_t *_mzed_slice2(mzd_slice_t *A, const mzed_t *Z) {
+  assert(A && (A->depth >= 2));
   size_t j, j2 = 0;
   register word t0,t1;
 
-  const word mask_end = __M4RI_LEFT_BITMASK(A->ncols % m4ri_radix);
+  const word bitmask_begin = __M4RI_RIGHT_BITMASK(m4ri_radix - A->x[0]->offset%m4ri_radix);
+  const word bitmask_end = __M4RI_LEFT_BITMASK((A->x[0]->offset + A->ncols) % m4ri_radix);
   const word one = m4ri_one;
 
   for(size_t i=0; i<A->nrows; i++) {
@@ -75,12 +84,14 @@ mzd_slice_t *_mzed_slice2(mzd_slice_t *A, const mzed_t *Z) {
     word *a1 = A->x[1]->rows[i];
     const word *z  = Z->x->rows[i];    
 
+    const word a0_fix = a0[0]; 
+    const word a1_fix = a1[0]; 
+
     /* bulk of work */
     for(j=0, j2=0; j+2 < Z->x->width; j+=2,j2++) {
       if ( !(z[j+0] | z[j+1]) )
         continue;
-      t0 = 0;
-      t1 = 0;
+      t0 = t1 = 0;
 
       t0 |= (z[j+0] & one<< 0) >>  0; t0 |= (z[j+0] & one<< 2) >>  1; t0 |= (z[j+0] & one<< 4) >>  2; t0 |= (z[j+0] & one<< 6) >>  3; 
       t0 |= (z[j+0] & one<< 8) >>  4; t0 |= (z[j+0] & one<<10) >>  5; t0 |= (z[j+0] & one<<12) >>  6; t0 |= (z[j+0] & one<<14) >>  7; 
@@ -165,13 +176,16 @@ mzd_slice_t *_mzed_slice2(mzd_slice_t *A, const mzed_t *Z) {
     default:
       m4ri_die("impossible");
     }
-    a0[j2] &= ~mask_end;
-    a0[j2] |= t0 & mask_end;
+    a0[j2] &= ~bitmask_end;
+    a0[j2] |= t0 & bitmask_end;
+    a1[j2] &= ~bitmask_end;
+    a1[j2] |= t1 & bitmask_end;
 
-    a1[j2] &= ~mask_end;
-    a1[j2] |= t1 & mask_end;
+    /* fix bits before offset */
+    a0[0] = (a0[0] & bitmask_begin) | (a0_fix & ~bitmask_begin);
+    a1[0] = (a1[0] & bitmask_begin) | (a1_fix & ~bitmask_begin);
   }
-    
+  
   return A;
 }
 
@@ -180,17 +194,19 @@ mzed_t *_mzed_cling2(mzed_t *A, const mzd_slice_t *Z) {
   register word aw0;
   register word aw1;
 
-  const word mask_end = __M4RI_LEFT_BITMASK((2*A->ncols) % m4ri_radix);
+  const word bitmask_begin = __M4RI_RIGHT_BITMASK(m4ri_radix - A->x->offset%m4ri_radix);
+  const word bitmask_end = __M4RI_LEFT_BITMASK((A->x->offset + A->x->ncols) % m4ri_radix);
 
   /** A0 **/
   for(size_t i=0; i<A->nrows; i++) {
     word *z0 = Z->x[0]->rows[i];
     word *a  = A->x->rows[i];
+    const word a_fix = a[0];
+
     for(j=0, j2=0; j+2 < A->x->width; j+=2, j2++) {
       if (!z0[j2] )
         continue;
-      aw0 = 0;
-      aw1 = 0;
+      aw0 = aw1 = 0;
       aw0 |= (z0[j2] & m4ri_one<< 0) <<  0;    aw1 |= (z0[j2] & m4ri_one<<32) >> 32;
       aw0 |= (z0[j2] & m4ri_one<< 1) <<  1;    aw1 |= (z0[j2] & m4ri_one<<33) >> 31;
       aw0 |= (z0[j2] & m4ri_one<< 2) <<  2;    aw1 |= (z0[j2] & m4ri_one<<34) >> 30;
@@ -262,8 +278,8 @@ mzed_t *_mzed_cling2(mzed_t *A, const mzd_slice_t *Z) {
       a[j+0] |= (z0[j2] & m4ri_one<< 30 ) << 30;
       a[j+0] |= (z0[j2] & m4ri_one<< 31 ) << 31;
 
-      a[j+1] &= ~mask_end;
-      switch((2*A->ncols) % m4ri_radix) {
+      a[j+1] &= ~bitmask_end;
+      switch((A->x->offset+A->x->ncols) % m4ri_radix) {
       case  0:      a[j+1] |= (z0[j2] & m4ri_one<<63) >>  1;
       case 62:      a[j+1] |= (z0[j2] & m4ri_one<<62) >>  2;
       case 60:      a[j+1] |= (z0[j2] & m4ri_one<<61) >>  3;
@@ -299,8 +315,8 @@ mzed_t *_mzed_cling2(mzed_t *A, const mzd_slice_t *Z) {
       }
     
     } else {  /* only one word */
-      a[j+0] &= ~mask_end;
-      switch((2*A->ncols) % m4ri_radix) {
+      a[j+0] &= ~bitmask_end;
+      switch((A->x->offset+A->x->ncols) % m4ri_radix) {
       case  0:      a[j+0] |= (z0[j2] & m4ri_one<<31) << 31;
       case 62:      a[j+0] |= (z0[j2] & m4ri_one<<30) << 30;
       case 60:      a[j+0] |= (z0[j2] & m4ri_one<<29) << 29;
@@ -335,12 +351,16 @@ mzed_t *_mzed_cling2(mzed_t *A, const mzd_slice_t *Z) {
       case  2:      a[j+0] |= (z0[j2] & m4ri_one<< 0) <<  0;
       }
     }
+    ;
+    a[0] = (a[0] & bitmask_begin) | (a_fix & ~bitmask_begin);
   }
 
   /** A1 **/
   for(size_t i=0; i<A->nrows; i++) {
     word *z1 = Z->x[1]->rows[i];
     word *a  = A->x->rows[i];    
+    const word a_fix = a[0];
+
     for(j=0, j2=0; j+2 < A->x->width; j+=2, j2++) {
       if (!z1[j2] )
         continue;
@@ -416,7 +436,7 @@ mzed_t *_mzed_cling2(mzed_t *A, const mzd_slice_t *Z) {
       a[j+0] |= (z1[j2] & m4ri_one<<30) << 31;
       a[j+0] |= (z1[j2] & m4ri_one<<31) << 32;
  
-      switch((2*A->ncols) % m4ri_radix) {
+      switch((A->x->offset+A->x->ncols) % m4ri_radix) {
       case  0:      a[j+1] |= (z1[j2] & m4ri_one<<63) >>  0;
       case 62:      a[j+1] |= (z1[j2] & m4ri_one<<62) >>  1;
       case 60:      a[j+1] |= (z1[j2] & m4ri_one<<61) >>  2;
@@ -452,7 +472,7 @@ mzed_t *_mzed_cling2(mzed_t *A, const mzd_slice_t *Z) {
       }
 
     } else { /* only one word */
-      switch((2*A->ncols) % m4ri_radix) {
+      switch((A->x->offset+A->x->ncols) % m4ri_radix) {
       case  0:      a[j+0] |= (z1[j2] & m4ri_one<<31) << 32;
       case 62:      a[j+0] |= (z1[j2] & m4ri_one<<30) << 31;
       case 60:      a[j+0] |= (z1[j2] & m4ri_one<<29) << 30;
@@ -487,18 +507,20 @@ mzed_t *_mzed_cling2(mzed_t *A, const mzd_slice_t *Z) {
       case  2:      a[j+0] |= (z1[j2] & m4ri_one<< 0) <<  1;
       }
     }
+    a[0] = (a[0] & bitmask_begin) | (a_fix & ~bitmask_begin);
   }
   return A;
 }
 
 mzd_slice_t *_mzed_slice4(mzd_slice_t *A, const mzed_t *Z) {
-  assert(A && (A->depth == 3 || A->depth == 4) && ((Z->x->offset | A->x[0]->offset) == 0));
+  assert(A && (A->depth == 3 || A->depth == 4));
   size_t j, j2 = 0;
   register word t0,t1,t2,t3 = 0;
 
   const word one = m4ri_one;
 
-  const word mask_end = __M4RI_LEFT_BITMASK(A->ncols % m4ri_radix);
+  const word bitmask_begin = __M4RI_RIGHT_BITMASK(m4ri_radix - A->x[0]->offset%m4ri_radix);
+  const word bitmask_end = __M4RI_LEFT_BITMASK((A->x[0]->offset + A->ncols) % m4ri_radix);
 
   /* A0 */
   for(size_t i=0; i<A->nrows; i++) {
@@ -507,10 +529,12 @@ mzd_slice_t *_mzed_slice4(mzd_slice_t *A, const mzed_t *Z) {
     word *a2 = A->x[2]->rows[i];
     const word const *z  = Z->x->rows[i];
 
+    const word a0_fix = a0[0]; 
+    const word a1_fix = a1[0]; 
+    const word a2_fix = a2[0]; 
+
     /* bulk of work */
     for(j=0, j2=0; j+4 < Z->x->width; j+=4,j2++) {
-      /* if ( !(z[j+0] | z[j+1] | z[j+2] | z[j+3]) ) */
-      /*   continue; */
       t0 = t1 = t2 = 0;
 
       t0 |= (z[j+3] & (one<< 0)) <<48; t0 |= (z[j+3] & (one<< 4)) <<45; t0 |= (z[j+3] & (one<< 8)) <<42; t0 |= (z[j+3] & (one<<12)) <<39;
@@ -578,9 +602,7 @@ mzd_slice_t *_mzed_slice4(mzd_slice_t *A, const mzed_t *Z) {
       a2[j2] = t2;
 
     }
-    t0 = 0;
-    t1 = 0;
-    t2 = 0;
+    t0 = t1 = t2 = 0;
     switch(Z->x->width - j) {
     case 4:
       t0 |= (z[j+3] & (one<< 0)) <<48; t0 |= (z[j+3] & (one<< 4)) <<45; t0 |= (z[j+3] & (one<< 8)) <<42; t0 |= (z[j+3] & (one<<12)) <<39;
@@ -644,11 +666,16 @@ mzd_slice_t *_mzed_slice4(mzd_slice_t *A, const mzed_t *Z) {
       t2 |= (z[j+0] & (one<<50)) >>38; t2 |= (z[j+0] & (one<<54)) >>41; t2 |= (z[j+0] & (one<<58)) >>44; t2 |= (z[j+0] & (one<<62)) >>47;
       break;
     default:
-      m4ri_die("impossible\n");
+      m4ri_die("impossible");
     }
-    a0[j2] |= t0 & mask_end;
-    a1[j2] |= t1 & mask_end;
-    a2[j2] |= t2 & mask_end;
+    a0[j2] |= t0 & bitmask_end;
+    a1[j2] |= t1 & bitmask_end;
+    a2[j2] |= t2 & bitmask_end;
+
+    /* fix first bits before offset */
+    a0[0] = (a0[0] & bitmask_begin) | (a0_fix & ~bitmask_begin);
+    a1[0] = (a1[0] & bitmask_begin) | (a1_fix & ~bitmask_begin);
+    a2[0] = (a2[0] & bitmask_begin) | (a2_fix & ~bitmask_begin);
   }
 
   if(A->depth == 3)
@@ -658,6 +685,7 @@ mzd_slice_t *_mzed_slice4(mzd_slice_t *A, const mzed_t *Z) {
   for(size_t i=0; i<A->nrows; i++) {
     word *a3 = A->x[3]->rows[i];
     const word const *z  = Z->x->rows[i];
+    const word a3_fix = a3[0]; 
 
     /* bulk of work */
     for(j=0, j2=0; j+4 < Z->x->width; j+=4,j2++) {
@@ -713,7 +741,9 @@ mzd_slice_t *_mzed_slice4(mzd_slice_t *A, const mzed_t *Z) {
     default:
       m4ri_die("impossible");
     }
-    a3[j2] |= t3 & mask_end;
+    a3[j2] |= t3 & bitmask_end;
+    a3[0] = (a3[0] & bitmask_begin) | (a3_fix & ~bitmask_begin);
+
  }
   return A;
 }
@@ -723,13 +753,16 @@ mzed_t *_mzed_cling4(mzed_t *A, const mzd_slice_t *Z) {
   register word t0, t1, t2, t3;
   const word one = m4ri_one;
 
-  const word mask_end = __M4RI_LEFT_BITMASK( (4*A->ncols) % m4ri_radix );
+  const word bitmask_begin = __M4RI_RIGHT_BITMASK(m4ri_radix - A->x->offset%m4ri_radix);
+  const word bitmask_end = __M4RI_LEFT_BITMASK((A->x->offset + A->x->ncols) % m4ri_radix);
 
   for(size_t i=0; i<A->nrows; i++) {
     word *z0 = Z->x[0]->rows[i];
     word *z1 = Z->x[1]->rows[i];
     word *z2 = Z->x[2]->rows[i];
     word *a  = A->x->rows[i];
+    const word a_fix = a[0];
+
     for(j=0, j2=0; j+4 < A->x->width; j+=4, j2++) {
       if (!z0[j2] && !z1[j2] && !z2[j2] )
         continue;
@@ -869,7 +902,7 @@ mzed_t *_mzed_cling4(mzed_t *A, const mzd_slice_t *Z) {
       t0 |= (z2[j2] & one<<12) << 38; t0 |= (z2[j2] & one<<13) << 41; t0 |= (z2[j2] & one<<14) << 44; t0 |= (z2[j2] & one<<15) << 47;
       break;
     default:
-      m4ri_die("impossible\n");
+      m4ri_die("impossible");
     }
 
     /*
@@ -880,27 +913,31 @@ mzed_t *_mzed_cling4(mzed_t *A, const mzd_slice_t *Z) {
     
     switch(A->x->width - j) {
     case 4:
-      a[j+0] = t0, a[j+1] = t1, a[j+2] = t2, a[j+3] |= t3 & mask_end;
+      a[j+0] = t0, a[j+1] = t1, a[j+2] = t2, a[j+3] |= t3 & bitmask_end;
       break;
     case 3:
-      a[j+0] = t0, a[j+1] = t1, a[j+2] |= t2 & mask_end;
+      a[j+0] = t0, a[j+1] = t1, a[j+2] |= t2 & bitmask_end;
       break;
     case 2:
-      a[j+0] = t0, a[j+1] |= t1 & mask_end;
+      a[j+0] = t0, a[j+1] |= t1 & bitmask_end;
       break;
     case 1:
-      a[j+0] |= t0 & mask_end;
+      a[j+0] |= t0 & bitmask_end;
       break;
     default:
-      m4ri_die("impossible\n");
+      m4ri_die("impossible");
     }
+    a[0] = (a[0] & bitmask_begin) | (a_fix & ~bitmask_begin);
   }
+
   if(A->finite_field->degree == 3)
     return A;
 
   for(size_t i=0; i<A->nrows; i++) {
     word *z3 = Z->x[3]->rows[i];
     word *a  = A->x->rows[i];
+    const word a_fix = a[0];
+
     for(j=0, j2=0; j+4 < A->x->width; j+=4, j2++) {
       if (!z3[j2] )
         continue;
@@ -961,7 +998,7 @@ mzed_t *_mzed_cling4(mzed_t *A, const mzd_slice_t *Z) {
       t0 |= (z3[j2] & one<<12) << 39; t0 |= (z3[j2] & one<<13) << 42; t0 |= (z3[j2] & one<<14) << 45; t0 |= (z3[j2] & one<<15) << 48;
       break;
     default:
-      m4ri_die("impossible\n");
+      m4ri_die("impossible");
     }
 
     /*
@@ -972,20 +1009,21 @@ mzed_t *_mzed_cling4(mzed_t *A, const mzd_slice_t *Z) {
     
     switch(A->x->width - j) {
     case 4:
-      a[j+0] |= t0, a[j+1] |= t1, a[j+2] |= t2, a[j+3] |= t3 & mask_end;
+      a[j+0] |= t0, a[j+1] |= t1, a[j+2] |= t2, a[j+3] |= t3 & bitmask_end;
       break;
     case 3:
-      a[j+0] |= t0, a[j+1] |= t1, a[j+2] |= t2 & mask_end;
+      a[j+0] |= t0, a[j+1] |= t1, a[j+2] |= t2 & bitmask_end;
       break;
     case 2:
-      a[j+0] |= t0, a[j+1] |= t1 & mask_end;
+      a[j+0] |= t0, a[j+1] |= t1 & bitmask_end;
       break;
     case 1:
-      a[j+0] |= t0 & mask_end;
+      a[j+0] |= t0 & bitmask_end;
       break;
     default:
-      m4ri_die("impossible\n");
+      m4ri_die("impossible");
     }
+    a[0] = (a[0] & bitmask_begin) | (a_fix & ~bitmask_begin);
   }
   return A;
 }
@@ -995,10 +1033,6 @@ void mzd_slice_set_ui(mzd_slice_t *A, word value) {
     mzd_set_ui(A->x[i], (value>>i)&1);
   }
 }
-
-
-
-
 
 mzd_slice_t *_mzd_slice_mul_karatsuba2(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B) {
   // two temporaries
@@ -1119,10 +1153,22 @@ static void _poly2_addmul(mzd_t **X, const mzd_t **a, const mzd_t **b) {
 
 static void _poly_add(mzd_t **c, const mzd_t **a, const mzd_t **b,const int length) {
   switch(length) {
-  case 4: mzd_add(c[3], a[3], b[3]);
-  case 3: mzd_add(c[2], a[2], b[2]);
-  case 2: mzd_add(c[1], a[1], b[1]);
-  case 1: mzd_add(c[0], a[0], b[0]);
+  case 16: mzd_add(c[15], a[15], b[15]);
+  case 15: mzd_add(c[14], a[14], b[14]);
+  case 14: mzd_add(c[13], a[13], b[13]);
+  case 13: mzd_add(c[12], a[12], b[12]);
+  case 12: mzd_add(c[11], a[11], b[11]);
+  case 11: mzd_add(c[10], a[10], b[10]);
+  case 10: mzd_add(c[ 9], a[ 9], b[ 9]);
+  case  9: mzd_add(c[ 8], a[ 8], b[ 8]);
+  case  8: mzd_add(c[ 7], a[ 7], b[ 7]);
+  case  7: mzd_add(c[ 6], a[ 6], b[ 6]);
+  case  6: mzd_add(c[ 5], a[ 5], b[ 5]);
+  case  5: mzd_add(c[ 4], a[ 4], b[ 4]);
+  case  4: mzd_add(c[ 3], a[ 3], b[ 3]);
+  case  3: mzd_add(c[ 2], a[ 2], b[ 2]);
+  case  2: mzd_add(c[ 1], a[ 1], b[ 1]);
+  case  1: mzd_add(c[ 0], a[ 0], b[ 0]);
     break;
   case 0:
   default:
@@ -1211,4 +1257,36 @@ mzd_slice_t *_mzd_slice_mul_karatsuba4(mzd_slice_t *C, const mzd_slice_t *A, con
   return C;
 }
 
-
+void mzd_slice_print(const mzd_slice_t *A) {
+  for (rci_t i=0; i < A->nrows; ++i) {
+    printf("[");
+    for (rci_t j=0; j < A->ncols; j++) {
+      word tmp = mzd_slice_read_elem(A,i,j);
+      printf("[");
+      switch(A->finite_field->degree) {
+      case 16:  (tmp&(1ULL<<15)) ? printf("1") : printf(" ");
+      case 15:  (tmp&(1ULL<<14)) ? printf("1") : printf(" ");
+      case 14:  (tmp&(1ULL<<13)) ? printf("1") : printf(" ");
+      case 13:  (tmp&(1ULL<<12)) ? printf("1") : printf(" ");
+      case 12:  (tmp&(1ULL<<11)) ? printf("1") : printf(" ");
+      case 11:  (tmp&(1ULL<<10)) ? printf("1") : printf(" ");
+      case 10:  (tmp&(1ULL<< 9)) ? printf("1") : printf(" ");
+      case  9:  (tmp&(1ULL<< 8)) ? printf("1") : printf(" ");
+      case  8:  (tmp&(1ULL<< 7)) ? printf("1") : printf(" ");
+      case  7:  (tmp&(1ULL<< 6)) ? printf("1") : printf(" ");
+      case  6:  (tmp&(1ULL<< 5)) ? printf("1") : printf(" ");
+      case  5:  (tmp&(1ULL<< 4)) ? printf("1") : printf(" ");
+      case  4:  (tmp&(1ULL<< 3)) ? printf("1") : printf(" ");
+      case  3:  (tmp&(1ULL<< 2)) ? printf("1") : printf(" ");
+      case  2:  (tmp&(1ULL<< 1)) ? printf("1") : printf(" ");
+      case  1:  (tmp&(1ULL<< 0)) ? printf("1") : printf(" ");
+        break;
+      default: m4ri_die("degree %lz too big", A->finite_field->degree);
+      }
+      printf("]");
+      if(j<A->ncols-1)
+        printf(" ");
+    }
+    printf("]\n");
+  }
+}

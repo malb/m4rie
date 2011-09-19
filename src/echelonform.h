@@ -21,6 +21,7 @@
 ******************************************************************************/
 
 #include "gf2e_matrix.h"
+#include "bitslice.h"
 
 /**
  * \brief Compute row echelon forms.
@@ -34,7 +35,43 @@
  * \ingroup Echelon
  */
 
-size_t mzed_echelonize(mzed_t *A, int full);
+rci_t mzed_echelonize(mzed_t *A, int full);
+
+/**
+ * \brief Compute row echelon forms.
+ * 
+ * Compute the (reduced) row echelon form of the matrix A.  If full=0,
+ * then return the reduced REF. This function reduces echelon forms to
+ * PLE (or PLUQ) decomposition.
+ *
+ * \param A Matrix
+ * \param full REF or RREF.
+ *
+ * \ingroup Echelon
+ */
+
+rci_t mzd_slice_echelonize_ple(mzd_slice_t *A, int full);
+
+/**
+ * \brief Compute row echelon forms.
+ * 
+ * Compute the (reduced) row echelon form of the matrix A.  If full=0,
+ * then return the reduced REF. This function reduces echelon forms to
+ * PLE (or PLUQ) decomposition.
+ *
+ * \param A Matrix
+ * \param full REF or RREF.
+ *
+ * \ingroup Echelon
+ */
+
+static inline rci_t mzed_echelonize_ple(mzed_t *A, int full) {
+  mzd_slice_t *a = mzed_slice(NULL, A);
+  rci_t r = mzd_slice_echelonize_ple(a, full);
+  mzed_cling(A, a);
+  mzd_slice_free(a);
+  return r;
+}
 
 
 #endif //M4RIE_ECHELONFORM_H
