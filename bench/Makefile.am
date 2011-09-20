@@ -8,10 +8,10 @@ EXTRA_PROGRAMS = bench_multiplication bench_elimination bench_smallops bench_trs
 
 .PHONY: clean dist-clean
 
-cpucycles.h: cpucycles.o
-
 cpucycles.o:
 	(cd $(CPUCYCLES_DIR); sh do; mv cpucycles.o ..; mv cpucycles.h ..; cd ../..)
+
+cpucycles.h: cpucycles.o
 
 clean-local:
 	-rm -f cpucycles.h
@@ -36,3 +36,5 @@ bench_trsm_LDFLAGS=${BENCHLDFLAGS} ${BENCHLIBADD}
 bench_ple_SOURCES=bench_ple.cc cpucycles.h benchmarking.cc
 bench_ple_CXXFLAGS=${BENCHCXXFLAGS}
 bench_ple_LDFLAGS=${BENCHLDFLAGS} ${BENCHLIBADD}
+
+bench: cpucycles.o ${EXTRA_PROGRAMS}
