@@ -41,7 +41,7 @@ static inline size_t gf2e_degree_to_w(gf2e *ff) {
 }
 
 static inline word *gf2e_t16_init(gf2e *ff, const word a) {
-  word *mul = (word*)calloc(1<<16, sizeof(word));
+  word *mul = (word*)m4ri_mm_calloc(1<<16, sizeof(word));
 
   const int w = gf2e_degree_to_w(ff);
   const word mask_w = (1<<w)-1;
@@ -71,7 +71,7 @@ static inline word *gf2e_t16_init(gf2e *ff, const word a) {
 }
 
 static inline void gf2e_t16_free(word *mul) {
-  free(mul);
+  m4ri_mm_free(mul);
 }
 
 #endif //FINITE_FIELD_H
