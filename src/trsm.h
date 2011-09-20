@@ -30,7 +30,7 @@
 #include <gf2e_matrix.h>
 #include <bitslice.h>
 
-#define MZED_TRSM_CUTOFF 64
+#define MZED_TRSM_CUTOFF 512
 
 void _mzed_trsm_upper_left(const mzed_t *U, mzed_t *B, const rci_t cutoff);
 

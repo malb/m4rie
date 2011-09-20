@@ -41,9 +41,21 @@ int run_mzed(void *_p, unsigned long long *data, int *data_len) {
   if (strcmp(p->direction,"lower_left")==0) {
     if(strcmp(p->algorithm,"naive")==0)
       mzed_trsm_lower_left_naive(A, B);
+    else if(strcmp(p->algorithm,"travolta")==0) 
+      mzed_trsm_lower_left_travolta(A, B);
     else 
       _mzed_trsm_lower_left(A, B, p->cutoff);
-  }   
+  } else if (strcmp(p->direction,"upper_left")==0) {
+    if(strcmp(p->algorithm,"naive")==0)
+      mzed_trsm_upper_left_naive(A, B);
+    // else if(strcmp(p->algorithm,"travolta")==0) 
+    //   _mzed_trsm_upper_left_travolta(A, B);
+    else 
+      _mzed_trsm_upper_left(A, B, p->cutoff);
+  } else {
+    m4ri_die("unknown direction");
+  }
+
   data[1] = cpucycles() - data[1];
   data[0] = walltime(data[0]);
   
@@ -102,6 +114,7 @@ void print_help() {
   printf("  matrix_type - mzed_t\n");
   printf("              - mzd_slice_t\n");
   printf("  direction - lower_left\n");
+  printf("            - upper_left\n");
   printf("  algorithm -- default\n");
   printf("               naive\n");
   printf("  c -- cutoff (for 'default')\n");
@@ -124,7 +137,7 @@ int main(int argc, char **argv) {
   params.n = atoi(argv[3]);
   params.matrix_type = argv[4];
   params.direction = argv[5];
-  if (strcmp(params.direction,"lower_left") != 0)
+  if (strcmp(params.direction,"lower_left") != 0 && strcmp(params.direction,"upper_left") != 0)
     m4ri_die("not implemented.");
 
   if (argc >= 7)

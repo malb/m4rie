@@ -25,6 +25,8 @@
 #include <m4ri/xor.h>
 
 #include "travolta.h"
+#include "trsm.h"
+#include "ple.h"
 
 /**
  * Compute C[rc,i] = C[rc,i] + T0[r0,i] + ... + T3[r3,i] for 0 <= i < ncols
@@ -477,4 +479,55 @@ mzed_t *mzed_invert_travolta(mzed_t *B, const mzed_t *A) {
   B = mzed_submatrix(B, T, 0, A->ncols, A->nrows, T->ncols);
   mzed_free(T);
   return B;
+}
+
+void mzed_trsm_lower_left_travolta(const mzed_t *L, mzed_t *B) {
+  assert(L->finite_field == B->finite_field);
+  assert(L->nrows == L->ncols);
+  assert(B->nrows == L->ncols);
+
+  gf2e *ff = L->finite_field;
+  if (__M4RI_TWOPOW(ff->degree) >= L->nrows) {
+    mzed_trsm_lower_left_naive(L, B);
+    return;
+  }
+
+  mzed_t *T0 = mzed_init(B->finite_field, __M4RI_TWOPOW(B->finite_field->degree), B->ncols);
+  rci_t *L0 = (rci_t*)m4ri_mm_calloc(__M4RI_TWOPOW(B->finite_field->degree), sizeof(rci_t));
+
+  for(rci_t i=0; i<B->nrows; i++) {
+    mzed_rescale_row(B, i, 0, ff->mul[ff->inv[mzed_read_elem(L, i, i)]]);
+    mzed_make_table(B, i, 0, T0, L0);
+    for(rci_t j=i+1; j<B->nrows; j++)
+      mzd_combine(B->x, j, 0, B->x, j, 0, T0->x, mzed_read_elem(L, j, i), 0);
+  }
+  mzed_free(T0);
+  m4ri_mm_free(L0);
+}
+
+void mzd_slice_trsm_lower_left_travolta(const mzd_slice_t *L, mzd_slice_t *B) {
+  assert(L->finite_field == B->finite_field);
+  assert(L->nrows == L->ncols);
+  assert(B->nrows == L->ncols);
+
+  gf2e *ff = L->finite_field;
+  if (__M4RI_TWOPOW(ff->degree) >= L->nrows) {
+    mzd_slice_trsm_lower_left_naive(L, B);
+    return;
+  }
+
+  mzed_t *Be = mzed_cling(NULL, B);
+  mzed_t *T0 = mzed_init(B->finite_field, __M4RI_TWOPOW(B->finite_field->degree), B->ncols);
+  rci_t *L0 = (rci_t*)m4ri_mm_calloc(__M4RI_TWOPOW(B->finite_field->degree), sizeof(rci_t));
+
+  for(rci_t i=0; i<B->nrows; i++) {
+    mzed_rescale_row(Be, i, 0, ff->mul[ff->inv[mzd_slice_read_elem(L, i, i)]]);
+    mzed_make_table(Be, i, 0, T0, L0);
+    for(rci_t j=i+1; j<Be->nrows; j++)
+      mzd_combine(Be->x, j, 0, Be->x, j, 0, T0->x, mzd_slice_read_elem(L, j, i), 0);
+  }
+  mzed_slice(B, Be);
+  mzed_free(Be);
+  mzed_free(T0);
+  m4ri_mm_free(L0);
 }

@@ -10,7 +10,7 @@ void _matrix_trsm_lower_left(const matrix_t *L, matrix_t *B, const rci_t cutoff)
   assert((L->finite_field == B->finite_field) && (L->nrows == L->ncols) && (B->nrows == L->ncols));
 
   if (L->nrows <= cutoff || B->ncols <= cutoff) {
-    matrix_trsm_lower_left_naive(L,B);
+    matrix_trsm_lower_left_travolta(L,B);
     return;
   }
 

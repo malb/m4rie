@@ -22,6 +22,7 @@
 
 #include "finite_field.h"
 #include "gf2e_matrix.h"
+#include "bitslice.h"
 
 /**
  * \brief Construct Travolta table T for row r of A, and element A[r,c].
@@ -119,6 +120,10 @@ rci_t mzed_echelonize_travolta(mzed_t *A, int full);
  */
 
 mzed_t *mzed_invert_travolta(mzed_t *B, const mzed_t *A);
+
+void mzed_trsm_lower_left_travolta(const mzed_t *L, mzed_t *B);
+
+void mzd_slice_trsm_lower_left_travolta(const mzd_slice_t *L, mzd_slice_t *B);
 
 /**
  * \brief L*E = P*A

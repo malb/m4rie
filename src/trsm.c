@@ -1,4 +1,5 @@
 #include "trsm.h"
+#include "travolta.h"
 
 void mzed_trsm_upper_left_naive(const mzed_t *U, mzed_t *B) {
   assert(U->finite_field == B->finite_field);
@@ -59,7 +60,6 @@ void mzd_slice_trsm_lower_left_naive(const mzd_slice_t *L, mzd_slice_t *B) {
   mzed_free((mzed_t*)Le);
   mzed_free(Be);
 }
-
 
 #include "mzed_t_intro.inl"
 #include "trsm.inl"
