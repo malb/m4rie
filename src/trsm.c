@@ -52,6 +52,7 @@ void mzd_slice_trsm_lower_left_naive(const mzd_slice_t *L, mzd_slice_t *B) {
 
   const mzed_t *Le = mzed_cling(NULL, L);
   mzed_t *Be = mzed_cling(NULL, B);
+
   mzed_trsm_lower_left_naive(Le, Be);
 
   mzed_slice(B, Be);

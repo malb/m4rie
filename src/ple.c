@@ -72,14 +72,18 @@ rci_t mzed_ple_naive(mzed_t *A, mzp_t *P, mzp_t *Q) {
 }
 
 rci_t _mzed_ple(mzed_t *A, mzp_t *P, mzp_t *Q, rci_t cutoff) {
-  if (A->finite_field->degree <= __M4RIE_MAX_KARATSUBA_DEGREE) {
+  if (cutoff == 0)
+    cutoff = __M4RIE_PLE_CUTOFF;
+
+  if ((A->finite_field->degree <= __M4RIE_MAX_KARATSUBA_DEGREE) && 
+      (A->ncols > m4ri_radix && (gf2e_degree_to_w(A->finite_field) * A->ncols * A->nrows) > cutoff)) {
     mzd_slice_t *a = mzed_slice(NULL, A);
     rci_t r = _mzd_slice_ple(a, P, Q, cutoff);
     mzed_cling(A, a);
     mzd_slice_free(a);
     return r;
   } else {
-    return mzed_ple_naive(A, P, Q);
+    return mzed_ple_travolta(A, P, Q);
   }
 }
 
@@ -92,7 +96,7 @@ rci_t _mzd_slice_ple(mzd_slice_t *A, mzp_t *P, mzp_t *Q, rci_t cutoff) {
   if (cutoff == 0)
     cutoff = __M4RIE_PLE_CUTOFF;
 
-  if (ncols <= m4ri_radix || A->depth * A->ncols * A->nrows <= cutoff) {
+  if (ncols <= m4ri_radix || (gf2e_degree_to_w(A->finite_field) * A->ncols * A->nrows) <= cutoff) {
     mzed_t *Abar = mzed_cling(NULL, A);
     rci_t r = mzed_ple_travolta(Abar, P, Q);
     mzed_slice(A, Abar);
