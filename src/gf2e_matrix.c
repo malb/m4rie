@@ -502,7 +502,7 @@ void mzed_add_multiple_of_row(mzed_t *A, rci_t ar, const mzed_t *B, rci_t br, wo
   } else if (A->w == 8) {
     register word __t0 ,__t1, __f0, __f1;
 
-    __f0 = _f[startblock]>>(8*(start_col%8)), __t0 = _t[startblock];
+    __f0 = _f[startblock]>>(start%m4ri_radix), __t0 = _t[startblock];
     switch( (start/8) % 8 ) {
     case 0: __t0 ^= (X[((__f0)& 0x00000000000000FFULL)])<<0;  __f0 >>= 8;
     case 1: __t0 ^= (X[((__f0)& 0x00000000000000FFULL)])<<8;  __f0 >>= 8;
@@ -578,7 +578,7 @@ void mzed_add_multiple_of_row(mzed_t *A, rci_t ar, const mzed_t *B, rci_t br, wo
     size_t j;
     register word __t, __f;
 
-    __f = _f[startblock]>>(16*(start_col%4)), __t = _t[startblock];
+    __f = _f[startblock]>>(start%m4ri_radix), __t = _t[startblock];
     switch( (start/16)%4 ) {
     case 0: __t ^= (X[((__f)& 0x000000000000FFFFULL)])<<0;  __f >>= 16;
     case 1: __t ^= (X[((__f)& 0x000000000000FFFFULL)])<<16; __f >>= 16;
