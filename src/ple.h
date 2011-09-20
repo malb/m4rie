@@ -181,6 +181,6 @@ static inline rci_t mzed_ple(mzed_t *A, mzp_t *P, mzp_t *Q) {
  * Default crossover to PLE base case.
  */
 
-#define __M4RIE_PLE_CUTOFF __M4RI_CPU_L2_CACHE //(2048*2048)
+#define __M4RIE_PLE_CUTOFF (__M4RI_CPU_L2_CACHE<<3) //(2048*2048)
 
 #endif //M4RIE_PLE_H
