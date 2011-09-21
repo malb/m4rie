@@ -109,6 +109,7 @@ mzed_t *_mzed_mul(mzed_t *C, const mzed_t *A, const mzed_t *B) {
 }
 
 mzed_t *_mzed_addmul(mzed_t *C, const mzed_t *A, const mzed_t *B) {
+  assert((A->x->offset | B->x->offset | C->x->offset) == 0);
   if (A->finite_field->degree <= __M4RIE_MAX_KARATSUBA_DEGREE && \
       A->nrows >= 512 && A->ncols >= 512 && B->ncols >= 512)
     return _mzed_mul_karatsuba(C, A, B);
@@ -255,32 +256,16 @@ void mzed_set_ui(mzed_t *A, word value) {
 }
 
 void mzed_print(const mzed_t *A) {
+  char formatstr[10];
+  int width = (A->w/4);
+  if (A->w%4) 
+    width += 1;
+  sprintf(formatstr,"%%%dx",width);
   for (rci_t i=0; i < A->nrows; ++i) {
     printf("[");
     for (rci_t j=0; j < A->ncols; j++) {
       word tmp = mzed_read_elem(A,i,j);
-      printf("[");
-      switch(A->finite_field->degree) {
-      case 16:  (tmp&(1ULL<<15)) ? printf("1") : printf(" ");
-      case 15:  (tmp&(1ULL<<14)) ? printf("1") : printf(" ");
-      case 14:  (tmp&(1ULL<<13)) ? printf("1") : printf(" ");
-      case 13:  (tmp&(1ULL<<12)) ? printf("1") : printf(" ");
-      case 12:  (tmp&(1ULL<<11)) ? printf("1") : printf(" ");
-      case 11:  (tmp&(1ULL<<10)) ? printf("1") : printf(" ");
-      case 10:  (tmp&(1ULL<< 9)) ? printf("1") : printf(" ");
-      case  9:  (tmp&(1ULL<< 8)) ? printf("1") : printf(" ");
-      case  8:  (tmp&(1ULL<< 7)) ? printf("1") : printf(" ");
-      case  7:  (tmp&(1ULL<< 6)) ? printf("1") : printf(" ");
-      case  6:  (tmp&(1ULL<< 5)) ? printf("1") : printf(" ");
-      case  5:  (tmp&(1ULL<< 4)) ? printf("1") : printf(" ");
-      case  4:  (tmp&(1ULL<< 3)) ? printf("1") : printf(" ");
-      case  3:  (tmp&(1ULL<< 2)) ? printf("1") : printf(" ");
-      case  2:  (tmp&(1ULL<< 1)) ? printf("1") : printf(" ");
-      case  1:  (tmp&(1ULL<< 0)) ? printf("1") : printf(" ");
-        break;
-      default: m4ri_die("degree %lz too big\n", A->finite_field->degree);
-      }
-      printf("]");
+      printf(formatstr,(int)tmp);
       if(j<A->ncols-1)
         printf(" ");
     }

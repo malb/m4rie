@@ -24,7 +24,7 @@ mzd_slice_t *mzed_slice(mzd_slice_t *A, const mzed_t *Z) {
     assert(Z->x->offset == 0);
     A = mzd_slice_init(Z->finite_field, Z->nrows, Z->ncols);
   } else {
-    assert(Z->x->offset == (Z->w*A->x[0]->offset)%m4ri_radix);
+    assert(Z->x->offset == (Z->w*A->x[0]->offset));
     mzd_slice_set_ui(A, 0);
   }
 
@@ -50,7 +50,7 @@ mzed_t *mzed_cling(mzed_t *A, const mzd_slice_t *Z) {
     A = mzed_init(Z->finite_field, Z->nrows, Z->ncols);
   }
   else {
-    assert(A->x->offset == (A->w*Z->x[0]->offset)%m4ri_radix);
+    assert(A->x->offset == (A->w*Z->x[0]->offset));
     mzed_set_ui(A, 0);
   }
 
@@ -1258,32 +1258,17 @@ mzd_slice_t *_mzd_slice_mul_karatsuba4(mzd_slice_t *C, const mzd_slice_t *A, con
 }
 
 void mzd_slice_print(const mzd_slice_t *A) {
+  char formatstr[10];
+  int width = gf2e_degree_to_w(A->finite_field)/4;
+  if (gf2e_degree_to_w(A->finite_field)%4) 
+    width += 1;
+  sprintf(formatstr,"%%%dx",width);
+
   for (rci_t i=0; i < A->nrows; ++i) {
     printf("[");
     for (rci_t j=0; j < A->ncols; j++) {
       word tmp = mzd_slice_read_elem(A,i,j);
-      printf("[");
-      switch(A->finite_field->degree) {
-      case 16:  (tmp&(1ULL<<15)) ? printf("1") : printf(" ");
-      case 15:  (tmp&(1ULL<<14)) ? printf("1") : printf(" ");
-      case 14:  (tmp&(1ULL<<13)) ? printf("1") : printf(" ");
-      case 13:  (tmp&(1ULL<<12)) ? printf("1") : printf(" ");
-      case 12:  (tmp&(1ULL<<11)) ? printf("1") : printf(" ");
-      case 11:  (tmp&(1ULL<<10)) ? printf("1") : printf(" ");
-      case 10:  (tmp&(1ULL<< 9)) ? printf("1") : printf(" ");
-      case  9:  (tmp&(1ULL<< 8)) ? printf("1") : printf(" ");
-      case  8:  (tmp&(1ULL<< 7)) ? printf("1") : printf(" ");
-      case  7:  (tmp&(1ULL<< 6)) ? printf("1") : printf(" ");
-      case  6:  (tmp&(1ULL<< 5)) ? printf("1") : printf(" ");
-      case  5:  (tmp&(1ULL<< 4)) ? printf("1") : printf(" ");
-      case  4:  (tmp&(1ULL<< 3)) ? printf("1") : printf(" ");
-      case  3:  (tmp&(1ULL<< 2)) ? printf("1") : printf(" ");
-      case  2:  (tmp&(1ULL<< 1)) ? printf("1") : printf(" ");
-      case  1:  (tmp&(1ULL<< 0)) ? printf("1") : printf(" ");
-        break;
-      default: m4ri_die("degree %lz too big", A->finite_field->degree);
-      }
-      printf("]");
+      printf(formatstr,(int)tmp);
       if(j<A->ncols-1)
         printf(" ");
     }

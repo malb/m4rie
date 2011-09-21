@@ -14,15 +14,28 @@ int test_equality(gf2e *ff, rci_t m, rci_t n) {
   mzed_set_canary(A2);
   mzed_set_canary(A3);
 
-  mzed_echelonize_travolta(A0,1);
-  mzed_echelonize_naive(A1,1);
-  mzed_echelonize(A2,1);
-  // mzed_echelonize_ple(A3,1);
-  
+  const rci_t r0 = mzed_echelonize_travolta(A0,1);
+  const rci_t r1 = mzed_echelonize_naive(A1,1);
+  const rci_t r2 = mzed_echelonize(A2,1);
+  rci_t r3 = 0;
+  if (ff->degree <= __M4RIE_MAX_KARATSUBA_DEGREE) {
+    r3 = mzed_echelonize_ple(A3,1);
+  }
+  m4rie_check( r0 == r1);
   m4rie_check( mzed_cmp(A0, A1) == 0);
+
+  m4rie_check( r1 == r2);
   m4rie_check( mzed_cmp(A1, A2) == 0);
-  // m4rie_check( mzed_cmp(A2, A3) == 0);
-  // m4rie_check( mzed_cmp(A3, A0) == 0);
+
+  if(ff->degree <=  __M4RIE_MAX_KARATSUBA_DEGREE) {
+    m4rie_check( r2 == r3);
+    m4rie_check( mzed_cmp(A2, A3) == 0);
+    m4rie_check( r3 == r0);
+    m4rie_check( mzed_cmp(A3, A0) == 0);
+  } else {
+    m4rie_check( r2 == r0);
+    m4rie_check( mzed_cmp(A2, A0) == 0);
+  }
 
   m4rie_check( mzed_canary_is_alive(A0) );
   m4rie_check( mzed_canary_is_alive(A1) );
@@ -70,6 +83,8 @@ int main(int argc, char **argv) {
   }
 
   for(int k=2; k<=10; k++) {
+    fail_ret += test_batch(ff[k],  32,  33);
+    fail_ret += test_batch(ff[k],   2,   5);
     fail_ret += test_batch(ff[k],   5,  10);
     fail_ret += test_batch(ff[k],   1,   1);
     fail_ret += test_batch(ff[k],   1,   2);

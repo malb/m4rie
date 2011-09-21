@@ -22,7 +22,7 @@ bench_elimination_CXXFLAGS=${BENCHCXXFLAGS}
 bench_elimination_LDFLAGS=${BENCHLDFLAGS} ${BENCHLIBADD}
 
 bench_multiplication_SOURCES=bench_multiplication.cc cpucycles.h benchmarking.cc
-bench_multiplication_CXXFLAGS=${BENCHCXXFLAGS}  -I${CPUCYCLES_DIR}
+bench_multiplication_CXXFLAGS=${BENCHCXXFLAGS}
 bench_multiplication_LDFLAGS=${BENCHLDFLAGS} ${BENCHLIBADD}
 
 bench_smallops_SOURCES=bench_smallops.cc cpucycles.h benchmarking.cc

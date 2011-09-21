@@ -202,29 +202,65 @@ int test_add(gf2e *ff, int m, int n) {
   return fail_ret; 
 }
 
+// int test_cling_offset(gf2e *ff, int m, int n) {
+//   int fail_ret = 0;
+//   mzd_slice_t *A = random_mzd_slice_t(ff, m, m+n);
+//   mzd_slice_t *B = mzd_slice_init_window(A, 0, m, m, m+n);
+
+//   mzed_t *a = mzed_init(ff, m, m+n);
+//   mzed_t *b = mzed_init_window(a, 0, m, m, m+n);
+
+//   mzed_set_canary(b);
+
+//   mzed_cling(b, B);
+
+//   for(rci_t i=0; i<B->nrows; i++) {
+//     for(rci_t j=0; j<B->ncols; j++) {
+//       m4rie_check( mzd_slice_read_elem(B, i, j) == mzed_read_elem(b, i, j) );
+//       if (fail_ret)
+//         break;
+//     }
+//     if(fail_ret)
+//       break;
+//   }
+  
+//   m4rie_check( mzed_canary_is_alive(b) );
+
+//   mzed_free_window(b);
+//   mzed_free(a);
+
+//   mzd_slice_free_window(B);
+//   mzd_slice_free(A);
+//   return fail_ret;
+// };
+
 int test_batch(gf2e *ff, int m, int n) {
   int fail_ret = 0;
   printf("testing k: %2d, m: %4d, n: %4d ",ff->degree,m,n);
 
-  m4rie_check( test_slice(ff, m, n) == 0); printf("."); 
-  m4rie_check( test_add(ff, m, n) == 0) ; printf("."); 
-  m4rie_check( test_slice_known_answers(ff, m, n) == 0); printf(".");
-  m4rie_check( test_offset(ff, m, n) == 0); printf(".");
+  m4rie_check( test_slice(ff, m, n) == 0);   printf("."); fflush(0);
+  m4rie_check( test_add(ff, m, n) == 0) ;    printf("."); fflush(0);
+  m4rie_check( test_slice_known_answers(ff, m, n) == 0); printf("."); fflush(0);
+  m4rie_check( test_offset(ff, m, n) == 0);  printf("."); fflush(0);
+  // m4rie_check( test_cling_offset(ff, m, n) == 0); printf("."); fflush(0);
 
-  m4rie_check( test_slice(ff, m, m) == 0); printf("."); 
-  m4rie_check( test_add(ff, m, m) == 0) ; printf("."); 
-  m4rie_check( test_slice_known_answers(ff, m, m) == 0); printf(".");
-  m4rie_check( test_offset(ff, m, m) == 0); printf(".");
+  m4rie_check( test_slice(ff, m, m) == 0);   printf("."); fflush(0);
+  m4rie_check( test_add(ff, m, m) == 0) ;    printf("."); fflush(0);
+  m4rie_check( test_slice_known_answers(ff, m, m) == 0); printf("."); fflush(0);
+  m4rie_check( test_offset(ff, m, m) == 0);  printf("."); fflush(0);
+  // m4rie_check( test_cling_offset(ff, m, m) == 0); printf("."); fflush(0);
 
-  m4rie_check( test_slice(ff, n, m) == 0); printf("."); 
-  m4rie_check( test_add(ff, n, m) == 0) ; printf("."); 
-  m4rie_check( test_slice_known_answers(ff, n, m) == 0); printf(".");
-  m4rie_check( test_offset(ff, n, m) == 0); printf(".");
+  m4rie_check( test_slice(ff, n, m) == 0);   printf("."); fflush(0);
+  m4rie_check( test_add(ff, n, m) == 0) ;    printf("."); fflush(0);
+  m4rie_check( test_slice_known_answers(ff, n, m) == 0); printf("."); fflush(0);
+  m4rie_check( test_offset(ff, n, m) == 0); printf("."); fflush(0);
+  // m4rie_check( test_cling_offset(ff, n, m) == 0); printf("."); fflush(0);
 
-  m4rie_check( test_slice(ff, n, n) == 0); printf("."); 
-  m4rie_check( test_add(ff, n, n) == 0) ; printf("."); 
-  m4rie_check( test_slice_known_answers(ff, n, n) == 0); printf(".");
-  m4rie_check( test_offset(ff, n, n) == 0); printf(".");
+  m4rie_check( test_slice(ff, n, n) == 0);  printf("."); fflush(0);
+  m4rie_check( test_add(ff, n, n) == 0) ;   printf("."); fflush(0);
+  m4rie_check( test_slice_known_answers(ff, n, n) == 0); printf("."); fflush(0);
+  m4rie_check( test_offset(ff, n, n) == 0);  printf("."); fflush(0);
+  // m4rie_check( test_cling_offset(ff, n, n) == 0); printf("."); fflush(0);
 
   if (fail_ret == 0)
     printf(" passed\n");

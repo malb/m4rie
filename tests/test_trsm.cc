@@ -183,6 +183,7 @@ int test_mzed_trsm_upper_left_echelonize(gf2e *ff, rci_t m, rci_t n) {
       mzed_write_elem(U, i, i, random()&bitmask) ;
     }
   }
+
   mzed_t *C = mzed_copy(NULL, A);
   mzed_echelonize(C, 1);
 
@@ -195,12 +196,6 @@ int test_mzed_trsm_upper_left_echelonize(gf2e *ff, rci_t m, rci_t n) {
   }
 
   m4rie_check(mzed_cmp(C,A) == 0);
-
-  if (mzed_cmp(C,A) != 0) {
-    mzed_print(C);
-    printf("\n");
-    mzed_print(A);
-  }
 
   mzed_free(A);
   mzed_free_window(U);
@@ -454,8 +449,8 @@ int test_batch(gf2e *ff, rci_t m, rci_t n) {
   m4rie_check(test_mzed_trsm_lower_left(ff, n, m) == 0); printf("."); fflush(0);
   m4rie_check(test_mzed_trsm_upper_left(ff, n, m) == 0); printf("."); fflush(0);
 
-  // m4rie_check(test_mzed_trsm_upper_left_echelonize(ff, m, n) == 0); printf("."); fflush(0);
-  // m4rie_check(test_mzed_trsm_upper_left_echelonize(ff, n, m) == 0); printf("."); fflush(0);
+  m4rie_check(test_mzed_trsm_upper_left_echelonize(ff, m, n) == 0); printf("."); fflush(0);
+  m4rie_check(test_mzed_trsm_upper_left_echelonize(ff, n, m) == 0); printf("."); fflush(0);
 
   if(ff->degree <= __M4RIE_MAX_KARATSUBA_DEGREE) {
     m4rie_check(test_mzd_slice_trsm_lower_left(ff, m, n) == 0); printf("."); fflush(0);
@@ -495,6 +490,7 @@ int main(int argc, char **argv) {
     fail_ret += test_batch(ff[k],  32,  33);
     fail_ret += test_batch(ff[k],  63,  64);
     fail_ret += test_batch(ff[k],  65,  1);
+    fail_ret += test_batch(ff[k],  65,  66);
     fail_ret += test_batch(ff[k], 127, 128);
     fail_ret += test_batch(ff[k], 200,  20);
   };
