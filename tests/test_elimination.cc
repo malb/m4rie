@@ -83,7 +83,6 @@ int main(int argc, char **argv) {
   }
 
   for(int k=2; k<=10; k++) {
-    fail_ret += test_batch(ff[k],  32,  33);
     fail_ret += test_batch(ff[k],   2,   5);
     fail_ret += test_batch(ff[k],   5,  10);
     fail_ret += test_batch(ff[k],   1,   1);

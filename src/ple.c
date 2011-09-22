@@ -26,7 +26,7 @@ rci_t mzed_ple_naive(mzed_t *A, mzp_t *P, mzp_t *Q) {
   rci_t col_pos = 0;
   rci_t row_pos = 0;
   word tmp = 0;
-  gf2e *ff = A->finite_field;
+  const gf2e *ff = A->finite_field;
   rci_t i,j;
   int found = 0;
 

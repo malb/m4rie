@@ -24,17 +24,26 @@
 #include "gf2e_matrix.h"
 #include "bitslice.h"
 
+typedef struct {
+  rci_t *L;
+  mzed_t *T;
+  mzed_t *M;
+} tt_mzed_t;
+
+tt_mzed_t *tt_mzed_init(const gf2e *ff, const rci_t ncols);
+
+void tt_mzed_free(tt_mzed_t *);
+
 /**
  * \brief Construct Travolta table T for row r of A, and element A[r,c].
  *
+ * \param T Preallocated Travolta table or NULL.
  * \param A Matrix.
  * \param r Row index.
  * \param c Column index.
- * \param T Matrix of dimension (2^k) x A->ncols
- * \param L lookup table of length (2^k)
  */
 
-void mzed_make_table(const mzed_t *A, rci_t r, rci_t c, mzed_t *T, rci_t *L);
+tt_mzed_t * mzed_make_table(tt_mzed_t *T, const mzed_t *A, const rci_t r, const rci_t c);
 
 /**
  * \brief Compute C such that C == AB using Travolta tables.
@@ -144,14 +153,13 @@ rci_t mzed_ple_travolta(mzed_t *A, mzp_t *P, mzp_t *Q);
  * \param startrow top row which is operated on
  * \param endrow bottom row which is operated on
  * \param startcol Starting column for addition
- * \param T contains the correct row to be added
- * \param L Contains row number to be added
+ * \param T Travolta table
  * 
  * \ingroup RowOperations
  */
 
-static inline void mzed_process_rows(mzed_t *M, rci_t startrow, rci_t endrow, rci_t startcol, mzed_t *T, rci_t *L) {
-  mzd_process_rows(M->x, startrow, endrow, startcol*M->w, M->w, T->x, L);
+static inline void mzed_process_rows(mzed_t *M, const rci_t startrow, const rci_t endrow, rci_t startcol, const tt_mzed_t *T) {
+  mzd_process_rows(M->x, startrow, endrow, startcol*M->w, M->w, T->T->x, T->L);
 }
 
 /**
@@ -162,16 +170,15 @@ static inline void mzed_process_rows(mzed_t *M, rci_t startrow, rci_t endrow, rc
  * \param startrow top row which is operated on
  * \param endrow bottom row which is operated on
  * \param startcol Starting column for addition
- * \param T0 contains the correct row to be added
- * \param L0 Contains row number to be added
- * \param T1 contains the correct row to be added
- * \param L1 Contains row number to be added
+ * \param T0 Travolta table
+ * \param T1 Travolta table
  * 
  * \ingroup RowOperations
  */
 
-static inline void mzed_process_rows2(mzed_t *M, rci_t startrow, rci_t endrow, rci_t startcol, mzed_t *T0, rci_t *L0, mzed_t *T1, rci_t *L1) {
-  mzd_process_rows2(M->x, startrow, endrow, startcol*M->w, 2*M->w, T0->x, L0, T1->x, L1);
+static inline void mzed_process_rows2(mzed_t *M, const rci_t startrow, const rci_t endrow, const rci_t startcol, 
+                                      const tt_mzed_t *T0, const tt_mzed_t *T1) {
+  mzd_process_rows2(M->x, startrow, endrow, startcol*M->w, 2*M->w, T0->T->x, T0->L, T1->T->x, T1->L);
 }
 
 /**
@@ -182,20 +189,16 @@ static inline void mzed_process_rows2(mzed_t *M, rci_t startrow, rci_t endrow, r
  * \param startrow top row which is operated on
  * \param endrow bottom row which is operated on
  * \param startcol Starting column for addition
- * \param T0 contains the correct row to be added
- * \param L0 Contains row number to be added
- * \param T1 contains the correct row to be added
- * \param L1 Contains row number to be added
- * \param T2 contains the correct row to be added
- * \param L2 Contains row number to be added
+ * \param T0 Travolta table
+ * \param T1 Travolta table
+ * \param T2 Travolta table
  * 
  * \ingroup RowOperations
  */
 
-static inline void mzed_process_rows3(mzed_t *M, rci_t startrow, rci_t endrow, rci_t startcol, 
-                                      mzed_t *T0, rci_t *L0, mzed_t *T1, rci_t *L1,
-                                      mzed_t *T2, rci_t *L2) {
-  mzd_process_rows3(M->x, startrow, endrow, startcol*M->w, 3*M->w, T0->x, L0, T1->x, L1, T2->x, L2);
+static inline void mzed_process_rows3(mzed_t *M, const rci_t startrow, const rci_t endrow, const rci_t startcol, 
+                                      const tt_mzed_t *T0, const tt_mzed_t *T1, const tt_mzed_t *T2) {
+  mzd_process_rows3(M->x, startrow, endrow, startcol*M->w, 3*M->w, T0->T->x, T0->L, T1->T->x, T1->L, T2->T->x, T2->L);
 }
 
 /**
@@ -206,22 +209,17 @@ static inline void mzed_process_rows3(mzed_t *M, rci_t startrow, rci_t endrow, r
  * \param startrow top row which is operated on
  * \param endrow bottom row which is operated on
  * \param startcol Starting column for addition
- * \param T0 contains the correct row to be added
- * \param L0 Contains row number to be added
- * \param T1 contains the correct row to be added
- * \param L1 Contains row number to be added
- * \param T2 contains the correct row to be added
- * \param L2 Contains row number to be added
- * \param T3 contains the correct row to be added
- * \param L3 Contains row number to be added
+ * \param T0 Travolta table
+ * \param T1 Travolta table
+ * \param T2 Travolta table
+ * \param T3 Travolta table
  * 
  * \ingroup RowOperations
  */
 
-static inline void mzed_process_rows4(mzed_t *M, rci_t startrow, rci_t endrow, rci_t startcol,
-                                      mzed_t *T0, rci_t *L0, mzed_t *T1, rci_t *L1,
-                                      mzed_t *T2, rci_t *L2, mzed_t *T3, rci_t *L3) {
-  mzd_process_rows4(M->x, startrow, endrow, startcol*M->w, 4*M->w, T0->x, L0, T1->x, L1, T2->x, L2, T3->x, L3);
+static inline void mzed_process_rows4(mzed_t *M, const rci_t startrow, const rci_t endrow, const rci_t startcol,
+                                      const tt_mzed_t *T0, const tt_mzed_t *T1, const tt_mzed_t *T2, const tt_mzed_t *T3) {
+  mzd_process_rows4(M->x, startrow, endrow, startcol*M->w, 4*M->w, T0->T->x, T0->L, T1->T->x, T1->L, T2->T->x, T2->L, T3->T->x, T3->L);
 }
 
 
@@ -233,25 +231,18 @@ static inline void mzed_process_rows4(mzed_t *M, rci_t startrow, rci_t endrow, r
  * \param startrow top row which is operated on
  * \param endrow bottom row which is operated on
  * \param startcol Starting column for addition
- * \param T0 contains the correct row to be added
- * \param L0 Contains row number to be added
- * \param T1 contains the correct row to be added
- * \param L1 Contains row number to be added
- * \param T2 contains the correct row to be added
- * \param L2 Contains row number to be added
- * \param T3 contains the correct row to be added
- * \param L3 Contains row number to be added
- * \param T4 contains the correct row to be added
- * \param L4 Contains row number to be added
+ * \param T0 Travolta table
+ * \param T1 Travolta table
+ * \param T2 Travolta table
+ * \param T3 Travolta table
+ * \param T4 Travolta table
  * 
  * \ingroup RowOperations
  */
 
-static inline void mzed_process_rows5(mzed_t *M, rci_t startrow, rci_t endrow, rci_t startcol,
-                                      mzed_t *T0, rci_t *L0, mzed_t *T1, rci_t *L1,
-                                      mzed_t *T2, rci_t *L2, mzed_t *T3, rci_t *L3,
-                                      mzed_t* T4, rci_t *L4) {
-  mzd_process_rows5(M->x, startrow, endrow, startcol*M->w, 5*M->w, T0->x, L0, T1->x, L1, T2->x, L2, T3->x, L3, T4->x, L4);
+static inline void mzed_process_rows5(mzed_t *M, const rci_t startrow, const rci_t endrow, const rci_t startcol,
+                                      const tt_mzed_t *T0, const tt_mzed_t *T1, const tt_mzed_t *T2, const tt_mzed_t *T3, const tt_mzed_t *T4) {
+  mzd_process_rows5(M->x, startrow, endrow, startcol*M->w, 5*M->w, T0->T->x, T0->L, T1->T->x, T1->L, T2->T->x, T2->L, T3->T->x, T3->L, T4->T->x, T4->L);
 }
 
 
@@ -263,27 +254,21 @@ static inline void mzed_process_rows5(mzed_t *M, rci_t startrow, rci_t endrow, r
  * \param startrow top row which is operated on
  * \param endrow bottom row which is operated on
  * \param startcol Starting column for addition
- * \param T0 contains the correct row to be added
- * \param L0 Contains row number to be added
- * \param T1 contains the correct row to be added
- * \param L1 Contains row number to be added
- * \param T2 contains the correct row to be added
- * \param L2 Contains row number to be added
- * \param T3 contains the correct row to be added
- * \param L3 Contains row number to be added
- * \param T4 contains the correct row to be added
- * \param L4 Contains row number to be added
- * \param T5 contains the correct row to be added
- * \param L5 Contains row number to be added
+ * \param T0 Travolta table
+ * \param T1 Travolta table
+ * \param T2 Travolta table
+ * \param T3 Travolta table
+ * \param T4 Travolta table
+ * \param T5 Travolta table
  * 
  * \ingroup RowOperations
  */
 
-static inline void mzed_process_rows6(mzed_t *M, rci_t startrow, rci_t endrow, rci_t startcol,
-                                      mzed_t *T0, rci_t *L0, mzed_t *T1, rci_t *L1,
-                                      mzed_t *T2, rci_t *L2, mzed_t *T3, rci_t *L3,
-                                      mzed_t* T4, rci_t *L4, mzed_t *T5, rci_t *L5) {
-  mzd_process_rows6(M->x, startrow, endrow, startcol*M->w, 6*M->w, T0->x, L0, T1->x, L1, T2->x, L2, T3->x, L3, T4->x, L4, T5->x, L5);
+static inline void mzed_process_rows6(mzed_t *M, const rci_t startrow, const rci_t endrow, const rci_t startcol,
+                                      const tt_mzed_t *T0, const tt_mzed_t *T1, const tt_mzed_t *T2, 
+                                      const tt_mzed_t *T3, const tt_mzed_t *T4, const tt_mzed_t *T5) {
+  mzd_process_rows6(M->x, startrow, endrow, startcol*M->w, 6*M->w, T0->T->x, T0->L, T1->T->x, T1->L, T2->T->x, T2->L, T3->T->x, T3->L, T4->T->x, T4->L, T5->T->x, T5->L);
 }
+
 
 #endif //M4RIE_TRAVOLTA_H

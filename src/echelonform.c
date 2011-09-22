@@ -24,7 +24,7 @@
 #include "ple.h"
 
 rci_t mzed_echelonize(mzed_t *A, int full) {
-  if (A->finite_field->degree > A->nrows/2) {
+  if (A->finite_field->degree > A->nrows) {
     return mzed_echelonize_naive(A, full);
   } else {
     return mzed_echelonize_travolta(A, full);

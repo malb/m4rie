@@ -60,7 +60,7 @@ typedef struct {
    * A finite field GF(2^k).
    */
 
-  gf2e *finite_field;
+  const gf2e *finite_field;
 
   /**
    * Number of rows.
@@ -95,7 +95,7 @@ typedef struct {
  * \ingroup Constructions
  */
 
-static inline mzd_slice_t *mzd_slice_init(gf2e *ff, const rci_t m, const rci_t n) {
+static inline mzd_slice_t *mzd_slice_init(const gf2e *ff, const rci_t m, const rci_t n) {
 
   /**
    * @TODO: avoid all these malloc() calls and call it once only

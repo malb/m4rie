@@ -6,7 +6,7 @@ void mzed_trsm_upper_left_naive(const mzed_t *U, mzed_t *B) {
   assert(U->nrows == U->ncols);
   assert(B->nrows == U->ncols);
 
-  gf2e *ff = U->finite_field;
+  const gf2e *ff = U->finite_field;
   for(int i=B->nrows-1; i>=0; i--) {
     for(rci_t k=i+1; k<B->nrows; k++) {
       mzed_add_multiple_of_row(B, i, B, k, ff->mul[mzed_read_elem(U, i, k)], 0);
@@ -20,7 +20,7 @@ void mzed_trsm_lower_left_naive(const mzed_t *L, mzed_t *B) {
   assert(L->nrows == L->ncols);
   assert(B->nrows == L->ncols);
 
-  gf2e *ff = L->finite_field;
+  const gf2e *ff = L->finite_field;
   for(rci_t i=0; i<B->nrows; i++) {
     for(rci_t k=0; k<i; k++) {
       mzed_add_multiple_of_row(B, i, B, k, ff->mul[mzed_read_elem(L, i, k)], 0);

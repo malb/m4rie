@@ -13,7 +13,7 @@ typedef struct {
 void gf2e_free(gf2e *ff);
 
 
-static inline size_t gf2e_degree_to_w(gf2e *ff) {
+static inline size_t gf2e_degree_to_w(const gf2e *ff) {
   switch(ff->degree) {
   case 2: 
     return 2; 
@@ -40,7 +40,7 @@ static inline size_t gf2e_degree_to_w(gf2e *ff) {
   return 0;
 }
 
-static inline word *gf2e_t16_init(gf2e *ff, const word a) {
+static inline word *gf2e_t16_init(const gf2e *ff, const word a) {
   word *mul = (word*)m4ri_mm_calloc(1<<16, sizeof(word));
 
   const int w = gf2e_degree_to_w(ff);

@@ -63,7 +63,7 @@ typedef struct {
    * A finite field GF(2^k).
    */
 
-  gf2e *finite_field;
+  const gf2e *finite_field;
 
   /**
    * Number of rows.
@@ -98,7 +98,7 @@ typedef struct {
  * \ingroup Constructions
  */
 
-mzed_t *mzed_init(gf2e *ff, const rci_t m, const rci_t n);
+mzed_t *mzed_init(const gf2e *ff, const rci_t m, const rci_t n);
 
 /**
  * \brief Free a matrix created with mzed_init.

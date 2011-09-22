@@ -24,7 +24,7 @@
 #include "strassen.h"
 #include "bitslice.h"
 
-mzed_t *mzed_init(gf2e* k, rci_t m, rci_t n) {
+mzed_t *mzed_init(const gf2e* k, rci_t m, rci_t n) {
   mzed_t *A = (mzed_t *)m4ri_mm_malloc(sizeof(mzed_t));
 
   A->finite_field = k;
@@ -129,7 +129,7 @@ mzed_t *mzed_addmul_naive(mzed_t *C, const mzed_t *A, const mzed_t *B) {
 }
 
 mzed_t *_mzed_mul_naive(mzed_t *C, const mzed_t *A, const mzed_t *B) {
-  gf2e* ff = C->finite_field;
+  const gf2e* ff = C->finite_field;
   for (rci_t i=0; i<C->nrows; ++i) {
     for (rci_t j=0; j<C->ncols; ++j) {
       for (rci_t k=0; k<A->ncols; ++k) {
@@ -216,7 +216,7 @@ rci_t mzed_echelonize_naive(mzed_t *A, int full) {
   rci_t nr = A->nrows;
   rci_t nc = A->ncols;
 
-  gf2e *ff = A->finite_field;
+  const gf2e *ff = A->finite_field;
 
   start_row = 0;
 
