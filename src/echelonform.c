@@ -26,8 +26,10 @@
 rci_t mzed_echelonize(mzed_t *A, int full) {
   if (A->finite_field->degree > A->nrows) {
     return mzed_echelonize_naive(A, full);
-  } else {
+  } else if ((A->nrows * A->ncols * A->w <= __M4RIE_PLE_CUTOFF) || (A->finite_field->degree > __M4RIE_MAX_KARATSUBA_DEGREE)) {
     return mzed_echelonize_travolta(A, full);
+  } else {
+    return mzed_echelonize_ple(A, full);
   }
 }
 
