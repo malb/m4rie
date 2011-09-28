@@ -500,7 +500,7 @@ static inline int mzed_cmp(mzed_t *A, mzed_t *B) {
  *
  * \ingroup Comparison
  */
-static inline int mzed_is_zero(mzed_t *A) {
+static inline int mzed_is_zero(const mzed_t *A) {
   return mzd_is_zero(A->x);
 }
 

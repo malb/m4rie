@@ -495,7 +495,7 @@ static inline mzd_slice_t *_mzd_slice_mul_karatsuba(mzd_slice_t *C, const mzd_sl
   case  9:
   case 10:
   default:
-    m4ri_die("mzed_mul_karatsuba: only implemented for GF(2^e) with e <= 4");
+    m4ri_die("_mzd_slice_mul_karatsuba: only implemented for GF(2^e) with e <= 4");
   }
   return C;
 }

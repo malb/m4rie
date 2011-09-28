@@ -19,12 +19,37 @@
 
 #include "bitslice.h"
 
+static const word x88888888 = 0x8888888888888888ULL;
+static const word xaaaaaaaa = 0xaaaaaaaaaaaaaaaaULL;
+static const word xcccccccc = 0xccccccccccccccccULL;
+static const word xf0f0f0f0 = 0xf0f0f0f0f0f0f0f0ULL;
+static const word xff00ff00 = 0xff00ff00ff00ff00ULL;
+static const word xffff0000 = 0xffff0000ffff0000ULL;
+static const word xffffffff = 0xffffffff00000000ULL;
+
+static inline word word_compress_64_02_l(word a) {
+  a = (a & xcccccccc) | (a & xcccccccc>> 2)<< 1;
+  a = (a & xf0f0f0f0) | (a & xf0f0f0f0>> 4)<< 2;
+  a = (a & xff00ff00) | (a & xff00ff00>> 8)<< 4;
+  a = (a & xffff0000) | (a & xffff0000>>16)<< 8;
+  a = (a & xffffffff) | (a & xffffffff>>32)<<16;
+  return a;
+}
+
+static inline word word_compress_64_04_l(word a) {
+  a = (a & xf0f0f0f0) | (a & xf0f0f0f0>> 4)<< 3;
+  a = (a & xff00ff00) | (a & xff00ff00>> 8)<< 6;
+  a = (a & xffff0000) | (a & xffff0000>>16)<<12;
+  a = (a & xffffffff) | (a & xffffffff>>32)<<24;
+  return a;
+}
+
 mzd_slice_t *mzed_slice(mzd_slice_t *A, const mzed_t *Z) {
   if (A == NULL) {
     assert(Z->x->offset == 0);
     A = mzd_slice_init(Z->finite_field, Z->nrows, Z->ncols);
   } else {
-    assert(Z->x->offset == (Z->w*A->x[0]->offset));
+    assert((Z->x->offset | A->x[0]->offset) == 0);
     mzd_slice_set_ui(A, 0);
   }
 
@@ -50,7 +75,7 @@ mzed_t *mzed_cling(mzed_t *A, const mzd_slice_t *Z) {
     A = mzed_init(Z->finite_field, Z->nrows, Z->ncols);
   }
   else {
-    assert(A->x->offset == (A->w*Z->x[0]->offset));
+    assert((A->x->offset | Z->x[0]->offset) == 0);
     mzed_set_ui(A, 0);
   }
 
@@ -69,6 +94,8 @@ mzed_t *mzed_cling(mzed_t *A, const mzd_slice_t *Z) {
   }
   return A;
 }
+
+#if 0
 
 mzd_slice_t *_mzed_slice2(mzd_slice_t *A, const mzed_t *Z) {
   assert(A && (A->depth >= 2));
@@ -180,6 +207,70 @@ mzd_slice_t *_mzed_slice2(mzd_slice_t *A, const mzed_t *Z) {
   
   return A;
 }
+
+#else
+
+mzd_slice_t *_mzed_slice2(mzd_slice_t *T, const mzed_t *F) {
+  assert(T && (T->depth >= 2));
+  size_t j, j2 = 0;
+
+  const word bitmask_end = __M4RI_LEFT_BITMASK((T->x[0]->offset + T->ncols) % m4ri_radix);
+  register word r0,r1,r2,r3;
+
+  if (mzed_is_zero(F))
+    return T;
+
+  for(size_t i=0; i<T->nrows; i++) {
+    word *t0 = T->x[0]->rows[i];
+    word *t1 = T->x[1]->rows[i];
+    const word *f  = F->x->rows[i];    
+
+    /* bulk of work */
+    for(j=0, j2=0; j+2 < F->x->width; j+=2,j2++) {
+      r0 = f[j+0], r1 = f[j+1];
+      r2 = word_compress_64_02_l(r0<<1 & xaaaaaaaa);
+      r3 = word_compress_64_02_l(r1<<1 & xaaaaaaaa);
+      t0[j2] = r3 | (r2>>32);
+
+      r2 = word_compress_64_02_l(r0<<0 & xaaaaaaaa);
+      r3 = word_compress_64_02_l(r1<<0 & xaaaaaaaa);
+      t1[j2] = r3 | (r2>>32);
+    }
+
+    switch(F->x->width - j) {
+    case 2:
+      r0 = f[j+0], r1 = f[j+1];
+
+      r2 = word_compress_64_02_l(r0<<1 & xaaaaaaaa);
+      r3 = word_compress_64_02_l(r1<<1 & xaaaaaaaa);
+      t0[j2] &= ~bitmask_end;
+      t0[j2] |= (r3 | (r2>>32)) & bitmask_end;
+
+      r2 = word_compress_64_02_l(r0<<0 & xaaaaaaaa);
+      r3 = word_compress_64_02_l(r1<<0 & xaaaaaaaa);
+      t1[j2] &= ~bitmask_end;
+      t1[j2] |= (r3 | (r2>>32)) & bitmask_end;
+      break;
+    case 1:
+      r0 = f[j+0];
+
+      r2 = word_compress_64_02_l(r0<<1 & xaaaaaaaa);
+      t0[j2] &= ~bitmask_end;
+      t0[j2] |= (r2>>32) & bitmask_end;
+
+      r2 = word_compress_64_02_l(r0<<0 & xaaaaaaaa);
+      t1[j2] &= ~bitmask_end;
+      t1[j2] |= (r2>>32) & bitmask_end;
+      break;
+    default:
+      m4ri_die("impossible");
+    }
+  }
+  
+  return T;
+}
+#endif
+
 
 mzed_t *_mzed_cling2(mzed_t *A, const mzd_slice_t *Z) {
   size_t j,j2 = 0;
@@ -499,6 +590,7 @@ mzed_t *_mzed_cling2(mzed_t *A, const mzd_slice_t *Z) {
   return A;
 }
 
+#if 0
 mzd_slice_t *_mzed_slice4(mzd_slice_t *A, const mzed_t *Z) {
   assert(A && (A->depth == 3 || A->depth == 4));
   size_t j, j2 = 0;
@@ -720,6 +812,110 @@ mzd_slice_t *_mzed_slice4(mzd_slice_t *A, const mzed_t *Z) {
   }
   return A;
 }
+#else 
+
+mzd_slice_t *_mzed_slice4(mzd_slice_t *T, const mzed_t *F) {
+  assert(T && (T->depth == 3 || T->depth == 4) && T->x[0]->offset == 0);
+  size_t j, j2 = 0;
+  register word r0,r1,r2,r3 = 0;
+
+  const word bitmask_end = __M4RI_LEFT_BITMASK((T->x[0]->offset + T->ncols) % m4ri_radix);
+
+  if (mzed_is_zero(F))
+    return T;
+
+  /* A0 */
+  for(size_t i=0; i<T->nrows; i++) {
+    word *t0 = T->x[0]->rows[i];
+    word *t1 = T->x[1]->rows[i];
+    word *t2 = T->x[2]->rows[i];
+    const word const *f  = F->x->rows[i];
+
+    /* bulk of work */
+    for(j=0, j2=0; j+4 < F->x->width; j+=4,j2++) {
+      r0 = word_compress_64_04_l(f[j+0]<<3 & x88888888)>>48;
+      r1 = word_compress_64_04_l(f[j+1]<<3 & x88888888)>>32; 
+      r2 = word_compress_64_04_l(f[j+2]<<3 & x88888888)>>16; 
+      r3 = word_compress_64_04_l(f[j+3]<<3 & x88888888)>> 0; 
+      t0[j2] = r0|r1|r2|r3;
+
+      r0 = word_compress_64_04_l(f[j+0]<<2 & x88888888)>>48;
+      r1 = word_compress_64_04_l(f[j+1]<<2 & x88888888)>>32; 
+      r2 = word_compress_64_04_l(f[j+2]<<2 & x88888888)>>16; 
+      r3 = word_compress_64_04_l(f[j+3]<<2 & x88888888)>> 0; 
+      t1[j2] = r0|r1|r2|r3;
+
+      r0 = word_compress_64_04_l(f[j+0]<<1 & x88888888)>>48;
+      r1 = word_compress_64_04_l(f[j+1]<<1 & x88888888)>>32; 
+      r2 = word_compress_64_04_l(f[j+2]<<1 & x88888888)>>16; 
+      r3 = word_compress_64_04_l(f[j+3]<<1 & x88888888)>> 0; 
+      t2[j2] = r0|r1|r2|r3;
+    }
+    r0 = r1 = r2 = 0;
+    switch(F->x->width - j) {
+    case 4:
+      r0 |= word_compress_64_04_l(f[j+3]<<3 & x88888888)>> 0; 
+      r1 |= word_compress_64_04_l(f[j+3]<<2 & x88888888)>> 0; 
+      r2 |= word_compress_64_04_l(f[j+3]<<1 & x88888888)>> 0; 
+    case 3:
+      r0 |= word_compress_64_04_l(f[j+2]<<3 & x88888888)>>16; 
+      r1 |= word_compress_64_04_l(f[j+2]<<2 & x88888888)>>16; 
+      r2 |= word_compress_64_04_l(f[j+2]<<1 & x88888888)>>16; 
+    case 2:
+      r0 |= word_compress_64_04_l(f[j+1]<<3 & x88888888)>>32; 
+      r1 |= word_compress_64_04_l(f[j+1]<<2 & x88888888)>>32; 
+      r2 |= word_compress_64_04_l(f[j+1]<<1 & x88888888)>>32; 
+    case 1:
+      r0 |= word_compress_64_04_l(f[j+0]<<3 & x88888888)>>48;
+      r1 |= word_compress_64_04_l(f[j+0]<<2 & x88888888)>>48;
+      r2 |= word_compress_64_04_l(f[j+0]<<1 & x88888888)>>48;
+      break;
+    default:
+      m4ri_die("impossible");
+    }
+    t0[j2] |= r0 & bitmask_end;
+    t1[j2] |= r1 & bitmask_end;
+    t2[j2] |= r2 & bitmask_end;
+  }
+
+  if(T->depth == 3)
+    return T;
+
+  /* A3 */
+  for(size_t i=0; i<T->nrows; i++) {
+    word *t3 = T->x[3]->rows[i];
+    const word const *f  = F->x->rows[i];
+
+    /* bulk of work */
+    for(j=0, j2=0; j+4 < F->x->width; j+=4,j2++) {
+      if ( !(f[j+0] | f[j+1] | f[j+2] | f[j+3]) )
+        continue;
+      r0 = word_compress_64_04_l(f[j+0]<<0 & x88888888)>>48;
+      r1 = word_compress_64_04_l(f[j+1]<<0 & x88888888)>>32; 
+      r2 = word_compress_64_04_l(f[j+2]<<0 & x88888888)>>16; 
+      r3 = word_compress_64_04_l(f[j+3]<<0 & x88888888)>> 0; 
+      t3[j2] = r0|r1|r2|r3;
+    }
+    r3 = 0;
+    switch(F->x->width - j) {
+    case 4:
+      r3 |= word_compress_64_04_l(f[j+3]<<0 & x88888888)>> 0; 
+    case 3:
+      r3 |= word_compress_64_04_l(f[j+2]<<0 & x88888888)>>16; 
+    case 2:
+      r3 |= word_compress_64_04_l(f[j+1]<<0 & x88888888)>>32; 
+    case 1:
+      r3 |= word_compress_64_04_l(f[j+0]<<0 & x88888888)>>48;
+      break;
+    default:
+      m4ri_die("impossible");
+    }
+    t3[j2] |= r3 & bitmask_end;    
+  }
+  return T;
+}
+
+#endif
 
 mzed_t *_mzed_cling4(mzed_t *A, const mzd_slice_t *Z) {
   size_t j,j2 = 0;
