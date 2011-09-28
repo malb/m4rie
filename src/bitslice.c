@@ -75,7 +75,6 @@ mzd_slice_t *_mzed_slice2(mzd_slice_t *A, const mzed_t *Z) {
   size_t j, j2 = 0;
   register word t0,t1;
 
-  const word bitmask_begin = __M4RI_RIGHT_BITMASK(m4ri_radix - A->x[0]->offset%m4ri_radix);
   const word bitmask_end = __M4RI_LEFT_BITMASK((A->x[0]->offset + A->ncols) % m4ri_radix);
   const word one = m4ri_one;
 
@@ -83,9 +82,6 @@ mzd_slice_t *_mzed_slice2(mzd_slice_t *A, const mzed_t *Z) {
     word *a0 = A->x[0]->rows[i];
     word *a1 = A->x[1]->rows[i];
     const word *z  = Z->x->rows[i];    
-
-    const word a0_fix = a0[0]; 
-    const word a1_fix = a1[0]; 
 
     /* bulk of work */
     for(j=0, j2=0; j+2 < Z->x->width; j+=2,j2++) {
@@ -180,10 +176,6 @@ mzd_slice_t *_mzed_slice2(mzd_slice_t *A, const mzed_t *Z) {
     a0[j2] |= t0 & bitmask_end;
     a1[j2] &= ~bitmask_end;
     a1[j2] |= t1 & bitmask_end;
-
-    /* fix bits before offset */
-    a0[0] = (a0[0] & bitmask_begin) | (a0_fix & ~bitmask_begin);
-    a1[0] = (a1[0] & bitmask_begin) | (a1_fix & ~bitmask_begin);
   }
   
   return A;
@@ -194,14 +186,12 @@ mzed_t *_mzed_cling2(mzed_t *A, const mzd_slice_t *Z) {
   register word aw0;
   register word aw1;
 
-  const word bitmask_begin = __M4RI_RIGHT_BITMASK(m4ri_radix - A->x->offset%m4ri_radix);
   const word bitmask_end = __M4RI_LEFT_BITMASK((A->x->offset + A->x->ncols) % m4ri_radix);
 
   /** A0 **/
   for(size_t i=0; i<A->nrows; i++) {
     word *z0 = Z->x[0]->rows[i];
     word *a  = A->x->rows[i];
-    const word a_fix = a[0];
 
     for(j=0, j2=0; j+2 < A->x->width; j+=2, j2++) {
       if (!z0[j2] )
@@ -352,14 +342,12 @@ mzed_t *_mzed_cling2(mzed_t *A, const mzd_slice_t *Z) {
       }
     }
     ;
-    a[0] = (a[0] & bitmask_begin) | (a_fix & ~bitmask_begin);
   }
 
   /** A1 **/
   for(size_t i=0; i<A->nrows; i++) {
     word *z1 = Z->x[1]->rows[i];
     word *a  = A->x->rows[i];    
-    const word a_fix = a[0];
 
     for(j=0, j2=0; j+2 < A->x->width; j+=2, j2++) {
       if (!z1[j2] )
@@ -507,7 +495,6 @@ mzed_t *_mzed_cling2(mzed_t *A, const mzd_slice_t *Z) {
       case  2:      a[j+0] |= (z1[j2] & m4ri_one<< 0) <<  1;
       }
     }
-    a[0] = (a[0] & bitmask_begin) | (a_fix & ~bitmask_begin);
   }
   return A;
 }
@@ -518,8 +505,6 @@ mzd_slice_t *_mzed_slice4(mzd_slice_t *A, const mzed_t *Z) {
   register word t0,t1,t2,t3 = 0;
 
   const word one = m4ri_one;
-
-  const word bitmask_begin = __M4RI_RIGHT_BITMASK(m4ri_radix - A->x[0]->offset%m4ri_radix);
   const word bitmask_end = __M4RI_LEFT_BITMASK((A->x[0]->offset + A->ncols) % m4ri_radix);
 
   /* A0 */
@@ -528,10 +513,6 @@ mzd_slice_t *_mzed_slice4(mzd_slice_t *A, const mzed_t *Z) {
     word *a1 = A->x[1]->rows[i];
     word *a2 = A->x[2]->rows[i];
     const word const *z  = Z->x->rows[i];
-
-    const word a0_fix = a0[0]; 
-    const word a1_fix = a1[0]; 
-    const word a2_fix = a2[0]; 
 
     /* bulk of work */
     for(j=0, j2=0; j+4 < Z->x->width; j+=4,j2++) {
@@ -671,11 +652,6 @@ mzd_slice_t *_mzed_slice4(mzd_slice_t *A, const mzed_t *Z) {
     a0[j2] |= t0 & bitmask_end;
     a1[j2] |= t1 & bitmask_end;
     a2[j2] |= t2 & bitmask_end;
-
-    /* fix first bits before offset */
-    a0[0] = (a0[0] & bitmask_begin) | (a0_fix & ~bitmask_begin);
-    a1[0] = (a1[0] & bitmask_begin) | (a1_fix & ~bitmask_begin);
-    a2[0] = (a2[0] & bitmask_begin) | (a2_fix & ~bitmask_begin);
   }
 
   if(A->depth == 3)
@@ -685,7 +661,6 @@ mzd_slice_t *_mzed_slice4(mzd_slice_t *A, const mzed_t *Z) {
   for(size_t i=0; i<A->nrows; i++) {
     word *a3 = A->x[3]->rows[i];
     const word const *z  = Z->x->rows[i];
-    const word a3_fix = a3[0]; 
 
     /* bulk of work */
     for(j=0, j2=0; j+4 < Z->x->width; j+=4,j2++) {
@@ -741,10 +716,8 @@ mzd_slice_t *_mzed_slice4(mzd_slice_t *A, const mzed_t *Z) {
     default:
       m4ri_die("impossible");
     }
-    a3[j2] |= t3 & bitmask_end;
-    a3[0] = (a3[0] & bitmask_begin) | (a3_fix & ~bitmask_begin);
-
- }
+    a3[j2] |= t3 & bitmask_end;    
+  }
   return A;
 }
 
@@ -753,7 +726,6 @@ mzed_t *_mzed_cling4(mzed_t *A, const mzd_slice_t *Z) {
   register word t0, t1, t2, t3;
   const word one = m4ri_one;
 
-  const word bitmask_begin = __M4RI_RIGHT_BITMASK(m4ri_radix - A->x->offset%m4ri_radix);
   const word bitmask_end = __M4RI_LEFT_BITMASK((A->x->offset + A->x->ncols) % m4ri_radix);
 
   for(size_t i=0; i<A->nrows; i++) {
@@ -761,7 +733,6 @@ mzed_t *_mzed_cling4(mzed_t *A, const mzd_slice_t *Z) {
     word *z1 = Z->x[1]->rows[i];
     word *z2 = Z->x[2]->rows[i];
     word *a  = A->x->rows[i];
-    const word a_fix = a[0];
 
     for(j=0, j2=0; j+4 < A->x->width; j+=4, j2++) {
       if (!z0[j2] && !z1[j2] && !z2[j2] )
@@ -927,7 +898,6 @@ mzed_t *_mzed_cling4(mzed_t *A, const mzd_slice_t *Z) {
     default:
       m4ri_die("impossible");
     }
-    a[0] = (a[0] & bitmask_begin) | (a_fix & ~bitmask_begin);
   }
 
   if(A->finite_field->degree == 3)
@@ -936,7 +906,6 @@ mzed_t *_mzed_cling4(mzed_t *A, const mzd_slice_t *Z) {
   for(size_t i=0; i<A->nrows; i++) {
     word *z3 = Z->x[3]->rows[i];
     word *a  = A->x->rows[i];
-    const word a_fix = a[0];
 
     for(j=0, j2=0; j+4 < A->x->width; j+=4, j2++) {
       if (!z3[j2] )
@@ -1023,7 +992,6 @@ mzed_t *_mzed_cling4(mzed_t *A, const mzd_slice_t *Z) {
     default:
       m4ri_die("impossible");
     }
-    a[0] = (a[0] & bitmask_begin) | (a_fix & ~bitmask_begin);
   }
   return A;
 }
