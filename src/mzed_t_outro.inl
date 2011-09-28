@@ -16,6 +16,7 @@
 #undef matrix_trsm_upper_left
 #undef _matrix_trsm_upper_left
 #undef matrix_trsm_upper_left_naive
+#undef matrix_trsm_upper_left_travolta
 
 
 #undef matrix_ple

@@ -16,6 +16,7 @@
 #define matrix_trsm_upper_left mzed_trsm_upper_left
 #define _matrix_trsm_upper_left _mzed_trsm_upper_left
 #define matrix_trsm_upper_left_naive mzed_trsm_upper_left_naive
+#define matrix_trsm_upper_left_travolta mzed_trsm_upper_left_travolta
 
 
 #define matrix_ple mzed_ple

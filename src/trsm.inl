@@ -54,7 +54,7 @@ void _matrix_trsm_upper_left(matrix_t const *U, matrix_t *B, const rci_t cutoff)
   assert((U->finite_field == B->finite_field) && (U->nrows == U->ncols) && (B->nrows == U->ncols));
 
   if (U->nrows <= cutoff || B->ncols <= cutoff) {
-    matrix_trsm_upper_left_naive(U,B);
+    matrix_trsm_upper_left_travolta(U,B);
     return;
   }
   /**

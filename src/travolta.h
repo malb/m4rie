@@ -134,6 +134,11 @@ void mzed_trsm_lower_left_travolta(const mzed_t *L, mzed_t *B);
 
 void mzd_slice_trsm_lower_left_travolta(const mzd_slice_t *L, mzd_slice_t *B);
 
+void mzed_trsm_upper_left_travolta(const mzed_t *U, mzed_t *B);
+
+void mzd_slice_trsm_upper_left_travolta(const mzd_slice_t *U, mzd_slice_t *B);
+
+
 /**
  * \brief L*E = P*A
  *

@@ -16,6 +16,7 @@
 #define matrix_trsm_upper_left mzd_slice_trsm_upper_left
 #define _matrix_trsm_upper_left _mzd_slice_trsm_upper_left
 #define matrix_trsm_upper_left_naive mzd_slice_trsm_upper_left_naive
+#define matrix_trsm_upper_left_travolta mzd_slice_trsm_upper_left_travolta
 
 
 #define matrix_ple mzd_slice_ple
