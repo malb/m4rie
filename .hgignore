@@ -20,5 +20,11 @@ src/cscope.out
 src/cscope.files
 .deps
 autom4te.cache
-(END) 
+Makefile
+bench/Makefile
+config.log
+config.status
+libtool
+src/config.h
+src/stamp-h1
 
