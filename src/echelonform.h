@@ -56,6 +56,20 @@ rci_t mzd_slice_echelonize_ple(mzd_slice_t *A, int full);
  * \brief Compute row echelon forms.
  * 
  * Compute the (reduced) row echelon form of the matrix A.  If full=0,
+ * then return the reduced REF.
+ *
+ * \param A Matrix
+ * \param full REF or RREF.
+ *
+ * \ingroup Echelon
+ */
+
+#define mzd_slice_echelonize mzd_slice_echelonize_ple
+
+/**
+ * \brief Compute row echelon forms.
+ * 
+ * Compute the (reduced) row echelon form of the matrix A.  If full=0,
  * then return the reduced REF. This function reduces echelon forms to
  * PLE (or PLUQ) decomposition.
  *
