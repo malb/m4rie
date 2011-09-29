@@ -133,7 +133,7 @@ int main(int argc, char **argv) {
     else if (strcmp("mzd_slice_t",argv[5]) == 0) 
       params.type = 1;
     else
-      m4ri_die("unknown type\n");
+      m4ri_die("unknown type '%s'\n",argv[5]);
   } else {
     params.type = 0;
   }
