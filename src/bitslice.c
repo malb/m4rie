@@ -26,6 +26,7 @@ static const word xf0f0f0f0 = 0xf0f0f0f0f0f0f0f0ULL;
 static const word xff00ff00 = 0xff00ff00ff00ff00ULL;
 static const word xffff0000 = 0xffff0000ffff0000ULL;
 static const word xffffffff = 0xffffffff00000000ULL;
+static const word x__left16 = 0xffff000000000000ULL;
 
 static inline word word_slice_64_02_l(word a) {
   a = (a & xcccccccc) | (a & xcccccccc>> 2)<< 1;
@@ -54,7 +55,7 @@ static inline word word_cling_64_02_l(word a) {
 }
 
 static inline word word_cling_64_04_l(word a) {
-  a = (a & xff00ff00) | (a & xff00ff00>> 8)>>24;
+  a = (a & xff00ff00 & x__left16) | (a & (xff00ff00>> 8) & x__left16)>>24;
   a = (a & xf0f0f0f0) | (a & xf0f0f0f0>> 4)>>12;
   a = (a & xcccccccc) | (a & xcccccccc>> 2)>> 6;
   a = (a & xaaaaaaaa) | (a & xaaaaaaaa>> 1)>> 3;
@@ -337,73 +338,35 @@ mzed_t *_mzed_cling4(mzed_t *T, const mzd_slice_t *F) {
       word *t  = T->x->rows[i];
 
       for(j=0, j2=0; j+4 < T->x->width; j+=4, j2++) {
-        if (!(f0[j2] | f1[j2] | f2[j2] | f3[j2]))
-          continue;
-        t[j+0] |= word_cling_64_04_l(f0[j2]<<48 & 0xffff000000000000ULL)>>3;
-        t[j+0] |= word_cling_64_04_l(f1[j2]<<48 & 0xffff000000000000ULL)>>2;
-        t[j+0] |= word_cling_64_04_l(f2[j2]<<48 & 0xffff000000000000ULL)>>1;
-        t[j+0] |= word_cling_64_04_l(f3[j2]<<48 & 0xffff000000000000ULL)>>0;
-
-        t[j+1] |= word_cling_64_04_l(f0[j2]<<32 & 0xffff000000000000ULL)>>3;
-        t[j+1] |= word_cling_64_04_l(f1[j2]<<32 & 0xffff000000000000ULL)>>2;
-        t[j+1] |= word_cling_64_04_l(f2[j2]<<32 & 0xffff000000000000ULL)>>1;
-        t[j+1] |= word_cling_64_04_l(f3[j2]<<32 & 0xffff000000000000ULL)>>0;
-
-        t[j+2] |= word_cling_64_04_l(f0[j2]<<16 & 0xffff000000000000ULL)>>3;
-        t[j+2] |= word_cling_64_04_l(f1[j2]<<16 & 0xffff000000000000ULL)>>2;
-        t[j+2] |= word_cling_64_04_l(f2[j2]<<16 & 0xffff000000000000ULL)>>1;
-        t[j+2] |= word_cling_64_04_l(f3[j2]<<16 & 0xffff000000000000ULL)>>0;
-
-        t[j+3] |= word_cling_64_04_l(f0[j2]<< 0 & 0xffff000000000000ULL)>>3;
-        t[j+3] |= word_cling_64_04_l(f1[j2]<< 0 & 0xffff000000000000ULL)>>2;
-        t[j+3] |= word_cling_64_04_l(f2[j2]<< 0 & 0xffff000000000000ULL)>>1;
-        t[j+3] |= word_cling_64_04_l(f3[j2]<< 0 & 0xffff000000000000ULL)>>0;
+        t[j+0] = (word_cling_64_04_l(f0[j2]<<48)>>3) | (word_cling_64_04_l(f1[j2]<<48)>>2) | (word_cling_64_04_l(f2[j2]<<48)>>1) | (word_cling_64_04_l(f3[j2]<<48)>>0);
+        t[j+1] = (word_cling_64_04_l(f0[j2]<<32)>>3) | (word_cling_64_04_l(f1[j2]<<32)>>2) | (word_cling_64_04_l(f2[j2]<<32)>>1) | (word_cling_64_04_l(f3[j2]<<32)>>0);
+        t[j+2] = (word_cling_64_04_l(f0[j2]<<16)>>3) | (word_cling_64_04_l(f1[j2]<<16)>>2) | (word_cling_64_04_l(f2[j2]<<16)>>1) | (word_cling_64_04_l(f3[j2]<<16)>>0);
+        t[j+3] = (word_cling_64_04_l(f0[j2]<< 0)>>3) | (word_cling_64_04_l(f1[j2]<< 0)>>2) | (word_cling_64_04_l(f2[j2]<< 0)>>1) | (word_cling_64_04_l(f3[j2]<< 0)>>0);
       }
 
-      register word r0=0,r1=0,r2=0,r3=0;
+      register word tmp=0;
       switch(T->x->width - j) {
       case 4:
-        r3  = word_cling_64_04_l(f0[j2]<< 0 & 0xffff000000000000ULL)>>3;
-        r3 |= word_cling_64_04_l(f1[j2]<< 0 & 0xffff000000000000ULL)>>2;
-        r3 |= word_cling_64_04_l(f2[j2]<< 0 & 0xffff000000000000ULL)>>1;
-        r3 |= word_cling_64_04_l(f3[j2]<< 0 & 0xffff000000000000ULL)>>0;
-      case 3:
-        r2  = word_cling_64_04_l(f0[j2]<<16 & 0xffff000000000000ULL)>>3;
-        r2 |= word_cling_64_04_l(f1[j2]<<16 & 0xffff000000000000ULL)>>2;
-        r2 |= word_cling_64_04_l(f2[j2]<<16 & 0xffff000000000000ULL)>>1;
-        r2 |= word_cling_64_04_l(f3[j2]<<16 & 0xffff000000000000ULL)>>0;
-      case 2:
-        r1  = word_cling_64_04_l(f0[j2]<<32 & 0xffff000000000000ULL)>>3;
-        r1 |= word_cling_64_04_l(f1[j2]<<32 & 0xffff000000000000ULL)>>2;
-        r1 |= word_cling_64_04_l(f2[j2]<<32 & 0xffff000000000000ULL)>>1;
-        r1 |= word_cling_64_04_l(f3[j2]<<32 & 0xffff000000000000ULL)>>0;
-      case 1:
-        r0  = word_cling_64_04_l(f0[j2]<<48 & 0xffff000000000000ULL)>>3;
-        r0 |= word_cling_64_04_l(f1[j2]<<48 & 0xffff000000000000ULL)>>2;
-        r0 |= word_cling_64_04_l(f2[j2]<<48 & 0xffff000000000000ULL)>>1;
-        r0 |= word_cling_64_04_l(f3[j2]<<48 & 0xffff000000000000ULL)>>0;
-        break;
-      default:
-        m4ri_die("impossible");
-      }
-      switch(T->x->width - j) {
-      case 4:
-        t[j+0] = r0;
-        t[j+1] = r1;
-        t[j+2] = r2;
-        t[j+3] = (t[j+3] & ~bitmask_end) | (r3 & bitmask_end);
+        t[j+0] = (word_cling_64_04_l(f0[j2]<<48)>>3) | (word_cling_64_04_l(f1[j2]<<48)>>2) | (word_cling_64_04_l(f2[j2]<<48)>>1) | (word_cling_64_04_l(f3[j2]<<48)>>0);
+        t[j+1] = (word_cling_64_04_l(f0[j2]<<32)>>3) | (word_cling_64_04_l(f1[j2]<<32)>>2) | (word_cling_64_04_l(f2[j2]<<32)>>1) | (word_cling_64_04_l(f3[j2]<<32)>>0);
+        t[j+2] = (word_cling_64_04_l(f0[j2]<<16)>>3) | (word_cling_64_04_l(f1[j2]<<16)>>2) | (word_cling_64_04_l(f2[j2]<<16)>>1) | (word_cling_64_04_l(f3[j2]<<16)>>0);
+        tmp    = (word_cling_64_04_l(f0[j2]<< 0)>>3) | (word_cling_64_04_l(f1[j2]<< 0)>>2) | (word_cling_64_04_l(f2[j2]<< 0)>>1) | (word_cling_64_04_l(f3[j2]<< 0)>>0);
+        t[j+3] = (t[j+3] & ~bitmask_end) | (tmp & bitmask_end);
         break;
       case 3:
-        t[j+0] = r0;
-        t[j+1] = r1;
-        t[j+2] = (t[j+2] & ~bitmask_end) | (r2 & bitmask_end);
+        t[j+0] = (word_cling_64_04_l(f0[j2]<<48)>>3) | (word_cling_64_04_l(f1[j2]<<48)>>2) | (word_cling_64_04_l(f2[j2]<<48)>>1) | (word_cling_64_04_l(f3[j2]<<48)>>0);
+        t[j+1] = (word_cling_64_04_l(f0[j2]<<32)>>3) | (word_cling_64_04_l(f1[j2]<<32)>>2) | (word_cling_64_04_l(f2[j2]<<32)>>1) | (word_cling_64_04_l(f3[j2]<<32)>>0);
+        tmp    = (word_cling_64_04_l(f0[j2]<<16)>>3) | (word_cling_64_04_l(f1[j2]<<16)>>2) | (word_cling_64_04_l(f2[j2]<<16)>>1) | (word_cling_64_04_l(f3[j2]<<16)>>0);
+        t[j+2] = (t[j+2] & ~bitmask_end) | (tmp & bitmask_end);
         break;
       case 2:
-        t[j+0] = r0;
-        t[j+1] = (t[j+1] & ~bitmask_end) | (r1 & bitmask_end);
+        t[j+0] = (word_cling_64_04_l(f0[j2]<<48)>>3) | (word_cling_64_04_l(f1[j2]<<48)>>2) | (word_cling_64_04_l(f2[j2]<<48)>>1) | (word_cling_64_04_l(f3[j2]<<48)>>0);
+        tmp    = (word_cling_64_04_l(f0[j2]<<32)>>3) | (word_cling_64_04_l(f1[j2]<<32)>>2) | (word_cling_64_04_l(f2[j2]<<32)>>1) | (word_cling_64_04_l(f3[j2]<<32)>>0);
+        t[j+1] = (t[j+1] & ~bitmask_end) | (tmp & bitmask_end);
         break;
       case 1:
-        t[j+0] = (t[j+0] & ~bitmask_end) | (r0 & bitmask_end);
+        tmp =    (word_cling_64_04_l(f0[j2]<<48)>>3) | (word_cling_64_04_l(f1[j2]<<48)>>2) | (word_cling_64_04_l(f2[j2]<<48)>>1) | (word_cling_64_04_l(f3[j2]<<48)>>0);
+        t[j+0] = (t[j+0] & ~bitmask_end) | (tmp & bitmask_end);
         break;
       default:
         m4ri_die("impossible");
@@ -417,65 +380,35 @@ mzed_t *_mzed_cling4(mzed_t *T, const mzd_slice_t *F) {
       word *t  = T->x->rows[i];
 
       for(j=0, j2=0; j+4 < T->x->width; j+=4, j2++) {
-        if (!(f0[j2] | f1[j2] | f2[j2]))
-          continue;
-        t[j+0] |= word_cling_64_04_l(f0[j2]<<48 & 0xffff000000000000ULL)>>3;
-        t[j+0] |= word_cling_64_04_l(f1[j2]<<48 & 0xffff000000000000ULL)>>2;
-        t[j+0] |= word_cling_64_04_l(f2[j2]<<48 & 0xffff000000000000ULL)>>1;
-
-        t[j+1] |= word_cling_64_04_l(f0[j2]<<32 & 0xffff000000000000ULL)>>3;
-        t[j+1] |= word_cling_64_04_l(f1[j2]<<32 & 0xffff000000000000ULL)>>2;
-        t[j+1] |= word_cling_64_04_l(f2[j2]<<32 & 0xffff000000000000ULL)>>1;
-
-        t[j+2] |= word_cling_64_04_l(f0[j2]<<16 & 0xffff000000000000ULL)>>3;
-        t[j+2] |= word_cling_64_04_l(f1[j2]<<16 & 0xffff000000000000ULL)>>2;
-        t[j+2] |= word_cling_64_04_l(f2[j2]<<16 & 0xffff000000000000ULL)>>1;
-
-        t[j+3] |= word_cling_64_04_l(f0[j2]<< 0 & 0xffff000000000000ULL)>>3;
-        t[j+3] |= word_cling_64_04_l(f1[j2]<< 0 & 0xffff000000000000ULL)>>2;
-        t[j+3] |= word_cling_64_04_l(f2[j2]<< 0 & 0xffff000000000000ULL)>>1;
+        t[j+0] = (word_cling_64_04_l(f0[j2]<<48)>>3) | (word_cling_64_04_l(f1[j2]<<48)>>2) | (word_cling_64_04_l(f2[j2]<<48)>>1);
+        t[j+1] = (word_cling_64_04_l(f0[j2]<<32)>>3) | (word_cling_64_04_l(f1[j2]<<32)>>2) | (word_cling_64_04_l(f2[j2]<<32)>>1);
+        t[j+2] = (word_cling_64_04_l(f0[j2]<<16)>>3) | (word_cling_64_04_l(f1[j2]<<16)>>2) | (word_cling_64_04_l(f2[j2]<<16)>>1);
+        t[j+3] = (word_cling_64_04_l(f0[j2]<< 0)>>3) | (word_cling_64_04_l(f1[j2]<< 0)>>2) | (word_cling_64_04_l(f2[j2]<< 0)>>1);
       }
 
-      register word r0=0,r1=0,r2=0,r3=0;
+      register word tmp=0;
       switch(T->x->width - j) {
       case 4:
-        r3  = word_cling_64_04_l(f0[j2]<< 0 & 0xffff000000000000ULL)>>3;
-        r3 |= word_cling_64_04_l(f1[j2]<< 0 & 0xffff000000000000ULL)>>2;
-        r3 |= word_cling_64_04_l(f2[j2]<< 0 & 0xffff000000000000ULL)>>1;
-      case 3:
-        r2  = word_cling_64_04_l(f0[j2]<<16 & 0xffff000000000000ULL)>>3;
-        r2 |= word_cling_64_04_l(f1[j2]<<16 & 0xffff000000000000ULL)>>2;
-        r2 |= word_cling_64_04_l(f2[j2]<<16 & 0xffff000000000000ULL)>>1;
-      case 2:
-        r1  = word_cling_64_04_l(f0[j2]<<32 & 0xffff000000000000ULL)>>3;
-        r1 |= word_cling_64_04_l(f1[j2]<<32 & 0xffff000000000000ULL)>>2;
-        r1 |= word_cling_64_04_l(f2[j2]<<32 & 0xffff000000000000ULL)>>1;
-      case 1:
-        r0  = word_cling_64_04_l(f0[j2]<<48 & 0xffff000000000000ULL)>>3;
-        r0 |= word_cling_64_04_l(f1[j2]<<48 & 0xffff000000000000ULL)>>2;
-        r0 |= word_cling_64_04_l(f2[j2]<<48 & 0xffff000000000000ULL)>>1;
-        break;
-      default:
-        m4ri_die("impossible");
-      }
-      switch(T->x->width - j) {
-      case 4:
-        t[j+0] = r0;
-        t[j+1] = r1;
-        t[j+2] = r2;
-        t[j+3] = (t[j+3] & ~bitmask_end) | (r3 & bitmask_end);
+        t[j+0] = (word_cling_64_04_l(f0[j2]<<48)>>3) | (word_cling_64_04_l(f1[j2]<<48)>>2) | (word_cling_64_04_l(f2[j2]<<48)>>1);
+        t[j+1] = (word_cling_64_04_l(f0[j2]<<32)>>3) | (word_cling_64_04_l(f1[j2]<<32)>>2) | (word_cling_64_04_l(f2[j2]<<32)>>1);
+        t[j+2] = (word_cling_64_04_l(f0[j2]<<16)>>3) | (word_cling_64_04_l(f1[j2]<<16)>>2) | (word_cling_64_04_l(f2[j2]<<16)>>1);
+        tmp  =   (word_cling_64_04_l(f0[j2]<< 0)>>3) | (word_cling_64_04_l(f1[j2]<< 0)>>2) | (word_cling_64_04_l(f2[j2]<< 0)>>1);
+        t[j+3] = (t[j+3] & ~bitmask_end) | (tmp & bitmask_end);
         break;
       case 3:
-        t[j+0] = r0;
-        t[j+1] = r1;
-        t[j+2] = (t[j+2] & ~bitmask_end) | (r2 & bitmask_end);
+        t[j+0] = (word_cling_64_04_l(f0[j2]<<48)>>3) | (word_cling_64_04_l(f1[j2]<<48)>>2) | (word_cling_64_04_l(f2[j2]<<48)>>1);
+        t[j+1] = (word_cling_64_04_l(f0[j2]<<32)>>3) | (word_cling_64_04_l(f1[j2]<<32)>>2) | (word_cling_64_04_l(f2[j2]<<32)>>1);
+        tmp =    (word_cling_64_04_l(f0[j2]<<16)>>3) | (word_cling_64_04_l(f1[j2]<<16)>>2) | (word_cling_64_04_l(f2[j2]<<16)>>1);
+        t[j+2] = (t[j+2] & ~bitmask_end) | (tmp & bitmask_end);
         break;
       case 2:
-        t[j+0] = r0;
-        t[j+1] = (t[j+1] & ~bitmask_end) | (r1 & bitmask_end);
+        t[j+0] = (word_cling_64_04_l(f0[j2]<<48)>>3) | (word_cling_64_04_l(f1[j2]<<48)>>2) | (word_cling_64_04_l(f2[j2]<<48)>>1);
+        tmp =    (word_cling_64_04_l(f0[j2]<<32)>>3) | (word_cling_64_04_l(f1[j2]<<32)>>2) | (word_cling_64_04_l(f2[j2]<<32)>>1);
+        t[j+1] = (t[j+1] & ~bitmask_end) | (tmp & bitmask_end);
         break;
       case 1:
-        t[j+0] = (t[j+0] & ~bitmask_end) | (r0 & bitmask_end);
+        tmp =    (word_cling_64_04_l(f0[j2]<<48)>>3) | (word_cling_64_04_l(f1[j2]<<48)>>2) | (word_cling_64_04_l(f2[j2]<<48)>>1);
+        t[j+0] = (t[j+0] & ~bitmask_end) | (tmp & bitmask_end);
         break;
       default:
         m4ri_die("impossible");
