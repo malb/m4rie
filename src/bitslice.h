@@ -771,12 +771,12 @@ static inline int mzd_slice_cmp(mzd_slice_t *A, mzd_slice_t *B) {
  * \ingroup Comparison
  */
 
-static inline int mzd_slice_is_zero(mzd_slice_t *A) {
+static inline int mzd_slice_is_zero(const mzd_slice_t *A) {
   for(int i=0; i<A->depth; i++) {
-    if (mzd_is_zero(A->x[i]))
-      return 1;
+    if (!mzd_is_zero(A->x[i]))
+      return 0;
   }
-  return 0;
+  return 1;
 }
 
 /**

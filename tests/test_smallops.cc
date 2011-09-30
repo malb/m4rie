@@ -54,11 +54,6 @@ int test_slice_known_answers(gf2e *ff, int m, int n) {
         m4rie_check( mzd_is_zero(a->x[i]) );
       } else {
         m4rie_check( mzd_cmp(a->x[i], one) == 0 );
-        if (mzd_cmp(a->x[i], one))  {
-          printf("%zu x %zu: %d\n",m,n,j);
-          mzd_print(a->x[i]);
-          exit(1);
-        }
       }
     }
     mzed_t *AA = mzed_cling(NULL, a);
@@ -173,6 +168,10 @@ int main(int argc, char **argv) {
   }
 
   for(int k=2; k<=__M4RIE_MAX_KARATSUBA_DEGREE; k++) {
+    fail_ret += test_batch(ff[k],   2, m4ri_radix/gf2e_degree_to_w(ff[k]));
+    fail_ret += test_batch(ff[k],   2, 2*m4ri_radix/gf2e_degree_to_w(ff[k]));
+    fail_ret += test_batch(ff[k],   2, 3*m4ri_radix/gf2e_degree_to_w(ff[k]));
+    fail_ret += test_batch(ff[k],   2, 4*m4ri_radix/gf2e_degree_to_w(ff[k]));
     fail_ret += test_batch(ff[k],   4,   3);
     fail_ret += test_batch(ff[k],   1,   2);
     fail_ret += test_batch(ff[k],  10,  11);
