@@ -1,6 +1,6 @@
 CPUCYCLES_DIR=./cpucycles-20060326
 
-BENCHCXXFLAGS = $(AM_CFLAGS)  -I.. -I${CPUCYCLES_DIR} @CXXFLAGS@ ${M4RIE_GIVARO_CXXFLAGS}
+BENCHCXXFLAGS = $(AM_CFLAGS)  -I.. -I${CPUCYCLES_DIR} @CXXFLAGS@ ${M4RIE_GIVARO_CXXFLAGS} -DNDEBUG
 BENCHLIBADD = -lm4ri -lgivaro -lntl -lgmpxx -lgmp -lm -lstdc++ cpucycles.o
 BENCHLDFLAGS = -Wl,-rpath,../.libs/ ../.libs/libm4rie.so ${M4RIE_GIVARO_LDFLAGS} -L${CPUCYCLES_DIR} -Wl,-rpath,${M4RIE_GIVARO_PREFIX}/lib -Wl,-rpath,${M4RIE_M4RI_PREFIX}/lib
 
