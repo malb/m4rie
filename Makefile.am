@@ -28,7 +28,7 @@ pkgincludesub_HEADERS = src/finite_field.h \
 	src/permutation.h \
 	gf2e_cxx/finite_field_givaro.h 
 
-libm4rie_la_LDFLAGS = -release 0.0.20110821 -no-undefined ${M4RIE_M4RI_LDFLAGS}
+libm4rie_la_LDFLAGS = -release 0.0.20111004 -no-undefined ${M4RIE_M4RI_LDFLAGS}
 libm4rie_la_LIBADD = -lm4ri
 
 #testing
