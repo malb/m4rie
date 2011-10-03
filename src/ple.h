@@ -150,6 +150,14 @@ static inline rci_t mzd_slice_pluq(mzd_slice_t *A, mzp_t *P, mzp_t *Q) {
 
 rci_t _mzed_ple(mzed_t *A, mzp_t *P, mzp_t *Q, rci_t cutoff);
 
+
+/**
+ * Default crossover to PLE base case (Travolta-based).
+ */
+
+#define __M4RIE_PLE_CUTOFF (__M4RI_CPU_L2_CACHE<<3)
+
+
 /**
  * \brief PLE decomposition: L*E = P*A 
  *
@@ -174,13 +182,7 @@ rci_t _mzed_ple(mzed_t *A, mzp_t *P, mzp_t *Q, rci_t cutoff);
  */
 
 static inline rci_t mzed_ple(mzed_t *A, mzp_t *P, mzp_t *Q) {
-  return _mzed_ple(A, P, Q, 0);
+  return _mzed_ple(A, P, Q, __M4RIE_PLE_CUTOFF);
 }
-
-/**
- * Default crossover to PLE base case.
- */
-
-#define __M4RIE_PLE_CUTOFF (__M4RI_CPU_L2_CACHE<<3) //(2048*2048)
 
 #endif //M4RIE_PLE_H
