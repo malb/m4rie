@@ -65,7 +65,6 @@ void mzd_slice_trsm_lower_left_naive(const mzd_slice_t *L, mzd_slice_t *B) {
 #include "trsm.inl"
 #include "mzed_t_outro.inl"
 
-
 #include "mzd_slice_t_intro.inl"
 #include "trsm.inl"
 #include "mzd_slice_t_outro.inl"
