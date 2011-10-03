@@ -67,6 +67,10 @@ if test -n $m4rie_config_givaroprefix; then
    AC_SUBST(M4RIE_GIVARO_CXXFLAGS)
 fi
 
+AX_M4RI_CFLAGS()
+M4RI_CFLAGS=$ax_cv_m4ri_cflags
+AC_SUBST(M4RI_CFLAGS)
+
 AC_PROG_MAKE_SET
 
 AC_CONFIG_FILES([Makefile bench/Makefile])
