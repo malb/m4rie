@@ -155,7 +155,7 @@ rci_t _mzed_ple(mzed_t *A, mzp_t *P, mzp_t *Q, rci_t cutoff);
  * Default crossover to PLE base case (Travolta-based).
  */
 
-#define __M4RIE_PLE_CUTOFF (__M4RI_CPU_L2_CACHE<<3)
+#define __M4RIE_PLE_CUTOFF (__M4RI_CPU_L2_CACHE<<2)
 
 
 /**
