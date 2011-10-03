@@ -57,18 +57,35 @@ rci_t mzd_slice_echelonize_ple(mzd_slice_t *A, int full) {
        */
       assert(r_radix < r);
 
-      mzd_slice_t *B = mzd_slice_submatrix(NULL, A, 0, r_radix, r, A->ncols);
-      mzd_slice_t *Bw = mzd_slice_init_window(A, 0, r_radix, r, A->ncols);
-      mzd_slice_t *B0 = mzd_slice_init_window(B, 0, 0, r, r-r_radix);
-      mzd_slice_set_ui(B0, 0);
-      for(rci_t i = 0; i < r; ++i)
-        mzd_slice_write_elem(U, i, i, 1);
-      mzd_slice_trsm_upper_left(U, B);
+      if(A->ncols > r_radix+m4ri_radix) {
+        mzd_slice_t *B0  = mzd_slice_submatrix(NULL, A, 0, r_radix, r, r_radix+m4ri_radix);
+        mzd_slice_t *B0w = mzd_slice_init_window(    A, 0, r_radix, r, r_radix+m4ri_radix);
+        mzd_slice_t *B1  = mzd_slice_init_window(A, 0, r_radix+m4ri_radix, r, A->ncols);
 
-      mzd_slice_copy(Bw, B);
-      mzd_slice_free_window(B0);
-      mzd_slice_free_window(Bw);
-      mzd_slice_free(B);     
+        for(rci_t i = 0; i < r; ++i)
+          mzd_slice_write_elem(U, i, i, 1);
+
+        mzd_slice_trsm_upper_left(U, B0);
+        mzd_slice_trsm_upper_left(U, B1);
+
+        mzd_slice_copy(B0w, B0);
+        mzd_slice_free(B0);
+        mzd_slice_free_window(B0w);
+        mzd_slice_free_window(B1);
+
+      } else {
+
+        mzd_slice_t *B = mzd_slice_submatrix(NULL, A, 0, r_radix, r, A->ncols);
+        mzd_slice_t *Bw = mzd_slice_init_window(A, 0, r_radix, r, A->ncols);
+
+        for(rci_t i = 0; i < r; ++i)
+          mzd_slice_write_elem(U, i, i, 1);
+        mzd_slice_trsm_upper_left(U, B);
+
+        mzd_slice_copy(Bw, B);
+        mzd_slice_free_window(Bw);
+        mzd_slice_free(B);     
+      }
     }
 
     mzd_slice_set_ui(U, 1);
