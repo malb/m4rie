@@ -418,17 +418,10 @@ mzed_t *_mzed_mul_travolta(mzed_t *C, const mzed_t *A, const mzed_t *B) {
   const rci_t kk = 8;
   const rci_t end = A->ncols/kk;
 
-  /* we are effectively disabling the cache optimisation since table
-     creation is so expensive in this context. 
-  */
-  size_t blocksize = 1ULL<<31;
+  rci_t blocksize = 1ULL<<30;
 
-  /*
-   * it seems to give some advantage for larger matrices over GF(2^2)
-   * though
-   */
-   if (A->w == 2 && A->nrows >= 2*__M4RI_MUL_BLOCKSIZE) 
-     blocksize = __M4RI_MUL_BLOCKSIZE/A->w; 
+  if (A->nrows >= A->w*__M4RI_MUL_BLOCKSIZE) 
+    blocksize = __M4RI_MUL_BLOCKSIZE/A->w; 
 
   rci_t giantstep, babystep;
 
