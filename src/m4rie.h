@@ -53,6 +53,7 @@ extern "C" {
 #include "bitslice.h"
 #include "trsm.h"
 #include "ple.h"
+#include "conversion.h"
 #include "permutation.h"
 
 #ifdef __cplusplus

@@ -23,6 +23,7 @@
 #include "gf2e_matrix.h"
 #include "strassen.h"
 #include "bitslice.h"
+#include "conversion.h"
 
 mzed_t *mzed_init(const gf2e* k, rci_t m, rci_t n) {
   mzed_t *A = (mzed_t *)m4ri_mm_malloc(sizeof(mzed_t));

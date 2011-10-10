@@ -27,6 +27,7 @@
 #include "travolta.h"
 #include "trsm.h"
 #include "ple.h"
+#include "conversion.h"
 
 tt_mzed_t *tt_mzed_init(const gf2e *ff, const rci_t ncols) {
   tt_mzed_t *T =  m4ri_mm_malloc(sizeof(tt_mzed_t));

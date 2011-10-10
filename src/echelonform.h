@@ -22,6 +22,7 @@
 
 #include "gf2e_matrix.h"
 #include "bitslice.h"
+#include "conversion.h"
 
 /**
  * \brief Compute row echelon forms.

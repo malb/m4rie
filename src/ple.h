@@ -30,6 +30,7 @@
 #include <m4ri/m4ri.h>
 #include "gf2e_matrix.h"
 #include "bitslice.h"
+#include "conversion.h"
 
 /**
  * \brief PLE decomposition: L*E = P*A 

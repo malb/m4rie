@@ -11,7 +11,8 @@ libm4rie_la_SOURCES = src/finite_field.c \
 	src/strassen.c \
 	src/bitslice.c \
 	src/trsm.c \
-	src/ple.c
+	src/ple.c \
+	src/conversion.c
 
 pkgincludesubdir = $(includedir)/m4rie
 
@@ -26,6 +27,7 @@ pkgincludesub_HEADERS = src/finite_field.h \
 	src/trsm.h \
 	src/ple.h \
 	src/permutation.h \
+	src/conversion.h \
 	gf2e_cxx/finite_field_givaro.h 
 
 libm4rie_la_LDFLAGS = -release 0.0.20111004 -no-undefined ${M4RIE_M4RI_LDFLAGS}

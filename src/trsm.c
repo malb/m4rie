@@ -1,5 +1,6 @@
 #include "trsm.h"
 #include "travolta.h"
+#include "conversion.h"
 
 void mzed_trsm_upper_left_naive(const mzed_t *U, mzed_t *B) {
   assert(U->finite_field == B->finite_field);
