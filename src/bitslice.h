@@ -950,6 +950,8 @@ static inline mzd_slice_t *mzed_slice2(mzd_slice_t *A, const mzed_t *Z) {
 
 mzd_slice_t *_mzed_slice4(mzd_slice_t *A, const mzed_t *Z);
 
+mzd_slice_t *_mzed_slice8(mzd_slice_t *T, const mzed_t *F);
+
 /**
  * \brief Pack a bitslice matrix into a classical represenation over GF(2^2).
  *
@@ -984,7 +986,21 @@ static inline mzed_t* mzed_cling2(mzed_t *A, const mzd_slice_t *Z) {
   return A;
 }
 
+/**
+ * \brief Pack a bitslice matrix into a classical represenation over GF(2^e) for e in {3,4}.
+ *
+ * \param A Matrix over GF(2^e), must be zero
+ * \param Z Bitslice matrix over GF(2^e)
+ */
+
 mzed_t *_mzed_cling4(mzed_t *A, const mzd_slice_t *Z);
+
+/**
+ * \brief Pack a bitslice matrix into a classical represenation over GF(2^e) for e in {3,4}.
+ *
+ * \param A Matrix over GF(2^e) or NULL
+ * \param Z Bitslice matrix over GF(2^e)
+ */
 
 static inline mzed_t* mzed_cling4(mzed_t *A, const mzd_slice_t *Z) {
   if (A == NULL) 
@@ -992,7 +1008,33 @@ static inline mzed_t* mzed_cling4(mzed_t *A, const mzd_slice_t *Z) {
   else
     mzed_set_ui(A, 0);
 
-  _mzed_cling2(A, Z);
+  _mzed_cling4(A, Z);
+  return A;
+}
+
+/**
+ * \brief Pack a bitslice matrix into a classical represenation over GF(2^e) for e in {5,6,7,8}.
+ *
+ * \param A Matrix over GF(2^e), must be zero
+ * \param Z Bitslice matrix over GF(2^e)
+ */
+
+mzed_t *_mzed_cling8(mzed_t *T, const mzd_slice_t *F);
+
+/**
+ * \brief Pack a bitslice matrix into a classical represenation over GF(2^e) for e in {5,6,7,8}.
+ *
+ * \param A Matrix over GF(2^e) or NULL
+ * \param Z Bitslice matrix over GF(2^e)
+ */
+
+static inline mzed_t* mzed_cling8(mzed_t *A, const mzd_slice_t *Z) {
+  if (A == NULL) 
+    A = mzed_init(Z->finite_field, Z->nrows, Z->ncols);
+  else
+    mzed_set_ui(A, 0);
+
+  _mzed_cling8(A, Z);
   return A;
 }
 

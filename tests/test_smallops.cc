@@ -167,7 +167,7 @@ int main(int argc, char **argv) {
     delete F;
   }
 
-  for(int k=2; k<=__M4RIE_MAX_KARATSUBA_DEGREE; k++) {
+  for(int k=2; k<=8; k++) {
     fail_ret += test_batch(ff[k],   2, m4ri_radix/gf2e_degree_to_w(ff[k]));
     fail_ret += test_batch(ff[k],   2, 2*m4ri_radix/gf2e_degree_to_w(ff[k]));
     fail_ret += test_batch(ff[k],   2, 3*m4ri_radix/gf2e_degree_to_w(ff[k]));
