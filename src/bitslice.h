@@ -42,7 +42,7 @@
  * Degree up to which Karatsuba multiplication is implemented.
  */
 
-#define __M4RIE_MAX_KARATSUBA_DEGREE 4
+#define __M4RIE_MAX_KARATSUBA_DEGREE 8
 
 /**
  * Dense matrices over GF(2^k) represented as slices of matrices over GF(2).
@@ -393,6 +393,17 @@ static inline mzd_slice_t *mzd_slice_add(mzd_slice_t *C, const mzd_slice_t *A, c
 #define _mzd_slice_sub _mzd_slice_add
 
 /**
+ * \brief Compute C = A*B over GF(2^e) using naive polynomials multiplication.
+ *
+ * \param C Preallocated return matrix, may be NULL for automatic creation.
+ * \param A Input matrix A.
+ * \param B Input matrix B.
+ *
+ */
+
+mzd_slice_t *_mzd_slice_mul_naive(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B);
+
+/**
  * \brief Compute C = A*B over GF(2^2) using 3 multiplications over GF(2).
  *
  * \param C Preallocated return matrix, may be NULL for automatic creation.
@@ -466,12 +477,12 @@ static inline mzd_slice_t *_mzd_slice_mul_karatsuba(mzd_slice_t *C, const mzd_sl
   case  2: C = _mzd_slice_mul_karatsuba2(C, A, B); break;
   case  3: C = _mzd_slice_mul_karatsuba3(C, A, B); break;
   case  4: C = _mzd_slice_mul_karatsuba4(C, A, B); break;
-  case  5:
-  case  6:
-  case  7:
-  case  8:
-  case  9:
-  case 10:
+  case  5: C = _mzd_slice_mul_naive(C, A, B); break;
+  case  6: C = _mzd_slice_mul_naive(C, A, B); break;
+  case  7: C = _mzd_slice_mul_naive(C, A, B); break;
+  case  8: C = _mzd_slice_mul_naive(C, A, B); break;
+  case  9: C = _mzd_slice_mul_naive(C, A, B); break;
+  case 10: C = _mzd_slice_mul_naive(C, A, B); break;
   default:
     m4ri_die("_mzd_slice_mul_karatsuba: only implemented for GF(2^e) with e <= 4");
   }

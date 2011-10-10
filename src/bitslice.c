@@ -25,6 +25,29 @@ void mzd_slice_set_ui(mzd_slice_t *A, word value) {
   }
 }
 
+mzd_slice_t *_mzd_slice_mul_naive(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B) {
+  if (C == NULL)
+    C = mzd_slice_init(A->finite_field, A->nrows, B->ncols);
+
+  const unsigned int e = A->finite_field->degree;
+  const word minpoly = A->finite_field->minpoly;
+
+  C = _mzd_slice_adapt_depth(C,2*e-1);
+
+  for(unsigned int i=0; i<e; i++) {
+    for(unsigned int j=0; j<e; j++) {
+      mzd_addmul(C->x[i+j], A->x[i], B->x[j], 0);
+    }
+  }
+
+  for(unsigned int i=2*e-2; i>= e; i--)
+    for(unsigned int j=0; j<e; j++) 
+      if (minpoly & 1<<j) 
+        mzd_add(C->x[i-e+j], C->x[i-e+j], C->x[i]);
+  _mzd_slice_adapt_depth(C,e);
+  return C;
+}
+
 mzd_slice_t *_mzd_slice_mul_karatsuba2(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B) {
   // two temporaries
   if (C == NULL)
