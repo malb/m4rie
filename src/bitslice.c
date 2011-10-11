@@ -25,6 +25,25 @@ void mzd_slice_set_ui(mzd_slice_t *A, word value) {
   }
 }
 
+void mzd_slice_print(const mzd_slice_t *A) {
+  char formatstr[10];
+  int width = gf2e_degree_to_w(A->finite_field)/4;
+  if (gf2e_degree_to_w(A->finite_field)%4) 
+    width += 1;
+  sprintf(formatstr,"%%%dx",width);
+
+  for (rci_t i=0; i < A->nrows; ++i) {
+    printf("[");
+    for (rci_t j=0; j < A->ncols; j++) {
+      word tmp = mzd_slice_read_elem(A,i,j);
+      printf(formatstr,(int)tmp);
+      if(j<A->ncols-1)
+        printf(" ");
+    }
+    printf("]\n");
+  }
+}
+
 mzd_slice_t *_mzd_slice_mul_naive(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B) {
   if (C == NULL)
     C = mzd_slice_init(A->finite_field, A->nrows, B->ncols);
@@ -271,21 +290,193 @@ mzd_slice_t *_mzd_slice_mul_karatsuba4(mzd_slice_t *C, const mzd_slice_t *A, con
   return C;
 }
 
-void mzd_slice_print(const mzd_slice_t *A) {
-  char formatstr[10];
-  int width = gf2e_degree_to_w(A->finite_field)/4;
-  if (gf2e_degree_to_w(A->finite_field)%4) 
-    width += 1;
-  sprintf(formatstr,"%%%dx",width);
+static inline void mzd_add_modred5(mzd_t **X, const int t, mzd_t *A, const word minpoly) {
+  mzd_add(X[t-5+0], X[t-5+0], A);
 
-  for (rci_t i=0; i < A->nrows; ++i) {
-    printf("[");
-    for (rci_t j=0; j < A->ncols; j++) {
-      word tmp = mzd_slice_read_elem(A,i,j);
-      printf(formatstr,(int)tmp);
-      if(j<A->ncols-1)
-        printf(" ");
-    }
-    printf("]\n");
+  switch(minpoly) {
+  case 37: //x^5 + x^2 + 1
+    mzd_add(X[t-5+2], X[t-5+2], A);
+    break;
+  case 41: //x^5 + x^3 + 1
+    mzd_add(X[t-5+3], X[t-5+3], A);
+    break;
+  case 47: //x^5 + x^3 + x^2 + x + 1  
+    mzd_add(X[t-5+1], X[t-5+1], A);
+    mzd_add(X[t-5+2], X[t-5+2], A);
+    mzd_add(X[t-5+3], X[t-5+3], A);
+    break;
+  case 55: //x^5 + x^4 + x^2 + x + 1  
+    mzd_add(X[t-5+1], X[t-5+1], A);
+    mzd_add(X[t-5+2], X[t-5+2], A);
+    mzd_add(X[t-5+4], X[t-5+4], A);
+    break;
+  case 59: //x^5 + x^4 + x^3 + x + 1  
+    mzd_add(X[t-5+1], X[t-5+1], A);
+    mzd_add(X[t-5+3], X[t-5+3], A);
+    mzd_add(X[t-5+4], X[t-5+4], A);
+    break;
+  case 61: //x^5 + x^4 + x^3 + x^2 + 1
+    mzd_add(X[t-5+2], X[t-5+2], A);
+    mzd_add(X[t-5+3], X[t-5+3], A);
+    mzd_add(X[t-5+4], X[t-5+4], A);
+    break;
+  default:
+    m4ri_die("minpoly 0x%03x is not an irreducible polynomial of degree 5 over GF(2)",(unsigned int)minpoly);
   }
+}
+
+mzd_slice_t *_mzd_slice_mul_karatsuba5(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B) {
+  if (C == NULL)
+    C = mzd_slice_init(A->finite_field, A->nrows, B->ncols);
+
+  const word minpoly = A->finite_field->minpoly;
+  C = _mzd_slice_adapt_depth(C,6);
+
+  const mzd_t *a0 = A->x[0];
+  const mzd_t *a1 = A->x[1];
+  const mzd_t *a2 = A->x[2];
+  const mzd_t *a3 = A->x[3];
+  const mzd_t *a4 = A->x[4];
+
+  const mzd_t *b0 = B->x[0];
+  const mzd_t *b1 = B->x[1];
+  const mzd_t *b2 = B->x[2];
+  const mzd_t *b3 = B->x[3];
+  const mzd_t *b4 = B->x[4];
+
+  mzd_t **X = C->x;
+
+  mzd_t *t0 = mzd_init(a0->nrows, b0->ncols);
+
+  /* a0b0(X^6 - 3X^5 + 3X^4 - 2X^3 + X^2 - X + 1) => a0b0(X^6 + X^5 + X^4 + X^2 + X + 1)*/
+  mzd_mul(t0, a0, b0, 0);
+  mzd_add_modred5(X, 6, t0, minpoly);
+  mzd_add_modred5(X, 5, t0, minpoly);
+  mzd_add(X[4], X[4], t0);
+  mzd_add(X[2], X[2], t0);
+  mzd_add(X[1], X[1], t0);
+  mzd_add(X[0], X[0], t0);
+
+  /* a1b1(X^4 - 2X^3 + 2X^2 - X) => a1b1(X^4 + X)*/
+  mzd_mul(t0, a1, b1, 0); 
+  mzd_add(X[4], X[4], t0);
+  mzd_add(X[1], X[1], t0);
+
+  /* a3b3(-X^7 +2X^6 - 2X^5 + X^4) => a3b3(X^7 + X^4) */
+  mzd_mul(t0, a3, b3, 0);
+  mzd_add_modred5(X, 7, t0, minpoly);
+  mzd_add(X[4], X[4], t0);
+
+  /* (a4b4)(X^8 - X^7 + X^6 - 2X^5 + 3X^4 - 3X^3 + X^2) = > (a4b4)(X^8 + X^7 + X^6 + X^4 + X^3 + X^2) */
+  mzd_mul(t0, a4, b4, 0);
+  mzd_add_modred5(X, 8, t0, minpoly);
+  mzd_add_modred5(X, 7, t0, minpoly);
+  mzd_add_modred5(X, 6, t0, minpoly);
+  mzd_add(X[4], X[4], t0);
+  mzd_add(X[3], X[3], t0);
+  mzd_add(X[2], X[2], t0);
+
+  mzd_t *t1 = mzd_init(a0->nrows, a1->ncols);
+  mzd_t *t2 = mzd_init(b0->nrows, b1->ncols);
+
+  /* (a0-a4)(b0-b4)(-X^6 + 3X^5 - 3X^3 + X^2) => (a0+a4)(b0+b4)(X^6 + X^5 + X^3 + X^2) */
+  mzd_add(t1, a0, a4);
+  mzd_add(t2, b0, b4);
+  mzd_mul(t0, t1, t2, 0);
+  mzd_add_modred5(X, 6, t0, minpoly);
+  mzd_add_modred5(X, 5, t0, minpoly);
+  mzd_add(X[3], X[3], t0);
+  mzd_add(X[2], X[2], t0);
+
+  /* (a0+a1)(b0+b1)(-X^5 + X^4 - X^2 + X) => (a0+a1)(b0+b1)(X^5 + X^4 + X^2 + X) */
+  mzd_add(t1, a0, a1);
+  mzd_add(t2, b0, b1);
+  mzd_mul(t0, t1, t2, 0);
+  mzd_add_modred5(X, 5, t0, minpoly);
+  mzd_add(X[4], X[4], t0);
+  mzd_add(X[2], X[2], t0);
+  mzd_add(X[1], X[1], t0);
+
+  /* (a3+a4)(b3+b4)(X^7 -X^6 + X^4 - X^3) => (a3+a4)(b3+b4)(X^7 + X^6 + X^4 + X^3) */
+  mzd_add(t1, a3, a4);
+  mzd_add(t2, b3, b4);
+  mzd_mul(t0, t1, t2, 0);
+  mzd_add_modred5(X, 7, t0, minpoly);
+  mzd_add_modred5(X, 6, t0, minpoly);
+  mzd_add(X[4], X[4], t0);
+  mzd_add(X[3], X[3], t0);
+
+  /* (a1+a2-a4)(a1+a2-a4)(-X^4 + 2X^3 - X^2) => (a1+a2+a4)(a1+a2+a4)(X^4 + X^2) */
+  mzd_add(t1, a1, a2);
+  mzd_add(t1, t1, a4);
+  mzd_add(t2, b1, b2);
+  mzd_add(t2, t2, b4);
+  mzd_mul(t0, t1, t2, 0);
+  mzd_add(X[4], X[4], t0);
+  mzd_add(X[2], X[2], t0);
+
+  /* (a0-a2-a3)(b0-b2-b3)(-X^6 + 2X^5 - X^4) => (a0+a2+a3)(b0+b2+b3)(X^6 + X^4) */
+  mzd_add(t1, a0, a2);
+  mzd_add(t1, t1, a3);
+  mzd_add(t2, b0, b2);
+  mzd_add(t2, t2, b3);
+  mzd_mul(t0, t1, t2, 0);
+  mzd_add_modred5(X, 6, t0, minpoly);
+  mzd_add(X[4], X[4], t0);
+
+  /* (a0+a1-a3-a4)(b0+b1-b3-b4)(X^5 - 2X^4 + X^3) => (a0+a1+a3+a4)(b0+b1+b3+b4)(X^5 + X^3) */
+  mzd_add(t1, a0, a1);
+  mzd_add(t1, t1, a3);
+  mzd_add(t1, t1, a4);
+  mzd_add(t2, b0, b1);
+  mzd_add(t2, t2, b3);
+  mzd_add(t2, t2, b4);
+  mzd_mul(t0, t1, t2, 0);
+  mzd_add_modred5(X, 5, t0, minpoly);
+  mzd_add(X[3], X[3], t0);
+
+  /* (a0+a1+a2-a4)(b0+b1+b2-b4)(-X^5 + 2X^4 - 2X^3 + X^2) => (a0+a1+a2+a4)(b0+b1+b2+b4)(X^5 + X^2) */
+  mzd_add(t1, a0, a1);
+  mzd_add(t1, t1, a2);
+  mzd_add(t1, t1, a4);
+  mzd_add(t2, b0, b1);
+  mzd_add(t2, t2, b2);
+  mzd_add(t2, t2, b4);
+  mzd_mul(t0, t1, t2, 0);
+  mzd_add_modred5(X, 5, t0, minpoly);
+  mzd_add(X[2], X[2], t0);
+
+  /* (a0-a2-a3-a4)(b0-b2-b3-b4)(X^6 - 2X^5 + 2X^4 - X^3) => (a0+a2+a3+a4)(b0+b2+b3+b4)(X^6 + X^3)*/
+  mzd_add(t1, a0, a2);
+  mzd_add(t1, t1, a3);
+  mzd_add(t1, t1, a4);
+  mzd_add(t2, b0, b2);
+  mzd_add(t2, t2, b3);
+  mzd_add(t2, t2, b4);
+  mzd_mul(t0, t1, t2, 0);
+  mzd_add_modred5(X, 6, t0, minpoly);
+  mzd_add(X[3], X[3], t0);
+
+  /* (a0+a1+a2+a3+a4)(b0+b1+b2+b3+b4)(X^5 - X^4 + X^3) = > (a0+a1+a2+a3+a4)(b0+b1+b2+b3+b4)(X^5 + X^4 + X^3)*/
+  mzd_add(t1, a0, a1);
+  mzd_add(t1, t1, a2);
+  mzd_add(t1, t1, a3);
+  mzd_add(t1, t1, a4);
+  mzd_add(t2, b0, b1);
+  mzd_add(t2, t2, b2);
+  mzd_add(t2, t2, b3);
+  mzd_add(t2, t2, b4);
+  mzd_mul(t0, t1, t2, 0);
+  mzd_add_modred5(X, 5, t0, minpoly);
+  mzd_add(X[4], X[4], t0);
+  mzd_add(X[3], X[3], t0);
+
+  mzd_free(t0);
+  mzd_free(t1);
+  mzd_free(t2);
+
+  mzd_add_modred5(X, 5, X[5], minpoly);
+
+  _mzd_slice_adapt_depth(C,5);
+  return C;
 }

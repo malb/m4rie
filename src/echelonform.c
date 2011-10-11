@@ -51,10 +51,6 @@ rci_t mzd_slice_echelonize_ple(mzd_slice_t *A, int full) {
       mzd_slice_trsm_upper_left(U, B);
       mzd_slice_free_window(B);
     } else if (r_radix != r && r!=A->ncols) {
-      /**
-       * @todo: this doesn't belong here and is inefficient (with
-       * respect to memory at least). Write mzd_slice_trsm_upper_left_offset
-       */
       assert(r_radix < r);
 
       if(A->ncols > r_radix+m4ri_radix) {
@@ -74,12 +70,12 @@ rci_t mzd_slice_echelonize_ple(mzd_slice_t *A, int full) {
         mzd_slice_free_window(B1);
 
       } else {
-
         mzd_slice_t *B = mzd_slice_submatrix(NULL, A, 0, r_radix, r, A->ncols);
         mzd_slice_t *Bw = mzd_slice_init_window(A, 0, r_radix, r, A->ncols);
 
         for(rci_t i = 0; i < r; ++i)
           mzd_slice_write_elem(U, i, i, 1);
+
         mzd_slice_trsm_upper_left(U, B);
 
         mzd_slice_copy(Bw, B);
