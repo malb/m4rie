@@ -159,31 +159,6 @@ mzd_slice_t *_mzd_slice_mul_karatsuba3(mzd_slice_t *C, const mzd_slice_t *A, con
   return C;
 }
 
-static void _poly2_addmul(mzd_t **X, const mzd_t **a, const mzd_t **b) {
-  mzd_t *t0 = mzd_init(a[0]->nrows, a[0]->ncols);
-  mzd_t *t1 = mzd_init(b[0]->nrows, b[0]->ncols);
-
-  mzd_add(t0, a[0], a[1]);
-  mzd_add(t1, b[0], b[1]);
-
-  mzd_addmul(X[1], t0, t1, 0); /* + (a0+a1)(b0+b1)X */
-
-  mzd_free(t0);
-  mzd_free(t1);
-
-  t0 = mzd_init(a[0]->nrows, b[0]->ncols);
-
-  mzd_mul(t0, a[0], b[0], 0); /* + a0b0(1-X) */
-  mzd_add(X[0], X[0], t0);
-  mzd_add(X[1], X[1], t0);
-
-  mzd_mul(t0, a[1], b[1], 0); /* + a1b1(X+X^2) */
-  mzd_add(X[1], X[1], t0);
-  mzd_add(X[2], X[2], t0);
-
-  mzd_free(t0);
-}
-
 static void _poly_add(mzd_t **c, const mzd_t **a, const mzd_t **b,const int length) {
   switch(length) {
   case 16: mzd_add(c[15], a[15], b[15]);
@@ -208,6 +183,77 @@ static void _poly_add(mzd_t **c, const mzd_t **a, const mzd_t **b,const int leng
     m4ri_die("this should never happen.");
   } 
 }
+
+static void _poly_addmul2(mzd_t **X, const mzd_t **a, const mzd_t **b) {
+  mzd_t *t0 = mzd_init(a[0]->nrows, a[0]->ncols);
+  mzd_t *t1 = mzd_init(b[0]->nrows, b[0]->ncols);
+
+  mzd_add(t0, a[0], a[1]);
+  mzd_add(t1, b[0], b[1]);
+
+  mzd_addmul(X[1], t0, t1, 0); /* + (a0+a1)(b0+b1)X */
+
+  mzd_free(t0);
+  mzd_free(t1);
+
+  t0 = mzd_init(a[0]->nrows, b[0]->ncols);
+
+  mzd_mul(t0, a[0], b[0], 0); /* + a0b0(1-X) */
+  mzd_add(X[0], X[0], t0);
+  mzd_add(X[1], X[1], t0);
+
+  mzd_mul(t0, a[1], b[1], 0); /* + a1b1(X+X^2) */
+  mzd_add(X[1], X[1], t0);
+  mzd_add(X[2], X[2], t0);
+
+  mzd_free(t0);
+}
+
+static void _poly_addmul4(mzd_t **c, const mzd_t **a, const mzd_t **b) {
+  const mzd_t *a0[2] = {a[0],a[1]};
+  const mzd_t *a1[2] = {a[2],a[3]};
+  const mzd_t *b0[2] = {b[0],b[1]};
+  const mzd_t *b1[2] = {b[2],b[3]};
+
+  mzd_t *X[3][3] = { {c[0],c[1],c[2]}, 
+                     {c[2],c[3],c[4]},
+                     {c[4],c[5],c[6]} };
+
+  mzd_t *t0[3];
+  mzd_t *t1[2];
+
+  t0[0] = mzd_init(a[0]->nrows, a[0]->ncols);
+  t0[1] = mzd_init(a[0]->nrows, a[0]->ncols);
+  t1[0] = mzd_init(b[0]->nrows, b[0]->ncols);
+  t1[1] = mzd_init(b[0]->nrows, b[0]->ncols);
+
+  _poly_add(t0, a0, a1, 2);
+  _poly_add(t1, b0, b1, 2);
+
+  _poly_addmul2(X[1], (const mzd_t**)t0, (const mzd_t**)t1);
+
+  mzd_free(t0[0]);  mzd_free(t0[1]);
+  mzd_free(t1[0]);  mzd_free(t1[1]);
+
+  t0[0] = mzd_init(a[0]->nrows, b[0]->ncols);
+  t0[1] = mzd_init(a[0]->nrows, b[0]->ncols);
+  t0[2] = mzd_init(a[0]->nrows, b[0]->ncols);
+
+  _poly_addmul2(t0, a0, b0);
+  _poly_add(X[0], (const mzd_t**)X[0], (const mzd_t**)t0, 3);
+  _poly_add(X[1], (const mzd_t**)X[1], (const mzd_t**)t0, 3);
+
+  mzd_set_ui(t0[0], 0);
+  mzd_set_ui(t0[1], 0);
+  mzd_set_ui(t0[2], 0);
+  
+  _poly_addmul2(t0, a1, b1);
+  _poly_add(X[1], (const mzd_t**)X[1], (const mzd_t**)t0, 3);
+  _poly_add(X[2], (const mzd_t**)X[2], (const mzd_t**)t0, 3);
+
+  mzd_free(t0[0]); mzd_free(t0[1]); mzd_free(t0[2]); 
+}
+
 
 mzd_slice_t *_mzd_slice_mul_karatsuba4(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B) {
   /* using five + two = 7 temporary matrices */
@@ -236,7 +282,7 @@ mzd_slice_t *_mzd_slice_mul_karatsuba4(mzd_slice_t *C, const mzd_slice_t *A, con
   _poly_add(t0, a0, a1, 2);
   _poly_add(t1, b0, b1, 2);
 
-  _poly2_addmul(X[1], (const mzd_t**)t0, (const mzd_t**)t1);
+  _poly_addmul2(X[1], (const mzd_t**)t0, (const mzd_t**)t1);
 
   mzd_free(t0[0]);  mzd_free(t0[1]);
   mzd_free(t1[0]);  mzd_free(t1[1]);
@@ -245,7 +291,7 @@ mzd_slice_t *_mzd_slice_mul_karatsuba4(mzd_slice_t *C, const mzd_slice_t *A, con
   t0[1] = mzd_init(A->nrows, B->ncols);
   t0[2] = mzd_init(A->nrows, B->ncols);
 
-  _poly2_addmul(t0, a0, b0);
+  _poly_addmul2(t0, a0, b0);
   _poly_add(X[0], (const mzd_t**)X[0], (const mzd_t**)t0, 3);
   _poly_add(X[1], (const mzd_t**)X[1], (const mzd_t**)t0, 3);
 
@@ -253,7 +299,7 @@ mzd_slice_t *_mzd_slice_mul_karatsuba4(mzd_slice_t *C, const mzd_slice_t *A, con
   mzd_set_ui(t0[1], 0);
   mzd_set_ui(t0[2], 0);
   
-  _poly2_addmul(t0, a1, b1);
+  _poly_addmul2(t0, a1, b1);
   _poly_add(X[1], (const mzd_t**)X[1], (const mzd_t**)t0, 3);
 
   /* we would now do 
@@ -291,6 +337,13 @@ mzd_slice_t *_mzd_slice_mul_karatsuba4(mzd_slice_t *C, const mzd_slice_t *A, con
 }
 
 static inline void mzd_add_modred5(mzd_t **X, const int t, mzd_t *A, const word minpoly) {
+  /**
+   * @warning the reduction is not complete, i.e. not applied
+   * recursively
+   */
+  if (mzd_is_zero(A))
+    return;
+
   mzd_add(X[t-5+0], X[t-5+0], A);
 
   switch(minpoly) {
@@ -326,11 +379,12 @@ static inline void mzd_add_modred5(mzd_t **X, const int t, mzd_t *A, const word 
 }
 
 mzd_slice_t *_mzd_slice_mul_karatsuba5(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B) {
+  /* using three + three temporary matrices */
   if (C == NULL)
     C = mzd_slice_init(A->finite_field, A->nrows, B->ncols);
 
   const word minpoly = A->finite_field->minpoly;
-  C = _mzd_slice_adapt_depth(C,6);
+  C = _mzd_slice_adapt_depth(C, 8);
 
   const mzd_t *a0 = A->x[0];
   const mzd_t *a1 = A->x[1];
@@ -475,8 +529,83 @@ mzd_slice_t *_mzd_slice_mul_karatsuba5(mzd_slice_t *C, const mzd_slice_t *A, con
   mzd_free(t1);
   mzd_free(t2);
 
+  mzd_add_modred5(X, 7, X[7], minpoly);
+  mzd_add_modred5(X, 6, X[6], minpoly);
   mzd_add_modred5(X, 5, X[5], minpoly);
 
   _mzd_slice_adapt_depth(C,5);
+  return C;
+}
+
+mzd_slice_t *_mzd_slice_mul_karatsuba8(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B) {
+  /** 8 + 7 temporaries **/
+  if (C == NULL)
+    C = mzd_slice_init(A->finite_field, A->nrows, B->ncols);
+
+  const word minpoly = A->finite_field->minpoly;
+  C = _mzd_slice_adapt_depth(C,15);
+
+  const mzd_t *a0[4] = {A->x[0],A->x[1],A->x[2],A->x[3]};
+  const mzd_t *a1[4] = {A->x[4],A->x[5],A->x[6],A->x[7]};
+  const mzd_t *b0[4] = {B->x[0],B->x[1],B->x[2],B->x[3]};
+  const mzd_t *b1[4] = {B->x[4],B->x[5],B->x[6],B->x[7]};
+
+  mzd_t *X[3][7] = { {C->x[ 0],C->x[ 1],C->x[ 2],C->x[ 3],C->x[ 4],C->x[ 5],C->x[ 6]}, 
+                     {C->x[ 4],C->x[ 5],C->x[ 6],C->x[ 7],C->x[ 8],C->x[ 9],C->x[10]},
+                     {C->x[ 8],C->x[ 9],C->x[10],C->x[11],C->x[12],C->x[13],C->x[14]} };
+
+  mzd_t *t0[7];
+  mzd_t *t1[4];
+
+  t0[0] = mzd_init(A->nrows, A->ncols);
+  t0[1] = mzd_init(A->nrows, A->ncols);
+  t0[2] = mzd_init(A->nrows, A->ncols);
+  t0[3] = mzd_init(A->nrows, A->ncols);
+
+  t1[0] = mzd_init(B->nrows, B->ncols);
+  t1[1] = mzd_init(B->nrows, B->ncols);
+  t1[2] = mzd_init(B->nrows, B->ncols);
+  t1[3] = mzd_init(B->nrows, B->ncols);
+
+  _poly_add(t0, a0, a1, 4);
+  _poly_add(t1, b0, b1, 4);
+
+  _poly_addmul4(X[1], (const mzd_t**)t0, (const mzd_t**)t1);
+
+  mzd_free(t0[0]);  mzd_free(t0[1]);  mzd_free(t0[2]);  mzd_free(t0[3]);
+  mzd_free(t1[0]);  mzd_free(t1[1]);  mzd_free(t1[2]);  mzd_free(t1[3]);
+
+  t0[0] = mzd_init(C->x[0]->nrows, B->x[0]->ncols);
+  t0[1] = mzd_init(C->x[0]->nrows, B->x[0]->ncols);
+  t0[2] = mzd_init(C->x[0]->nrows, B->x[0]->ncols);
+  t0[3] = mzd_init(C->x[0]->nrows, B->x[0]->ncols);
+  t0[4] = mzd_init(C->x[0]->nrows, B->x[0]->ncols);
+  t0[5] = mzd_init(C->x[0]->nrows, B->x[0]->ncols);
+  t0[6] = mzd_init(C->x[0]->nrows, B->x[0]->ncols);
+
+  _poly_addmul4(t0, a0, b0);
+  _poly_add(X[0], (const mzd_t**)X[0], (const mzd_t**)t0, 7);
+  _poly_add(X[1], (const mzd_t**)X[1], (const mzd_t**)t0, 7);
+
+  mzd_set_ui(t0[0], 0);
+  mzd_set_ui(t0[1], 0);
+  mzd_set_ui(t0[2], 0);
+  mzd_set_ui(t0[3], 0);
+  mzd_set_ui(t0[4], 0);
+  mzd_set_ui(t0[5], 0);
+  mzd_set_ui(t0[6], 0);
+  
+  _poly_addmul4(t0, a1, b1);
+  _poly_add(X[1], (const mzd_t**)X[1], (const mzd_t**)t0, 7);
+  _poly_add(X[2], (const mzd_t**)X[2], (const mzd_t**)t0, 7);
+
+  mzd_free(t0[0]); mzd_free(t0[1]); mzd_free(t0[2]); mzd_free(t0[3]); 
+  mzd_free(t0[4]); mzd_free(t0[5]); mzd_free(t0[6]);
+
+  for(unsigned int i=2*8-2; i>= 8; i--)
+    for(unsigned int j=0; j<8; j++) 
+      if (minpoly & 1<<j) 
+        mzd_add(C->x[i-8+j], C->x[i-8+j], C->x[i]);
+  _mzd_slice_adapt_depth(C,8);
   return C;
 }
