@@ -350,19 +350,15 @@ rci_t _mzed_strassen_cutoff(const mzed_t *C, const mzed_t *A, const mzed_t *B) {
   switch(A->finite_field->degree) {
 
   case 2:
-    cutoff = MIN(((int)sqrt((double)(4*__M4RI_CPU_L2_CACHE))),4096);
+    cutoff = MIN(((int)sqrt((double)(4*__M4RI_CPU_L2_CACHE)))/2,4096);
     break;
-
   case  3:
   case  4:
-    cutoff = MIN(((int)sqrt((double)(__M4RI_CPU_L2_CACHE))),4096);
-    break;
-
   case  5:
   case  6:
   case  7:
   case  8:
-    cutoff = MIN(((int)sqrt((double)(__M4RI_CPU_L2_CACHE))),4096);
+    cutoff = MIN(((int)sqrt((double)(4*__M4RI_CPU_L2_CACHE/A->w))),4096);
     break;
 
   case  9:
