@@ -51,6 +51,7 @@ static inline gf2e *gf2e_init_givgfq(M4RIE::FiniteField *givgfq) {
     tmp = ff->mul[2][tmp];
   }
   ff->minpoly = tmp ^ (1<<(ff->degree));
+  gf2e_make_pow_gen(ff);
   return ff;
 }
  

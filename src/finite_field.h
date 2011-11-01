@@ -8,6 +8,7 @@ typedef struct {
   word *inv;
   size_t degree;
   word minpoly;
+  word *pow_gen;
 } gf2e;
 
 void gf2e_free(gf2e *ff);
@@ -15,18 +16,18 @@ void gf2e_free(gf2e *ff);
 
 static inline size_t gf2e_degree_to_w(const gf2e *ff) {
   switch(ff->degree) {
-  case 2: 
-    return 2; 
-  case 3: 
-  case 4: 
+  case 2:
+    return 2;
+  case  3:
+  case  4:
     return 4;
-  case 5: 
-  case 6: 
-  case 7: 
-  case 8: 
+  case  5:
+  case  6:
+  case  7:
+  case  8:
     return 8;
-  case 9: 
-  case 10: 
+  case  9:
+  case 10:
   case 11:
   case 12:
   case 13:
@@ -73,5 +74,19 @@ static inline word *gf2e_t16_init(const gf2e *ff, const word a) {
 static inline void gf2e_t16_free(word *mul) {
   m4ri_mm_free(mul);
 }
+
+static inline void gf2e_make_pow_gen(gf2e *ff) {
+  int n = 2*ff->degree-1;
+  word *m = (word*)m4ri_mm_malloc( n * sizeof(word));
+  for(int i=0; i<n; i++) {
+    m[i] = 1<<i;
+    for(int j=i; j>=ff->degree; j--) {
+      if (m[i] & 1<<j)
+        m[i] ^= ff->minpoly<<(j - ff->degree);
+    }
+  }
+  ff->pow_gen = m;
+}
+
 
 #endif //FINITE_FIELD_H
