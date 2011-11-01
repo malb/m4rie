@@ -417,6 +417,10 @@ mzd_slice_t *_mzd_slice_mul_karatsuba2(mzd_slice_t *C, const mzd_slice_t *A, con
 /**
  * \brief Compute C = A*B over GF(2^3) using 6 multiplications over GF(2).
  *
+ * The formula was taken from Peter L. Montgomery. "Five, Six, and
+ * Seven-Term Karatsuba-Like Formulae" in IEEE TRANSACTIONS ON
+ * COMPUTERS, VOL. 54, NO. 3, MARCH 2005/
+ *
  * \param C Preallocated return matrix, may be NULL for automatic creation.
  * \param A Input matrix A.
  * \param B Input matrix B.
@@ -441,6 +445,10 @@ mzd_slice_t *_mzd_slice_mul_karatsuba4(mzd_slice_t *C, const mzd_slice_t *A, con
 /**
  * \brief Compute C = A*B over GF(2^5) using 13 multiplications over GF(2).
  *
+ * The formula was taken from Peter L. Montgomery. "Five, Six, and
+ * Seven-Term Karatsuba-Like Formulae" in IEEE TRANSACTIONS ON
+ * COMPUTERS, VOL. 54, NO. 3, MARCH 2005/
+ *
  * \param C Preallocated return matrix, may be NULL for automatic creation.
  * \param A Input matrix A.
  * \param B Input matrix B.
@@ -451,6 +459,23 @@ mzd_slice_t *_mzd_slice_mul_karatsuba4(mzd_slice_t *C, const mzd_slice_t *A, con
 mzd_slice_t *_mzd_slice_mul_karatsuba5(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B);
 
 /**
+ * \brief Compute C = A*B over GF(2^6) using 17 multiplications over GF(2).
+ *
+ * The formula was taken from Peter L. Montgomery. "Five, Six, and
+ * Seven-Term Karatsuba-Like Formulae" in IEEE TRANSACTIONS ON
+ * COMPUTERS, VOL. 54, NO. 3, MARCH 2005/
+ *
+ * \param C Preallocated return matrix, may be NULL for automatic creation.
+ * \param A Input matrix A.
+ * \param B Input matrix B.
+ *
+ * \sa _mzd_slice_mul_karatsuba
+ */
+
+mzd_slice_t *_mzd_slice_mul_karatsuba6(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B);
+
+
+/**
  * \brief Compute C = A*B over GF(2^8) using 27 multiplications over GF(2).
  *
  * \param C Preallocated return matrix, may be NULL for automatic creation.
@@ -459,6 +484,7 @@ mzd_slice_t *_mzd_slice_mul_karatsuba5(mzd_slice_t *C, const mzd_slice_t *A, con
  *
  * \sa _mzd_slice_mul_karatsuba
  */
+
 
 mzd_slice_t *_mzd_slice_mul_karatsuba8(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B);
 
@@ -502,7 +528,7 @@ static inline mzd_slice_t *_mzd_slice_mul_karatsuba(mzd_slice_t *C, const mzd_sl
   case  3: C = _mzd_slice_mul_karatsuba3(C, A, B); break;
   case  4: C = _mzd_slice_mul_karatsuba4(C, A, B); break;
   case  5: C = _mzd_slice_mul_karatsuba5(C, A, B); break;
-  case  6: C = _mzd_slice_mul_naive(C, A, B); break;
+  case  6: C = _mzd_slice_mul_karatsuba6(C, A, B); break;
   case  7: C = _mzd_slice_mul_naive(C, A, B); break;
   case  8: C = _mzd_slice_mul_karatsuba8(C, A, B); break;
   case  9: C = _mzd_slice_mul_naive(C, A, B); break;
