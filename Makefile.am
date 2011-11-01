@@ -36,27 +36,33 @@ libm4rie_la_LIBADD = -lm4ri
 #testing
 TESTCXXFLAGS = ${AM_CFLAGS} @CXXFLAGS@ ${M4RIE_M4RI_CFLAGS} ${M4RIE_GIVARO_CXXFLAGS} ${M4RI_CFLAGS}
 TESTLIBADD = -lm4ri -lm4rie -lgivaro -lntl -lgmpxx -lgmp -lm -lstdc++
-TESTLDFLAGS = ${M4RIE_GIVARO_LDFLAGS}
+TESTLDADD = ${M4RIE_GIVARO_LDFLAGS}
+TESTLDFLAGS =  -Wl,-rpath,.libs/
 
 check_PROGRAMS=test_trsm test_elimination test_multiplication test_smallops test_ple
 test_elimination_SOURCES=tests/test_elimination.cc
-test_elimination_LDADD= ${TESTLDFLAGS} ${TESTLIBADD}
+test_elimination_LDADD= ${TESTLDADD} ${TESTLIBADD}
+test_elimination_LDFLAGS= ${TESTLDFLAGS}
 test_elimination_CXXFLAGS=${TESTCXXFLAGS}
 
 test_multiplication_SOURCES=tests/test_multiplication.cc
-test_multiplication_LDADD=${TESTLDFLAGS} ${TESTLIBADD}
+test_multiplication_LDADD=${TESTLDADD} ${TESTLIBADD}
+test_multiplication_LDFLAGS= ${TESTLDFLAGS}
 test_multiplication_CXXFLAGS=${TESTCXXFLAGS}
 
 test_smallops_SOURCES=tests/test_smallops.cc
-test_smallops_LDADD=${TESTLDFLAGS} ${TESTLIBADD}
+test_smallops_LDADD=${TESTLDADD} ${TESTLIBADD}
+test_smallops_LDFLAGS= ${TESTLDFLAGS}
 test_smallops_CXXFLAGS=${TESTCXXFLAGS}
 
 test_trsm_SOURCES=tests/test_trsm.cc
-test_trsm_LDADD=${TESTLDFLAGS} ${TESTLIBADD}
+test_trsm_LDADD=${TESTLDADD} ${TESTLIBADD}
+test_trsm_LDFLAGS= ${TESTLDFLAGS}
 test_trsm_CXXFLAGS=${TESTCXXFLAGS}
 
 test_ple_SOURCES=tests/test_ple.cc
-test_ple_LDADD=${TESTLDFLAGS} ${TESTLIBADD}
+test_ple_LDADD=${TESTLDADD} ${TESTLIBADD}
+test_ple_LDFLAGS= ${TESTLDFLAGS}
 test_ple_CXXFLAGS=${TESTCXXFLAGS}
 
 
