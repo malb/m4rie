@@ -277,7 +277,7 @@ static void _poly_add(mzd_t **c, const mzd_t **a, const mzd_t **b,const int leng
   case 0:
   default:
     m4ri_die("this should never happen.");
-  } 
+  }
 }
 
 static void _poly_addmul2(mzd_t **X, const mzd_t **a, const mzd_t **b) {
@@ -350,84 +350,65 @@ static void _poly_addmul4(mzd_t **c, const mzd_t **a, const mzd_t **b) {
   mzd_free(t0[0]); mzd_free(t0[1]); mzd_free(t0[2]);
 }
 
-
 mzd_slice_t *_mzd_slice_mul_karatsuba4(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B) {
-  /* using five + two = 7 temporary matrices */
-
+  /* using three temporary matrices*/
   if (C == NULL)
     C = mzd_slice_init(A->finite_field, A->nrows, B->ncols);
 
-  C = _mzd_slice_adapt_depth(C,5);
+  const gf2e *ff = A->finite_field;
 
-  const mzd_t *a0[2] = {A->x[0],A->x[1]};
-  const mzd_t *a1[2] = {A->x[2],A->x[3]};
-  const mzd_t *b0[2] = {B->x[0],B->x[1]};
-  const mzd_t *b1[2] = {B->x[2],B->x[3]};
+  const mzd_t *a0 = A->x[0];
+  const mzd_t *a1 = A->x[1];
+  const mzd_t *a2 = A->x[2];
+  const mzd_t *a3 = A->x[3];
 
-  mzd_t *X[2][3] = { {C->x[0],C->x[1],C->x[2]},
-                     {C->x[2],C->x[3],C->x[4]} };
+  const mzd_t *b0 = B->x[0];
+  const mzd_t *b1 = B->x[1];
+  const mzd_t *b2 = B->x[2];
+  const mzd_t *b3 = B->x[3];
 
-  mzd_t *t0[3];
-  mzd_t *t1[2];
+  mzd_t **X = C->x;
 
-  t0[0] = mzd_init(A->nrows, A->ncols);
-  t0[1] = mzd_init(A->nrows, A->ncols);
-  t1[0] = mzd_init(B->nrows, B->ncols);
-  t1[1] = mzd_init(B->nrows, B->ncols);
+  mzd_t *t0 = mzd_init(a0->nrows, b0->ncols);
+  mzd_t *t1 = mzd_init(a0->nrows, a1->ncols);
+  mzd_t *t2 = mzd_init(b0->nrows, b1->ncols);
 
-  _poly_add(t0, a0, a1, 2);
-  _poly_add(t1, b0, b1, 2);
 
-  _poly_addmul2(X[1], (const mzd_t**)t0, (const mzd_t**)t1);
+  /* (a0 + a1 + a2 + a3)*(b0 + b1 + b2 + b3)*X^3 */
+  mzd_add_to_all_modred(ff, mzd_mul(t0,
+                                    mzd_sum(t1, 4, a0, a1, a2, a3),
+                                    mzd_sum(t2, 4, b0, b1, b2, b3), 0), X, 1,   3);
+  /* (a0 + a1)*(b0 + b1)*(X   + X^3) */
+  mzd_add_to_all_modred(ff, mzd_mul(t0,
+                                    mzd_sum(t1, 2, a0, a1),
+                                    mzd_sum(t2, 2, b0, b1), 0), X, 2,   1, 3);
+  /* (a0 + a2)*(b0 + b2)*(X^2 + X^3) */
+  mzd_add_to_all_modred(ff, mzd_mul(t0,
+                                    mzd_sum(t1, 2, a0, a2),
+                                    mzd_sum(t2, 2, b0, b2), 0), X, 2,   2, 3);
+  /* (a1 + a3)*(b1 + b3)*(X^3 + X^4) */
+  mzd_add_to_all_modred(ff, mzd_mul(t0,
+                                    mzd_sum(t1, 2, a1, a3),
+                                    mzd_sum(t2, 2, b1, b3), 0), X, 2,   3, 4);
+  /* (a2 + a3)*(b2 + b3)*(X^3 + X^5) */
+  mzd_add_to_all_modred(ff, mzd_mul(t0,
+                                    mzd_sum(t1, 2, a2, a3),
+                                    mzd_sum(t2, 2, b2, b3), 0), X, 2,   3, 5);
+  /* (a0*b0)*(1 + X   + X^2 + X^3) */
+  mzd_add_to_all_modred(ff, mzd_mul(t0, a0, b0, 0), X, 4,    0, 1, 2, 3);
 
-  mzd_free(t0[0]);  mzd_free(t0[1]);
-  mzd_free(t1[0]);  mzd_free(t1[1]);
+  /* (a1*b1)*(X + X^2 + X^3 + X^4) */
+  mzd_add_to_all_modred(ff, mzd_mul(t0, a1, b1, 0), X, 4,    1, 2, 3, 4);
 
-  t0[0] = mzd_init(A->nrows, B->ncols);
-  t0[1] = mzd_init(A->nrows, B->ncols);
-  t0[2] = mzd_init(A->nrows, B->ncols);
+  /* (a2*b2)*(X^2 + X^3 + X^4 + X^5) */
+  mzd_add_to_all_modred(ff, mzd_mul(t0, a2, b2, 0), X, 4,    2, 3, 4, 5);
 
-  _poly_addmul2(t0, a0, b0);
-  _poly_add(X[0], (const mzd_t**)X[0], (const mzd_t**)t0, 3);
-  _poly_add(X[1], (const mzd_t**)X[1], (const mzd_t**)t0, 3);
+  /* (a3*b3)*(X^3 + X^4 + X^5 + X^6) */
+  mzd_add_to_all_modred(ff, mzd_mul(t0, a3, b3, 0), X, 4,    3, 4, 5, 6);
 
-  mzd_set_ui(t0[0], 0);
-  mzd_set_ui(t0[1], 0);
-  mzd_set_ui(t0[2], 0);
-
-  _poly_addmul2(t0, a1, b1);
-  _poly_add(X[1], (const mzd_t**)X[1], (const mzd_t**)t0, 3);
-
-  /* we would now do
-   *
-   *    _poly_add(X[2], (const mzd_t**)X[2], (const mzd_t**)t0, 3);
-   *
-   * but we want avoid C->x[6] and C->x[5], hence we combine it with the
-   * modular reduction.
-   */
-
-  mzd_add(C->x[4], C->x[4], t0[0]);
-  if(A->finite_field->minpoly & 1<<3) {
-    mzd_add(t0[1], t0[1], t0[2]);
-    mzd_add(C->x[4], C->x[4], t0[1]);
-    mzd_add(C->x[3], C->x[3], C->x[4]);
-  }
-  if(A->finite_field->minpoly & 1<<2) {
-    mzd_add(C->x[4], C->x[4], t0[2]);
-    mzd_add(C->x[3], C->x[3], t0[1]);
-    mzd_add(C->x[2], C->x[2], C->x[4]);
-  }
-  if(A->finite_field->minpoly & 1<<1) {
-    mzd_add(C->x[3], C->x[3], t0[2]);
-    mzd_add(C->x[2], C->x[2], t0[1]);
-    mzd_add(C->x[1], C->x[1], C->x[4]);
-  }
-  mzd_add(C->x[2], C->x[2], t0[2]);
-  mzd_add(C->x[1], C->x[1], t0[1]);
-  mzd_add(C->x[0], C->x[0], C->x[4]);
-
-  mzd_free(t0[0]); mzd_free(t0[1]); mzd_free(t0[2]);
-  _mzd_slice_adapt_depth(C,4);
+  mzd_free(t0);
+  mzd_free(t1);
+  mzd_free(t2);
 
   return C;
 }
@@ -456,68 +437,64 @@ mzd_slice_t *_mzd_slice_mul_karatsuba5(mzd_slice_t *C, const mzd_slice_t *A, con
   mzd_t *t0 = mzd_init(a0->nrows, b0->ncols);
 
   /* a0b0(X^6 + X^5 + X^4 + X^2 + X + 1)*/
-  mzd_mul(t0, a0, b0, 0);
-  mzd_add_to_all_modred(ff, t0, X, 6,   6, 5, 4, 2, 1, 0);
+  mzd_add_to_all_modred(ff, mzd_mul(t0, a0, b0, 0), X, 6,   6, 5, 4, 2, 1, 0);
 
   /* a1b1(X^4 + X)*/
-  mzd_mul(t0, a1, b1, 0);
-  mzd_add_to_all_modred(ff, t0, X, 2,   4, 1);
+  mzd_add_to_all_modred(ff, mzd_mul(t0, a1, b1, 0), X, 2,   4, 1);
 
   /* a3b3(X^7 + X^4) */
-  mzd_mul(t0, a3, b3, 0);
-  mzd_add_to_all_modred(ff, t0, X, 2,   7, 4);
+  mzd_add_to_all_modred(ff, mzd_mul(t0, a3, b3, 0), X, 2,   7, 4);
 
   /* (a4b4)(X^8 + X^7 + X^6 + X^4 + X^3 + X^2) */
-  mzd_mul(t0, a4, b4, 0);
-  mzd_add_to_all_modred(ff, t0, X, 6,   8, 7, 6, 4, 3, 2);
+  mzd_add_to_all_modred(ff, mzd_mul(t0, a4, b4, 0), X, 6,   8, 7, 6, 4, 3, 2);
 
   mzd_t *t1 = mzd_init(a0->nrows, a1->ncols);
   mzd_t *t2 = mzd_init(b0->nrows, b1->ncols);
 
   /* (a0+a4)(b0+b4)(X^6 + X^5 + X^3 + X^2) */
-  mzd_sum(t1, 2, a0, a4); mzd_sum(t2, 2, b0, b4);
-  mzd_mul(t0, t1, t2, 0);
-  mzd_add_to_all_modred(ff, t0, X, 4,   6, 5, 3, 2);
+  mzd_add_to_all_modred(ff, mzd_mul(t0,
+                                    mzd_sum(t1, 2, a0, a4),
+                                    mzd_sum(t2, 2, b0, b4), 0), X, 4,   6, 5, 3, 2);
 
   /* (a0+a1)(b0+b1)(X^5 + X^4 + X^2 + X) */
-  mzd_sum(t1, 2, a0, a1); mzd_sum(t2, 2, b0, b1);
-  mzd_mul(t0, t1, t2, 0);
-  mzd_add_to_all_modred(ff, t0, X, 4,   5, 4, 2, 1);
+  mzd_add_to_all_modred(ff, mzd_mul(t0,
+                                    mzd_sum(t1, 2, a0, a1),
+                                    mzd_sum(t2, 2, b0, b1), 0), X, 4,   5, 4, 2, 1);
 
   /* (a3+a4)(b3+b4)(X^7 + X^6 + X^4 + X^3) */
-  mzd_sum(t1, 2, a3, a4); mzd_sum(t2, 2, b3, b4);
-  mzd_mul(t0, t1, t2, 0);
-  mzd_add_to_all_modred(ff, t0, X, 4,   7, 6, 4, 3);
+  mzd_add_to_all_modred(ff, mzd_mul(t0,
+                                    mzd_sum(t1, 2, a3, a4),
+                                    mzd_sum(t2, 2, b3, b4), 0), X, 4,   7, 6, 4, 3);
 
   /* (a1+a2+a4)(a1+a2+a4)(X^4 + X^2) */
-  mzd_sum(t1, 3, a1, a2, a4); mzd_sum(t2, 3, b1, b2, b4);
-  mzd_mul(t0, t1, t2, 0);
-  mzd_add_to_all_modred(ff, t0, X, 2,   4, 2);
+  mzd_add_to_all_modred(ff, mzd_mul(t0,
+                                    mzd_sum(t1, 3, a1, a2, a4),
+                                    mzd_sum(t2, 3, b1, b2, b4), 0), X, 2,   4, 2);
 
   /* (a0+a2+a3)(b0+b2+b3)(X^6 + X^4) */
-  mzd_sum(t1, 3, a0, a2, a3); mzd_sum(t2, 3, b0, b2, b3);
-  mzd_mul(t0, t1, t2, 0);
-  mzd_add_to_all_modred(ff, t0, X, 2,   6, 4);
+  mzd_add_to_all_modred(ff, mzd_mul(t0,
+                                    mzd_sum(t1, 3, a0, a2, a3),
+                                    mzd_sum(t2, 3, b0, b2, b3), 0), X, 2,   6, 4);
 
   /* (a0+a1+a3+a4)(b0+b1+b3+b4)(X^5 + X^3) */
-  mzd_sum(t1, 4, a0, a1, a3, a4); mzd_sum(t2, 4, b0, b1, b3, b4);
-  mzd_mul(t0, t1, t2, 0);
-  mzd_add_to_all_modred(ff, t0, X, 2,   5, 3);
+  mzd_add_to_all_modred(ff, mzd_mul(t0,
+                                    mzd_sum(t1, 4, a0, a1, a3, a4),
+                                    mzd_sum(t2, 4, b0, b1, b3, b4), 0), X, 2,   5, 3);
 
   /* (a0+a1+a2+a4)(b0+b1+b2+b4)(X^5 + X^2) */
-  mzd_sum(t1, 4, a0, a1, a2, a4); mzd_sum(t2, 4, b0, b1, b2, b4);
-  mzd_mul(t0, t1, t2, 0);
-  mzd_add_to_all_modred(ff, t0, X, 2,   5, 2);
+  mzd_add_to_all_modred(ff, mzd_mul(t0,
+                                    mzd_sum(t1, 4, a0, a1, a2, a4),
+                                    mzd_sum(t2, 4, b0, b1, b2, b4), 0), X, 2,   5, 2);
 
   /* (a0+a2+a3+a4)(b0+b2+b3+b4)(X^6 + X^3)*/
-  mzd_sum(t1, 4, a0, a2, a3, a4); mzd_sum(t2, 4, b0, b2, b3, b4);
-  mzd_mul(t0, t1, t2, 0);
-  mzd_add_to_all_modred(ff, t0, X, 2,   6, 3);
+  mzd_add_to_all_modred(ff, mzd_mul(t0,
+                                    mzd_sum(t1, 4, a0, a2, a3, a4),
+                                    mzd_sum(t2, 4, b0, b2, b3, b4), 0), X, 2,   6, 3);
 
   /* (a0+a1+a2+a3+a4)(b0+b1+b2+b3+b4)(X^5 + X^4 + X^3)*/
-  mzd_sum(t1, 5, a0, a1, a2, a3, a4); mzd_sum(t2, 5, b0, b1, b2, b3, b4);
-  mzd_mul(t0, t1, t2, 0);
-  mzd_add_to_all_modred(ff, t0, X, 3,   5, 4, 3);
+  mzd_add_to_all_modred(ff, mzd_mul(t0,
+                                    mzd_sum(t1, 5, a0, a1, a2, a3, a4),
+                                    mzd_sum(t2, 5, b0, b1, b2, b3, b4), 0), X, 3,   5, 4, 3);
 
   mzd_free(t0);
   mzd_free(t1);
@@ -554,86 +531,82 @@ mzd_slice_t *_mzd_slice_mul_karatsuba6(mzd_slice_t *C, const mzd_slice_t *A, con
   mzd_t *t2 = mzd_init(b0->nrows, b1->ncols);
 
   /* a5b5 (X^10 + X^9 + X^6 + X^5) */
-  mzd_mul(t0, a5, b5, 0);
-  mzd_add_to_all_modred(ff, t0, X, 4,   10, 9, 6, 5);
+  mzd_add_to_all_modred(ff, mzd_mul(t0, a5, b5, 0), X, 4,   10, 9, 6, 5);
 
   /* a4b4 (X^9 + X^7 + X^5 + X^3) */
-  mzd_mul(t0, a4, b4, 0);
-  mzd_add_to_all_modred(ff, t0, X, 4,    9, 7, 5, 3);
+  mzd_add_to_all_modred(ff, mzd_mul(t0, a4, b4, 0), X, 4,   9, 7, 5, 3);
 
   /* a1b1 (X^7 + X^6 + X^5 + X^4 + X^3 + X) */
-  mzd_mul(t0, a1, b1, 0);
-  mzd_add_to_all_modred(ff, t0, X, 6,   7, 6, 5, 4, 3, 1);
+  mzd_add_to_all_modred(ff, mzd_mul(t0, a1, b1, 0), X, 6,   7, 6, 5, 4, 3, 1);
 
   /* a0b0 (X^6 + X^5 + X + 1) */
-  mzd_mul(t0, a0, b0, 0);
-  mzd_add_to_all_modred(ff, t0, X, 4,   6, 5, 1, 0);
+  mzd_add_to_all_modred(ff, mzd_mul(t0, a0, b0, 0), X, 4,   6, 5, 1, 0);
 
   /* (a4 + a5)(b4 + b5) (X^9 + X^8 + X^4+ X^3) */
-  mzd_sum(t1, 2, a4, a5); mzd_sum(t2, 2, b4, b5);
-  mzd_mul(t0, t1, t2, 0);
-  mzd_add_to_all_modred(ff, t0, X, 4,   9, 8, 4, 3);
+  mzd_add_to_all_modred(ff, mzd_mul(t0,
+                                    mzd_sum(t1, 2, a4, a5),
+                                    mzd_sum(t2, 2, b4, b5), 0), X, 4,   9, 8, 4, 3);
 
   /* (a0 + a1)(b0 + b1) (X^7 + X^4 + X^2 + X) */
-  mzd_sum(t1, 2, a0, a1); mzd_sum(t2, 2, b0, b1);
-  mzd_mul(t0, t1, t2, 0);
-  mzd_add_to_all_modred(ff, t0, X, 4,   7, 4, 2, 1);
+  mzd_add_to_all_modred(ff, mzd_mul(t0,
+                                    mzd_sum(t1, 2, a0, a1),
+                                    mzd_sum(t2, 2, b0, b1), 0), X, 4,   7, 4, 2, 1);
 
   /* (a3 + a4)(b3 + b4)(X^8 + X^7 + X^6 + X^3) */
-  mzd_sum(t1, 2, a3, a4); mzd_sum(t2, 2, b3, b4);
-  mzd_mul(t0, t1, t2, 0);
-  mzd_add_to_all_modred(ff, t0, X, 4,   8, 7, 6, 3);
+  mzd_add_to_all_modred(ff, mzd_mul(t0,
+                                    mzd_sum(t1, 2, a3, a4),
+                                    mzd_sum(t2, 2, b3, b4), 0), X, 4,   8, 7, 6, 3);
 
   /* (a1 + a2)(b1 + b2) (X^7 + X^6 + X^3 + X^2) */
-  mzd_sum(t1, 2, a1, a2); mzd_sum(t2, 2, b1, b2);
-  mzd_mul(t0, t1, t2, 0);
-  mzd_add_to_all_modred(ff, t0, X, 4,   7, 6, 3, 2);
+  mzd_add_to_all_modred(ff, mzd_mul(t0,
+                                    mzd_sum(t1, 2, a1, a2),
+                                    mzd_sum(t2, 2, b1, b2), 0), X, 4,   7, 6, 3, 2);
 
   /* (a1 + a4)(b1 + b4) (X^4 + X^5) */
-  mzd_sum(t1, 2, a1, a4); mzd_sum(t2, 2, b1, b4);
-  mzd_mul(t0, t1, t2, 0);
-  mzd_add_to_all_modred(ff, t0, X, 2,   4, 5);
+  mzd_add_to_all_modred(ff, mzd_mul(t0,
+                                    mzd_sum(t1, 2, a1, a4),
+                                    mzd_sum(t2, 2, b1, b4), 0), X, 2,   4, 5);
 
   /* (a2 + a3)(b2 + b3) (X^7 + X^6 + X^4 + X^3) */
-  mzd_sum(t1, 2, a2, a3); mzd_sum(t2, 2, b2, b3);
-  mzd_mul(t0, t1, t2, 0);
-  mzd_add_to_all_modred(ff, t0, X, 4,   7, 6, 4, 3);
+  mzd_add_to_all_modred(ff, mzd_mul(t0,
+                                    mzd_sum(t1, 2, a2, a3),
+                                    mzd_sum(t2, 2, b2, b3), 0), X, 4,   7, 6, 4, 3);
 
   /* (a3 + a4 + a5)(b3 + b4 + b5) (X^8 + X^6 + X^4 + X^3) */
-  mzd_sum(t1, 3, a3, a4, a5); mzd_sum(t2, 3, b3, b4, b5);
-  mzd_mul(t0, t1, t2, 0);
-  mzd_add_to_all_modred(ff, t0, X, 4,   8, 6, 4, 3);
-
+  mzd_add_to_all_modred(ff, mzd_mul(t0,
+                                    mzd_sum(t1, 3, a3, a4, a5),
+                                    mzd_sum(t2, 3, b3, b4, b5), 0), X, 4,   8, 6, 4, 3);
 
   /* (a0 + a1 + a2)(b0 + b1 + b2) (X^7 + X^2) */
-  mzd_sum(t1, 3, a0, a1, a2); mzd_sum(t2, 3, b0, b1, b2);
-  mzd_mul(t0, t1, t2, 0);
-  mzd_add_to_all_modred(ff, t0, X, 2,   7, 2);
+  mzd_add_to_all_modred(ff, mzd_mul(t0,
+                                    mzd_sum(t1, 3, a0, a1, a2),
+                                    mzd_sum(t2, 3, b0, b1, b2), 0), X, 2,   7, 2);
 
   /* (a0 + a3 + a5)(b0 + b3 + b5) (X^7 + X^5) */
-  mzd_sum(t1, 3, a0, a3, a5); mzd_sum(t2, 3, b0, b3, b5);
-  mzd_mul(t0, t1, t2, 0);
-  mzd_add_to_all_modred(ff, t0, X, 2,   7, 5);
+  mzd_add_to_all_modred(ff, mzd_mul(t0,
+                                    mzd_sum(t1, 3, a0, a3, a5),
+                                    mzd_sum(t2, 3, b0, b3, b5), 0), X, 2,   7, 5);
 
   /* (a0 + a2 + a5)(b0 + b2 + b5) (X^6 + X^5 + X^4 + X^3) */
-  mzd_sum(t1, 3, a0, a2, a5); mzd_sum(t2, 3, b0, b2, b5);
-  mzd_mul(t0, t1, t2, 0);
-  mzd_add_to_all_modred(ff, t0, X, 4,   6, 5, 4, 3);
+  ;
+  mzd_add_to_all_modred(ff, mzd_mul(t0,
+                                    mzd_sum(t1, 3, a0, a2, a5),
+                                    mzd_sum(t2, 3, b0, b2, b5), 0), X, 4,   6, 5, 4, 3);
 
   /* (a0 + a2 + a3 + a5)(b0 + b2 + b3 + b5) (X^7 + X^5 + X^4 + X^3) */
-  mzd_sum(t1, 4, a0, a2, a3, a5); mzd_sum(t2, 4, b0, b2, b3, b5);
-  mzd_mul(t0, t1, t2, 0);
-  mzd_add_to_all_modred(ff, t0, X, 4,   7, 5, 4, 3);
+  mzd_add_to_all_modred(ff, mzd_mul(t0,
+                                    mzd_sum(t1, 4, a0, a2, a3, a5),
+                                    mzd_sum(t2, 4, b0, b2, b3, b5), 0), X, 4,   7, 5, 4, 3);
 
   /* (a0 + a1 + a3 + a4)(b0 + b1 + b3 + b4) (X^6 + X^4) */
-  mzd_sum(t1, 4, a0, a1, a3, a4); mzd_sum(t2, 4, b0, b1, b3, b4);
-  mzd_mul(t0, t1, t2, 0);
-  mzd_add_to_all_modred(ff, t0, X, 2,   6, 4);
+  mzd_add_to_all_modred(ff, mzd_mul(t0,
+                                    mzd_sum(t1, 4, a0, a1, a3, a4),
+                                    mzd_sum(t2, 4, b0, b1, b3, b4), 0), X, 2,   6, 4);
 
   /* (a0 + a1 + a2 + a3 + a4 + a5)(b0 + b1 + b2 + b3 + b4 + b5) X^6 */
-  mzd_sum(t1, 6, a0, a1, a2, a3, a4, a5); mzd_sum(t2, 6, b0, b1, b2, b3, b4, b5);
-  mzd_mul(t0, t1, t2, 0);
-  mzd_add_to_all_modred(ff, t0, X, 1,   6);
+  mzd_add_to_all_modred(ff, mzd_mul(t0,
+                                    mzd_sum(t1, 6, a0, a1, a2, a3, a4, a5),
+                                    mzd_sum(t2, 6, b0, b1, b2, b3, b4, b5), 0), X, 1,   6);
 
   mzd_free(t0);
   mzd_free(t1);

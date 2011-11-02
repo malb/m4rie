@@ -431,7 +431,7 @@ mzd_slice_t *_mzd_slice_mul_karatsuba2(mzd_slice_t *C, const mzd_slice_t *A, con
 mzd_slice_t *_mzd_slice_mul_karatsuba3(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B);
 
 /**
- * \brief Compute C = A*B over GF(2^4) using 9 multiplications over GF(2) and 7 temporary GF(2) matrices..
+ * \brief Compute C = A*B over GF(2^4) using 9 multiplications over GF(2) and 3 temporary GF(2) matrices..
  *
  * \param C Preallocated return matrix, may be NULL for automatic creation.
  * \param A Input matrix A.
