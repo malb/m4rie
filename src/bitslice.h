@@ -1,14 +1,14 @@
 /**
  * \file bitslice.h
  *
- * \brief Bitsliced extension matrices
+ * \brief Matrices using a bitsliced representation.
  *
- * Matrices over GF(2^e) can be represented as polynomials with matrix
- * coefficients where the matrices are in GF(2). 
+ * Matrices over \GF2E can be represented as polynomials with matrix
+ * coefficients where the matrices are in \GF2.
  *
- * In this file, matrices over GF(2^k) are implemented as k slices of
- * matrices over GF(2) where each slice holds the coefficients of one
- * degree when viewing elements of (GF2^k) as polynomials over GF(2).
+ * In this file, matrices over \GF2E are implemented as \e slices of
+ * matrices over \GF2 where each slice holds the coefficients of one
+ * degree when viewing elements of \GF2E as polynomials over \GF2.
  *
  * \author Martin Albrecht <martinralbrecht@googlemail.com>
  */
@@ -39,25 +39,33 @@
 #include "gf2e_matrix.h"
 
 /**
- * Degree up to which Karatsuba multiplication is implemented.
+ * Degree up to which Karatsuba multiplication and slicing/cling is
+ * implemented.
  */
 
 #define __M4RIE_MAX_KARATSUBA_DEGREE 8
 
 /**
- * Dense matrices over GF(2^k) represented as slices of matrices over GF(2).
- * 
+ * \brief Dense matrices over \GF2E represented as slices of matrices over \GF2.
+ *
+ * This is one of two fundamental data types of this library, the
+ * other being mzed_t. For large matrices (\f$m \times n \times e > L2\f$)
+ * it is advisable to use this data type because multiplication
+ * is faster in this representation. Hence, compared to mzed_t one
+ * saves the time to convert betwen representations and - more
+ * importantly - memory.
+ *
  * \ingroup Definitions
  */
 
 typedef struct {
   /**
-   * A->x[e][i,j] is the e^th bit of the entry A[i,j].
+   * A->x[e][i,j] is the \e-th bit of the entry A[i,j].
    */
   mzd_t *x[16];  // We only support 10 but 16 migh help with alignment.
 
   /**
-   * A finite field GF(2^k).
+   * A finite field \GF2E.
    */
 
   const gf2e *finite_field;
@@ -75,18 +83,21 @@ typedef struct {
   rci_t ncols;
 
   /**
-   * Number of slices (may be > finite_field->degree in some situations)
+   * Number of slices
+   *
+   * \note This value may be greater than finite_field->degree in some
+   * situations
    */
 
-  int depth; // the number of slices
+  int depth;
 
 } mzd_slice_t;
 
 
 /**
- * \brief Create a new matrix of dimension m x n over ff
+ * \brief Create a new matrix of dimension \f$ m \times n\f$ over ff
  *
- * Use mzd_slice_free to kill it.
+ * Use mzd_slice_free to free it.
  *
  * \param ff Finite field
  * \param m Number of rows
@@ -98,7 +109,7 @@ typedef struct {
 static inline mzd_slice_t *mzd_slice_init(const gf2e *ff, const rci_t m, const rci_t n) {
 
   /**
-   * @TODO: avoid all these malloc() calls and call it once only
+   * \todo avoid all these malloc() calls and call it once only
    */
   mzd_slice_t *A;
 
@@ -109,7 +120,7 @@ static inline mzd_slice_t *mzd_slice_init(const gf2e *ff, const rci_t m, const r
   if (error) A = NULL;
 #else
   A = (mzd_slice_t*)malloc(sizeof(mzd_slice_t));
-#endif  
+#endif
 
   if(__M4RI_UNLIKELY(A == NULL))
     m4ri_die("m4ri_slice_init: could not allocate memory.\n");
@@ -130,7 +141,7 @@ static inline mzd_slice_t *mzd_slice_init(const gf2e *ff, const rci_t m, const r
  * If the matrix is not square then the largest possible square
  * submatrix is used.
  *
- * \param M Matrix
+ * \param A Matrix
  * \param value Finite Field element
  *
  * \ingroup Assignment
@@ -249,11 +260,11 @@ static inline mzd_slice_t *mzd_slice_stack(mzd_slice_t *C, const mzd_slice_t *A,
 
 /**
  * \brief Copy a submatrix.
- * 
+ *
  * Note that the upper bounds are not included.
  *
  * \param S Preallocated space for submatrix, may be NULL for automatic creation.
- * \param M Matrix
+ * \param A Matrix
  * \param lowr start rows
  * \param lowc start column
  * \param highr stop row (this row is \em not included)
@@ -262,7 +273,7 @@ static inline mzd_slice_t *mzd_slice_stack(mzd_slice_t *C, const mzd_slice_t *A,
  * \ingroup Constructions
  */
 
-static inline mzd_slice_t *mzd_slice_submatrix(mzd_slice_t *S, const mzd_slice_t *A, 
+static inline mzd_slice_t *mzd_slice_submatrix(mzd_slice_t *S, const mzd_slice_t *A,
                                                const size_t lowr, const size_t lowc, const size_t highr, const size_t highc) {
   if(S==NULL)
     S = mzd_slice_init(A->finite_field, highr - lowr, highc - lowc);
@@ -286,7 +297,7 @@ static inline mzd_slice_t *mzd_slice_submatrix(mzd_slice_t *S, const mzd_slice_t
  *
  * Use mzd_slice_free_window to free the window.
  *
- * \param M Matrix
+ * \param A Matrix
  * \param lowr Starting row (inclusive)
  * \param lowc Starting column (inclusive)
  * \param highr End row (exclusive)
@@ -295,8 +306,8 @@ static inline mzd_slice_t *mzd_slice_submatrix(mzd_slice_t *S, const mzd_slice_t
  * \ingroup Constructions
  */
 
-static inline mzd_slice_t *mzd_slice_init_window(const mzd_slice_t *A, 
-                                                 const size_t lowr, const size_t lowc, 
+static inline mzd_slice_t *mzd_slice_init_window(const mzd_slice_t *A,
+                                                 const size_t lowr, const size_t lowc,
                                                  const size_t highr, const size_t highc) {
   mzd_slice_t *B = (mzd_slice_t *)m4ri_mm_malloc(sizeof(mzd_slice_t));
   B->finite_field = A->finite_field;
@@ -587,9 +598,9 @@ static inline mzd_slice_t *mzd_slice_mul_karatsuba(mzd_slice_t *C, const mzd_sli
 
 static inline mzd_slice_t *mzd_slice_addmul_karatsuba(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B) {
   assert(C != NULL);
-  if (A->ncols != B->nrows || A->finite_field != B->finite_field) 
+  if (A->ncols != B->nrows || A->finite_field != B->finite_field)
     m4ri_die("mzd_slice_addmul_karatsuba: rows, columns and fields must match.\n");
-  if (C->finite_field != A->finite_field || C->nrows != A->nrows || C->ncols != B->ncols) 
+  if (C->finite_field != A->finite_field || C->nrows != A->nrows || C->ncols != B->ncols)
     m4ri_die("mzd_slice_addmul_karatsuba: rows and columns of returned matrix must match.\n");
   return _mzd_slice_mul_karatsuba(C, A, B);
 }
@@ -645,10 +656,10 @@ static inline void mzd_slice_randomize(mzd_slice_t *A) {
   case  2: mzd_randomize(A->x[1]);
   case  1: mzd_randomize(A->x[0]); break;
   default:
-    m4ri_die("impossible");   
+    m4ri_die("impossible");
   }
 }
- 
+
 /**
  * \brief Copy matrix A to B.
  *
@@ -661,7 +672,7 @@ static inline void mzd_slice_randomize(mzd_slice_t *A) {
 static inline mzd_slice_t *mzd_slice_copy(mzd_slice_t *B, const mzd_slice_t *A) {
   if(B == NULL)
     B = mzd_slice_init(A->finite_field, A->nrows, A->ncols);
-  
+
   for(int i=0; i<A->depth; i++) {
     mzd_copy(B->x[i],A->x[i]);
   }
@@ -719,7 +730,7 @@ static inline void mzd_slice_add_elem(mzd_slice_t *A, const rci_t row, const rci
  * \todo This function is considerably slower than it needs to be.
  *
  * \ingroup Assignment
- */ 
+ */
 
 static inline void mzd_slice_write_elem(mzd_slice_t *A, const rci_t row, const rci_t col, word elem) {
   for(int i=0; i<A->depth; i++) {
@@ -768,8 +779,8 @@ static inline int mzd_slice_is_zero(const mzd_slice_t *A) {
 
 /**
  * \brief Swap the two rows rowa and rowb.
- * 
- * \param M Matrix
+ *
+ * \param A Matrix
  * \param rowa Row index.
  * \param rowb Row index.
  *
@@ -805,14 +816,14 @@ static inline void mzd_slice_copy_row(mzd_slice_t* B, size_t i, const mzd_slice_
 
 /**
  * \brief Swap the two columns cola and colb.
- * 
- * \param M Matrix.
+ *
+ * \param A Matrix.
  * \param cola Column index.
  * \param colb Column index.
  *
  * \ingroup RowOperations
  */
- 
+
 static inline void mzd_slice_col_swap(mzd_slice_t *A, const rci_t cola, const rci_t colb) {
   for(int i=0; i<A->depth; i++)
     mzd_col_swap(A->x[i], cola, colb);
@@ -820,8 +831,8 @@ static inline void mzd_slice_col_swap(mzd_slice_t *A, const rci_t cola, const rc
 
 /**
  * \brief Swap the two columns cola and colb but only between start_row and stop_row.
- * 
- * \param M Matrix.
+ *
+ * \param A Matrix.
  * \param cola Column index.
  * \param colb Column index.
  * \param start_row Row index.
@@ -838,7 +849,7 @@ static inline void mzd_slice_col_swap_in_rows(mzd_slice_t *A, const rci_t cola, 
  * \brief Add the rows sourcerow and destrow and stores the total in
  * the row destrow.
  *
- * \param M Matrix
+ * \param A Matrix
  * \param sourcerow Index of source row
  * \param destrow Index of target row
  *
@@ -855,7 +866,7 @@ static inline void mzd_slice_row_add(mzd_slice_t *A, const rci_t sourcerow, cons
 /**
  * \brief Clear the given row, but only begins at the column coloffset.
  *
- * \param M Matrix
+ * \param A Matrix
  * \param row Index of row
  * \param coloffset Column offset
  *
@@ -863,19 +874,28 @@ static inline void mzd_slice_row_add(mzd_slice_t *A, const rci_t sourcerow, cons
  */
 
 static inline void mzd_slice_row_clear_offset(mzd_slice_t *A, const rci_t row, const rci_t coloffset) {
-  for(int i=0; i<A->depth; i++) 
+  for(int i=0; i<A->depth; i++)
     mzd_row_clear_offset(A->x[i], row, coloffset);
 }
 
 /**
- * \brief Print a matrix to stdout. 
+ * \brief Print a matrix to stdout.
  *
- * \param M Matrix
+ * \param A Matrix
  *
  * \ingroup StringConversions
  */
 
 void mzd_slice_print(const mzd_slice_t *A);
+
+/**
+ * \brief Move the submatrix L of rank r2 starting at column n1 to the left to column r1.
+ *
+ * \param A Matrix
+ * \param r1 Integer < n1
+ * \param n1 Integer > r1
+ * \param r2 Integer <= A->ncols - n1
+ */
 
 static inline void _mzd_slice_compress_l(mzd_slice_t *A, const rci_t r1, const rci_t n1, const rci_t r2) {
   switch(A->finite_field->degree) {

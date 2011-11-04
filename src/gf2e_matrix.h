@@ -1,21 +1,24 @@
 /**
  * \file gf2e_matrix.h
  *
- * \brief Dense matrices over GF(2^k) (2<= k <= 10) represented by M4RI matrices.
+ * \brief Dense matrices over \GF2E represented as packed matrices.
  *
- * This file implements the data type mzed_t. 
- * That is, matrices over GF(2^k) in row major representation. 
+ * This file implements the data type mzed_t. That is, matrices over
+ * \GF2E in row major representation.
 
- * For example, let a = \sum a_i x_i / <f> and b = \sum b_i x_i / <f> 
- * be elements in GF(2^6) with minimal polynomial f. Then, the 
- * 1 x 2 matrix [b a] would be stored as 
+ * For example, let \f$ a = \sum a_i x_i / <f>\f$ and \f$b = \sum b_i x_i / <f>\f$
+ * be elements in \f$\mathbb{F}_{2^6}\f$ with minimal polynomial \f$f\f$. Then, the
+ * \f$ 1 \times 2\f$ matrix [b a] would be stored as
 \verbatim
  [...| 0 0 b5 b4 b3 b2 b1 b0 | 0 0 a5 a4 a3 a2 a1 a0]
 \endverbatim
- * 
+ *
  * Internally M4RI matrices are used to store bits with allows to
  * re-use existing M4RI methods (such as mzd_add) when implementing
  * functions for mzed_t.
+ *
+ * This data type is preferable when Newton-John tables ought be used
+ * or when the matrix is small (\f$ m \times n \times e < L2\f$).
  *
  * \author Martin Albrecht <martinralbrecht@googlemail.com>
  */
@@ -47,20 +50,20 @@
 #include "m4ri_functions.h"
 
 /**
- * \brief Dense matrices over GF(2^k) in a packed representation.
- * 
+ * \brief Dense matrices over \GF2E represented as packed matrices.
+ *
  * \ingroup Definitions
  */
 
 typedef struct {
 
   /**
-   * m x n matrices over GF(2^k) are represented as m x (kn) matrices over GF(2).
+   * \f$m \times n\f$ matrices over \GF2E are represented as \f$m \times (en)\f$ matrices over GF(2).
    */
   mzd_t *x;
 
   /**
-   * A finite field GF(2^k).
+   * A finite field \GF2E.
    */
 
   const gf2e *finite_field;
@@ -78,7 +81,7 @@ typedef struct {
   rci_t ncols;
 
   /**
-   * The internal width of elements (must divide 64)
+   * The internal width of elements (must divide 64).
    */
 
   wi_t w;

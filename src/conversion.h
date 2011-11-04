@@ -83,7 +83,7 @@ mzd_slice_t *_mzed_slice4(mzd_slice_t *A, const mzed_t *Z);
  * \param Z Matrix over GF(2^e)
  */
 
-mzd_slice_t *_mzed_slice8(mzd_slice_t *T, const mzed_t *F);
+mzd_slice_t *_mzed_slice8(mzd_slice_t *A, const mzed_t *Z);
 
 /**
  * \brief Pack a bitslice matrix into a classical represenation over GF(2^2).
@@ -115,7 +115,7 @@ mzed_t *_mzed_cling4(mzed_t *A, const mzd_slice_t *Z);
  * \param Z Bitslice matrix over GF(2^e)
  */
 
-mzed_t *_mzed_cling8(mzed_t *T, const mzd_slice_t *F);
+mzed_t *_mzed_cling8(mzed_t *A, const mzd_slice_t *Z);
 
 /**
  * \brief Compute C += A*B using Karatsuba multiplication of polynomials over GF(2).

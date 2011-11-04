@@ -1,18 +1,55 @@
-#ifndef FINITE_FIELD_H
-#define FINITE_FIELD_H
+/**
+ * \file finite_field.h
+ *
+ * \brief \GF2E
+ *
+ * \author Martin Albrecht <martinralbrecht@googlemail.com>
+ */
+
+#ifndef M4RIE_FINITE_FIELD_H
+#define M4RIE_FINITE_FIELD_H
 
 #include <m4ri/m4ri.h>
 
+/**
+ * \brief \GF2E
+ */
+
 typedef struct {
-  word **mul;
-  word *inv;
+  /**
+   * The degree \e.
+   */
+
   size_t degree;
+
+  /**
+   * Irreducible polynomial of degree \e.
+   */
+
   word minpoly;
+
+  /**
+   * mul[a][b] holds \f$ a \cdot b\f$.
+   *
+   * \warning this entry will disappear in future releases.
+   */
+  word **mul;
+
+  /**
+   * inv[a] holds \f$a^{-1}\f$.
+   */
+
+  word *inv;
+
+  /**
+   * pow_gen[i] holds \f$a^i / <f>\f$ for \f$a\f$ a generator of
+   * this field.
+   */
+
   word *pow_gen;
 } gf2e;
 
 void gf2e_free(gf2e *ff);
-
 
 static inline size_t gf2e_degree_to_w(const gf2e *ff) {
   switch(ff->degree) {
@@ -89,4 +126,4 @@ static inline void gf2e_make_pow_gen(gf2e *ff) {
 }
 
 
-#endif //FINITE_FIELD_H
+#endif //M4RIE_FINITE_FIELD_H

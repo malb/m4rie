@@ -2,7 +2,7 @@
 *
 *            M4RIE: Linear Algebra over GF(2^e)
 *
-*    Copyright (C) 2010 Martin Albrecht <martinralbrecht@googlemail.com>
+*    Copyright (C) 2010,2011 Martin Albrecht <martinralbrecht@googlemail.com>
 *
 *  Distributed under the terms of the GNU General Public License (GEL)
 *  version 2 or higher.
@@ -29,15 +29,15 @@
 #include "ple.h"
 #include "conversion.h"
 
-tt_mzed_t *tt_mzed_init(const gf2e *ff, const rci_t ncols) {
-  tt_mzed_t *T =  m4ri_mm_malloc(sizeof(tt_mzed_t));
+njt_mzed_t *njt_mzed_init(const gf2e *ff, const rci_t ncols) {
+  njt_mzed_t *T =  m4ri_mm_malloc(sizeof(njt_mzed_t));
   T->L = (rci_t*)m4ri_mm_calloc(__M4RI_TWOPOW(ff->degree), sizeof(rci_t));
   T->T = mzed_init(ff, __M4RI_TWOPOW(ff->degree), ncols);
   T->M = mzed_init(ff, ff->degree, ncols);
   return T;
 }
 
-void tt_mzed_free(tt_mzed_t *T) {
+void njt_mzed_free(njt_mzed_t *T) {
   mzed_free(T->M);
   mzed_free(T->T);
   m4ri_mm_free(T->L);
@@ -159,9 +159,9 @@ rci_t _mzed_gauss_submatrix_full(mzed_t *A, const rci_t r, const rci_t c, const 
 }
 
 
-tt_mzed_t *mzed_make_table(tt_mzed_t *T, const mzed_t *A, const rci_t r, const rci_t c) {
+njt_mzed_t *mzed_make_table(njt_mzed_t *T, const mzed_t *A, const rci_t r, const rci_t c) {
   if (T == NULL)
-    T = tt_mzed_init(A->finite_field, A->ncols);
+    T = njt_mzed_init(A->finite_field, A->ncols);
 
   mzd_set_ui(T->M->x,0);
 
@@ -245,12 +245,12 @@ rci_t mzed_echelonize_travolta(mzed_t *A, int full) {
 
   rci_t kbar = 0;
 
-  tt_mzed_t *T0 = tt_mzed_init(ff, A->ncols);
-  tt_mzed_t *T1 = tt_mzed_init(ff, A->ncols);
-  tt_mzed_t *T2 = tt_mzed_init(ff, A->ncols);
-  tt_mzed_t *T3 = tt_mzed_init(ff, A->ncols);
-  tt_mzed_t *T4 = tt_mzed_init(ff, A->ncols);
-  tt_mzed_t *T5 = tt_mzed_init(ff, A->ncols);
+  njt_mzed_t *T0 = njt_mzed_init(ff, A->ncols);
+  njt_mzed_t *T1 = njt_mzed_init(ff, A->ncols);
+  njt_mzed_t *T2 = njt_mzed_init(ff, A->ncols);
+  njt_mzed_t *T3 = njt_mzed_init(ff, A->ncols);
+  njt_mzed_t *T4 = njt_mzed_init(ff, A->ncols);
+  njt_mzed_t *T5 = njt_mzed_init(ff, A->ncols);
 
   r = 0;
   c = 0;
@@ -331,12 +331,12 @@ rci_t mzed_echelonize_travolta(mzed_t *A, int full) {
     c += kbar;
   }
 
-  tt_mzed_free(T0);
-  tt_mzed_free(T1);
-  tt_mzed_free(T2);
-  tt_mzed_free(T3);
-  tt_mzed_free(T4);
-  tt_mzed_free(T5);
+  njt_mzed_free(T0);
+  njt_mzed_free(T1);
+  njt_mzed_free(T2);
+  njt_mzed_free(T3);
+  njt_mzed_free(T4);
+  njt_mzed_free(T5);
   return r;
 }
 
@@ -348,7 +348,7 @@ rci_t mzed_ple_travolta(mzed_t *A, mzp_t *P, mzp_t *Q) {
   rci_t i,j;
   int found = 0;
 
-  tt_mzed_t *T0 = tt_mzed_init(A->finite_field, A->ncols);
+  njt_mzed_t *T0 = njt_mzed_init(A->finite_field, A->ncols);
 
   while (row_pos < A->nrows && col_pos < A->ncols) {
     found = 0;
@@ -385,21 +385,21 @@ rci_t mzed_ple_travolta(mzed_t *A, mzp_t *P, mzp_t *Q) {
   for (rci_t i=0; i < row_pos; i++) {
     mzed_col_swap_in_rows(A, i, Q->values[i], i, A->nrows);
   }
-  tt_mzed_free(T0);
+  njt_mzed_free(T0);
 
   return row_pos;
 }
 
 mzed_t *_mzed_mul_travolta0(mzed_t *C, const mzed_t *A, const mzed_t *B) {
 
-  tt_mzed_t *T0 = tt_mzed_init(B->finite_field, B->ncols);
+  njt_mzed_t *T0 = njt_mzed_init(B->finite_field, B->ncols);
 
   for(rci_t i=0; i < A->ncols; i++) {
     mzed_make_table(T0, B, i, 0);
     for(rci_t j=0; j<A->nrows; j++)
       mzd_combine(C->x, j, 0, C->x, j, 0, T0->T->x, T0->L[mzed_read_elem(A, j, i)], 0);
   }
-  tt_mzed_free(T0);
+  njt_mzed_free(T0);
   return C;
 }
 
@@ -407,14 +407,14 @@ mzed_t *_mzed_mul_travolta(mzed_t *C, const mzed_t *A, const mzed_t *B) {
   if (A->finite_field->degree > A->nrows)
     return _mzed_mul_naive(C, A, B);
 
-  tt_mzed_t *T0 = tt_mzed_init(B->finite_field, B->ncols);
-  tt_mzed_t *T1 = tt_mzed_init(B->finite_field, B->ncols);
-  tt_mzed_t *T2 = tt_mzed_init(B->finite_field, B->ncols);
-  tt_mzed_t *T3 = tt_mzed_init(B->finite_field, B->ncols);
-  tt_mzed_t *T4 = tt_mzed_init(B->finite_field, B->ncols);
-  tt_mzed_t *T5 = tt_mzed_init(B->finite_field, B->ncols);
-  tt_mzed_t *T6 = tt_mzed_init(B->finite_field, B->ncols);
-  tt_mzed_t *T7 = tt_mzed_init(B->finite_field, B->ncols);
+  njt_mzed_t *T0 = njt_mzed_init(B->finite_field, B->ncols);
+  njt_mzed_t *T1 = njt_mzed_init(B->finite_field, B->ncols);
+  njt_mzed_t *T2 = njt_mzed_init(B->finite_field, B->ncols);
+  njt_mzed_t *T3 = njt_mzed_init(B->finite_field, B->ncols);
+  njt_mzed_t *T4 = njt_mzed_init(B->finite_field, B->ncols);
+  njt_mzed_t *T5 = njt_mzed_init(B->finite_field, B->ncols);
+  njt_mzed_t *T6 = njt_mzed_init(B->finite_field, B->ncols);
+  njt_mzed_t *T7 = njt_mzed_init(B->finite_field, B->ncols);
   
   const rci_t kk = 8;
   const rci_t end = A->ncols/kk;
@@ -483,8 +483,8 @@ mzed_t *_mzed_mul_travolta(mzed_t *C, const mzed_t *A, const mzed_t *B) {
     }
   }
 
-  tt_mzed_free(T0); tt_mzed_free(T1);  tt_mzed_free(T2); tt_mzed_free(T3);
-  tt_mzed_free(T4); tt_mzed_free(T5);  tt_mzed_free(T6); tt_mzed_free(T7);
+  njt_mzed_free(T0); njt_mzed_free(T1);  njt_mzed_free(T2); njt_mzed_free(T3);
+  njt_mzed_free(T4); njt_mzed_free(T5);  njt_mzed_free(T6); njt_mzed_free(T7);
   return C;
 }
 
@@ -525,7 +525,7 @@ void mzed_trsm_lower_left_travolta(const mzed_t *L, mzed_t *B) {
     return;
   }
 
-  tt_mzed_t *T0 = tt_mzed_init(B->finite_field, B->ncols);
+  njt_mzed_t *T0 = njt_mzed_init(B->finite_field, B->ncols);
 
   for(rci_t i=0; i<B->nrows; i++) {
     mzed_rescale_row(B, i, 0, ff->mul[ff->inv[mzed_read_elem(L, i, i)]]);
@@ -533,7 +533,7 @@ void mzed_trsm_lower_left_travolta(const mzed_t *L, mzed_t *B) {
     for(rci_t j=i+1; j<B->nrows; j++)
       mzd_combine(B->x, j, 0, B->x, j, 0, T0->T->x, T0->L[mzed_read_elem(L, j, i)], 0);
   }
-  tt_mzed_free(T0);
+  njt_mzed_free(T0);
 }
 
 void mzed_trsm_upper_left_travolta(const mzed_t *U, mzed_t *B) {
@@ -547,7 +547,7 @@ void mzed_trsm_upper_left_travolta(const mzed_t *U, mzed_t *B) {
     return;
   }
 
-  tt_mzed_t *T0 = tt_mzed_init(B->finite_field, B->ncols);
+  njt_mzed_t *T0 = njt_mzed_init(B->finite_field, B->ncols);
 
   for(int i=B->nrows-1; i>=0; i--) {
     mzed_rescale_row(B, i, 0, ff->mul[ff->inv[mzed_read_elem(U, i, i)]]);
@@ -555,7 +555,7 @@ void mzed_trsm_upper_left_travolta(const mzed_t *U, mzed_t *B) {
     for(rci_t j=0; j<i; j++)
       mzd_combine(B->x, j, 0, B->x, j, 0, T0->T->x, T0->L[mzed_read_elem(U, j, i)], 0);
   }
-  tt_mzed_free(T0);
+  njt_mzed_free(T0);
 }
 
 void mzd_slice_trsm_lower_left_travolta(const mzd_slice_t *L, mzd_slice_t *B) {
@@ -571,7 +571,7 @@ void mzd_slice_trsm_lower_left_travolta(const mzd_slice_t *L, mzd_slice_t *B) {
   }
 
   mzed_t *Be = mzed_cling(NULL, B);
-  tt_mzed_t *T0 = tt_mzed_init(B->finite_field, B->ncols);
+  njt_mzed_t *T0 = njt_mzed_init(B->finite_field, B->ncols);
 
   for(rci_t i=0; i<B->nrows; i++) {
     mzed_rescale_row(Be, i, 0, ff->mul[ff->inv[mzd_slice_read_elem(L, i, i)]]);
@@ -581,7 +581,7 @@ void mzd_slice_trsm_lower_left_travolta(const mzd_slice_t *L, mzd_slice_t *B) {
   }
   mzed_slice(B, Be);
   mzed_free(Be);
-  tt_mzed_free(T0);
+  njt_mzed_free(T0);
 }
 
 void mzd_slice_trsm_upper_left_travolta(const mzd_slice_t *U, mzd_slice_t *B) {
@@ -597,7 +597,7 @@ void mzd_slice_trsm_upper_left_travolta(const mzd_slice_t *U, mzd_slice_t *B) {
   }
 
   mzed_t *Be = mzed_cling(NULL, B);
-  tt_mzed_t *T0 = tt_mzed_init(Be->finite_field, Be->ncols);
+  njt_mzed_t *T0 = njt_mzed_init(Be->finite_field, Be->ncols);
 
   for(int i=B->nrows-1; i>=0; i--) {
     mzed_rescale_row(Be, i, 0, ff->mul[ff->inv[mzd_slice_read_elem(U, i, i)]]);
@@ -607,5 +607,5 @@ void mzd_slice_trsm_upper_left_travolta(const mzd_slice_t *U, mzd_slice_t *B) {
   }
   mzed_slice(B, Be);
   mzed_free(Be);
-  tt_mzed_free(T0);
+  njt_mzed_free(T0);
 }
