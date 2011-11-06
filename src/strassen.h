@@ -1,5 +1,11 @@
-#ifndef GF2E_STRASSEN_H
-#define GF2E_STRASSEN_H 
+/**
+ * \file strassen.h
+ * \brief Strassen-Winograd multiplication for mzed_t
+ * \author Martin Albrecht <martinralbrecht@googlemail.com>
+ */
+
+#ifndef M4RIE_STRASSEN_H
+#define M4RIE_STRASSEN_H
 
 /******************************************************************************
 *
@@ -21,15 +27,16 @@
 ******************************************************************************/
 
 /**
- * \brief C such that C == AB.
+ * \brief \f$ C = A \cdot B \f$ using Strassen-Winograd.
  *
  * This function uses Strassen-Winograd multiplication (Bodrato
  * variant) recursively until it reaches the cutoff, where it switches
- * to Travolta table based multiplication or naive multiplication.
+ * to Newton-John table based multiplication or naive multiplication.
  *
  * \param C Preallocated product matrix, may be NULL for allocation.
  * \param A Input matrix A.
  * \param B Input matrix B.
+ * \param cutoff Crossover to basecase dimension > 64 or 0 for heuristic choice
  *
  * \ingroup Multiplication
  */
@@ -37,15 +44,16 @@
 mzed_t *mzed_mul_strassen(mzed_t *C, const mzed_t *A, const mzed_t *B, int cutoff);
 
 /**
- * \brief C such that C == C + AB.
+ * \brief \f$ C = C + A \cdot B \f$ using Strassen-Winograd.
  *
  * This function uses Strassen-Winograd multiplication (Bodrato
  * variant) recursively until it reaches the cutoff, where it switches
- * to Travolta table based multiplication or naive multiplication.
+ * to Newton-John table based multiplication or naive multiplication.
  *
  * \param C Preallocated product matrix, may be NULL for allocation.
  * \param A Input matrix A.
  * \param B Input matrix B.
+ * \param cutoff Crossover to basecase dimension > 64 or 0 for heuristic choice.
  *
  * \ingroup Multiplication
  */
@@ -53,79 +61,50 @@ mzed_t *mzed_mul_strassen(mzed_t *C, const mzed_t *A, const mzed_t *B, int cutof
 mzed_t *mzed_addmul_strassen(mzed_t *C, const mzed_t *A, const mzed_t *B, int cutoff);
 
 /**
- * \brief C such that C == AB.
+ * \brief \f$ C = A \cdot B \f$ using Strassen-Winograd.
  *
  * This function uses Strassen-Winograd multiplication (Bodrato
  * variant) recursively until it reaches the cutoff, where it switches
- * to Travolta table based multiplication or naive multiplication.
+ * to Newton-John table based multiplication or naive multiplication.
  *
  * \param C Preallocated product matrix.
  * \param A Input matrix A.
  * \param B Input matrix B.
+ * \param cutoff Crossover to basecase dimension > 64
  *
  * \ingroup Multiplication
  *
- * \wordoffset
  */
 
-mzed_t *_mzed_mul_strassen_even(mzed_t *C, const mzed_t *A, const mzed_t *B, int cutoff);
-
+mzed_t *_mzed_mul_strassen(mzed_t *C, const mzed_t *A, const mzed_t *B, int cutoff);
 
 /**
- * \brief C such that C == C + AB.
+ * \brief \f$ C = A \cdot B \f$ using Strassen-Winograd.
  *
  * This function uses Strassen-Winograd multiplication (Bodrato
  * variant) recursively until it reaches the cutoff, where it switches
- * to Travolta table based multiplication or naive multiplication.
+ * to Newton-John table based multiplication or naive multiplication.
  *
  * \param C Preallocated product matrix.
  * \param A Input matrix A.
  * \param B Input matrix B.
+ * \param cutoff Crossover to basecase dimension > 64
  *
  * \ingroup Multiplication
- *
- * \wordoffset
  */
 
-mzed_t *_mzed_addmul_strassen_even(mzed_t *C, const mzed_t *A, const mzed_t *B, int cutoff);
+mzed_t *_mzed_addmul_strassen(mzed_t *C, const mzed_t *A, const mzed_t *B, int cutoff);
 
 /**
- * \brief C such that C == AB.
+ * \brief Return heurstic choice for crossover parameter for Strassen-Winograd multiplication given A, B and C.
  *
- * This function uses Strassen-Winograd multiplication (Bodrato
- * variant) recursively until it reaches the cutoff, where it switches
- * to Travolta table based multiplication or naive multiplication.
- *
- * \param C Preallocated product matrix.
- * \param A Input matrix A.
- * \param B Input matrix B.
+ * \param C Matrix (ignored)
+ * \param A Matrix
+ * \param B Martix (ignored)
  *
  * \ingroup Multiplication
  */
-
-static inline mzed_t *_mzed_mul_strassen(mzed_t *C, const mzed_t *A, const mzed_t *B, int cutoff) {
-  return _mzed_mul_strassen_even(C, A, B, cutoff);
-}
-
-/**
- * \brief C such that C == C + AB.
- *
- * This function uses Strassen-Winograd multiplication (Bodrato
- * variant) recursively until it reaches the cutoff, where it switches
- * to Travolta table based multiplication or naive multiplication.
- *
- * \param C Preallocated product matrix.
- * \param A Input matrix A.
- * \param B Input matrix B.
- *
- * \ingroup Multiplication
- */
-
-static inline mzed_t *_mzed_addmul_strassen(mzed_t *C, const mzed_t *A, const mzed_t *B, int cutoff) {
-  return _mzed_addmul_strassen_even(C, A, B, cutoff);
-}
-
 
 rci_t _mzed_strassen_cutoff(const mzed_t *C, const mzed_t *A, const mzed_t *B);
 
-#endif //GF2E_STRASSEN_H
+#endif //M4RIE_STRASSEN_H

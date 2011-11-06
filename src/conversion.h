@@ -186,11 +186,11 @@ static inline mzed_t *mzed_addmul_karatsuba(mzed_t *C, const mzed_t *A, const mz
 
 /**
  * \brief Recale the row r in A by X starting c.
- * 
+ *
  * \param A Matrix
  * \param r Row index.
- * \param start_col Column index.
- * \param X Multiplier 
+ * \param c Column index.
+ * \param X Multiplier
  *
  * \ingroup RowOperations
  */

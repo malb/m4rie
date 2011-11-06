@@ -1,3 +1,11 @@
+/**
+ * \file echelonform.h
+ *
+ * \brief Echelon forms.
+ *
+ * \author Martin Albrecht <martinralbrecht@googlemail.com>
+ */
+
 #ifndef M4RIE_ECHELONFORM_H
 #define M4RIE_ECHELONFORM_H
 
@@ -5,7 +13,7 @@
 *
 *            M4RIE: Linear Algebra over GF(2^e)
 *
-*    Copyright (C) 2010 Martin Albrecht <martinralbrecht@googlemail.com>
+*    Copyright (C) 2010,2011 Martin Albrecht <martinralbrecht@googlemail.com>
 *
 *  Distributed under the terms of the GNU General Public License (GEL)
 *  version 2 or higher.
@@ -25,25 +33,11 @@
 #include "conversion.h"
 
 /**
- * \brief Compute row echelon forms.
- * 
- * Compute the (reduced) row echelon form of the matrix A.  If full=0,
- * then return the reduced REF.
+ * \brief Compute row echelon forms using PLE decomposition.
  *
- * \param A Matrix
- * \param full REF or RREF.
- *
- * \ingroup Echelon
- */
-
-rci_t mzed_echelonize(mzed_t *A, int full);
-
-/**
- * \brief Compute row echelon forms.
- * 
  * Compute the (reduced) row echelon form of the matrix A.  If full=0,
- * then return the reduced REF. This function reduces echelon forms to
- * PLE (or PLUQ) decomposition.
+ * then return the reduced row echelon. This function reduces echelon
+ * forms to PLE (or PLUQ) decomposition.
  *
  * \param A Matrix
  * \param full REF or RREF.
@@ -54,8 +48,33 @@ rci_t mzed_echelonize(mzed_t *A, int full);
 rci_t mzd_slice_echelonize_ple(mzd_slice_t *A, int full);
 
 /**
+ * \brief Compute row echelon forms using PLE decomposition.
+ *
+ * Compute the (reduced) row echelon form of the matrix A.  If full=0,
+ * then return the reduced REF. This function reduces echelon forms to
+ * PLE (or PLUQ) decomposition.
+ *
+ * \param A Matrix
+ * \param full REF or RREF.
+ *
+ * \ingroup Echelon
+ *
+ * \note This function converts A to bitslice representation and
+ * back. Hence, it uses more memory than using
+ * mzed_echelonize_travolta() or mzd_slice_echelonize_ple()
+ */
+
+static inline rci_t mzed_echelonize_ple(mzed_t *A, int full) {
+  mzd_slice_t *a = mzed_slice(NULL, A);
+  rci_t r = mzd_slice_echelonize_ple(a, full);
+  mzed_cling(A, a);
+  mzd_slice_free(a);
+  return r;
+}
+
+/**
  * \brief Compute row echelon forms.
- * 
+ *
  * Compute the (reduced) row echelon form of the matrix A.  If full=0,
  * then return the reduced REF.
  *
@@ -69,10 +88,9 @@ rci_t mzd_slice_echelonize_ple(mzd_slice_t *A, int full);
 
 /**
  * \brief Compute row echelon forms.
- * 
+ *
  * Compute the (reduced) row echelon form of the matrix A.  If full=0,
- * then return the reduced REF. This function reduces echelon forms to
- * PLE (or PLUQ) decomposition.
+ * then return the reduced row echelon form.
  *
  * \param A Matrix
  * \param full REF or RREF.
@@ -80,13 +98,6 @@ rci_t mzd_slice_echelonize_ple(mzd_slice_t *A, int full);
  * \ingroup Echelon
  */
 
-static inline rci_t mzed_echelonize_ple(mzed_t *A, int full) {
-  mzd_slice_t *a = mzed_slice(NULL, A);
-  rci_t r = mzd_slice_echelonize_ple(a, full);
-  mzed_cling(A, a);
-  mzd_slice_free(a);
-  return r;
-}
-
+rci_t mzed_echelonize(mzed_t *A, int full);
 
 #endif //M4RIE_ECHELONFORM_H

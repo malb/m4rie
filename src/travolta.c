@@ -229,15 +229,15 @@ rci_t mzed_echelonize_travolta(mzed_t *A, int full) {
 
   rci_t k = ff->degree;
 
-  /** cf. mzd_echelonize_m4ri **/
+  /* cf. mzd_echelonize_m4ri */
   rci_t kk = (rci_t)m4ri_opt_k(A->x->nrows, A->x->ncols, 0);
-  if (kk>=7) 
+  if (kk>=7)
     kk = 7;
   if ( (6*(1<<kk)*A->ncols / 8.0) > __M4RI_CPU_L2_CACHE / 2.0 )
     kk -= 1;
   kk = (6*kk)/k;
 
-  /** enforcing bounds **/
+  /* enforcing bounds */
   if (kk == 0)
     kk = 1;
   else if (kk > 6)
@@ -255,17 +255,13 @@ rci_t mzed_echelonize_travolta(mzed_t *A, int full) {
   r = 0;
   c = 0;
   while(c < A->ncols) {
-    /**
-     * \todo: If full == False we should switch over to naive once the
-     *        remain matrix is small.
-     */
     if(c+kk > A->ncols) kk = A->ncols - c;
 
     /**
-     * \todo: we don't really compute the upper triangular form yet,
-     *        we need to implement _mzed_gauss_submatrix and a better
-     *        table creation for that.
-     */ 
+     * \todo we don't really compute the upper triangular form yet,
+     *       we need to implement _mzed_gauss_submatrix() and a better
+     *       table creation for that.
+     */
     kbar = _mzed_gauss_submatrix_full(A, r, c, A->nrows, kk);
 
     if (kbar == 6)  {

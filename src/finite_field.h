@@ -49,7 +49,19 @@ typedef struct {
   word *pow_gen;
 } gf2e;
 
+/**
+ * Free ff
+ *
+ * \param ff Finite field.
+ */
+
 void gf2e_free(gf2e *ff);
+
+/**
+ * Return the width used for storing elements of ff
+ *
+ * \param ff Finite field.
+ */
 
 static inline size_t gf2e_degree_to_w(const gf2e *ff) {
   switch(ff->degree) {
@@ -77,6 +89,13 @@ static inline size_t gf2e_degree_to_w(const gf2e *ff) {
   }
   return 0;
 }
+
+/**
+ * Compute all multiples by a of vectors fitting into 16 bits.
+ *
+ * \param ff Finite field.
+ * \param a Finite field element.
+ */
 
 static inline word *gf2e_t16_init(const gf2e *ff, const word a) {
   word *mul = (word*)m4ri_mm_calloc(1<<16, sizeof(word));
@@ -108,9 +127,21 @@ static inline word *gf2e_t16_init(const gf2e *ff, const word a) {
   return mul;
 }
 
+/**
+ * \brief Free multiplication table.
+ *
+ * \param mul Multiplication table
+ */
+
 static inline void gf2e_t16_free(word *mul) {
   m4ri_mm_free(mul);
 }
+
+/**
+ * Generate gf2e::pow_gen.
+ *
+ * \param ff Finite field.
+ */
 
 static inline void gf2e_make_pow_gen(gf2e *ff) {
   int n = 2*ff->degree-1;

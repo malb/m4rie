@@ -1,6 +1,6 @@
 /**
  * \file ple.h
- * \brief L*E = P*A decomposition.
+ * \brief PLE decomposition: \f$ L \cdot E = P \cdot A\f$.
  *
  * \author Martin Albrecht <martinralbrecht@googlemail.com>
  */
@@ -33,10 +33,10 @@
 #include "conversion.h"
 
 /**
- * \brief PLE decomposition: L*E = P*A 
+ * \brief PLE decomposition: \f$ L \cdot E = P \cdot A \f$.
  *
  * Modifies A in place to store lower triangular L below (and on) the
- * main diagonal and E -- a echelon form of A -- above the main
+ * main diagonal and E -- an echelon form of A -- above the main
  * diagonal (pivots are stored in Q). P and Q are updated with row and
  * column permutations respectively.
  *
@@ -48,19 +48,17 @@
  * \param Q Permutation vector of length A->ncols
  *
  * \ingroup PLE
- * 
- * \sa mzed_ple_naive mzed_ple_travolta _mzed_ple
- * 
- * \example tests/test_ple.cc bench/bench_ple.cc
+ *
+ * \sa mzed_ple_travolta() mzed_ple()
  */
 
 rci_t mzed_ple_naive(mzed_t *A, mzp_t *P, mzp_t *Q);
 
 /**
- * \brief PLE decomposition: L*E = P*A 
+ * \brief PLE decomposition: \f$ L \cdot E = P \cdot A \f$.
  *
  * Modifies A in place to store lower triangular L below (and on) the
- * main diagonal and E -- a echelon form of A -- above the main
+ * main diagonal and E -- an echelon form of A -- above the main
  * diagonal (pivots are stored in Q). P and Q are updated with row and
  * column permutations respectively.
  *
@@ -77,19 +75,17 @@ rci_t mzed_ple_naive(mzed_t *A, mzp_t *P, mzp_t *Q);
  * \param cutoff Integer
  *
  * \ingroup PLE
- * 
- * \sa mzed_ple_naive mzed_ple_travolta _mzed_ple
- * 
- * \example tests/test_ple.cc bench/bench_ple.cc
+ *
+ * \sa mzed_ple_naive() mzed_ple_travolta() mzed_ple()
  */
 
 rci_t _mzd_slice_ple(mzd_slice_t *A, mzp_t *P, mzp_t *Q, rci_t cutoff);
 
 /**
- * \brief PLE decomposition: L*E = P*A 
+ * \brief PLE decomposition: \f$ L \cdot E = P \cdot A \f$.
  *
  * Modifies A in place to store lower triangular L below (and on) the
- * main diagonal and E -- a echelon form of A -- above the main
+ * main diagonal and E -- an echelon form of A -- above the main
  * diagonal (pivots are stored in Q). P and Q are updated with row and
  * column permutations respectively.
  *
@@ -101,10 +97,8 @@ rci_t _mzd_slice_ple(mzd_slice_t *A, mzp_t *P, mzp_t *Q, rci_t cutoff);
  * \param Q Permutation vector of length A->ncols
  *
  * \ingroup PLE
- * 
- * \sa mzed_ple_naive mzed_ple_travolta _mzd_slice_ple
- * 
- * \example tests/test_ple.cc bench/bench_ple.cc
+ *
+ * \sa mzed_ple_naive() mzed_ple_travolta() _mzd_slice_ple()
  */
 
 static inline rci_t mzd_slice_ple(mzd_slice_t *A, mzp_t *P, mzp_t *Q) {
@@ -113,7 +107,36 @@ static inline rci_t mzd_slice_ple(mzd_slice_t *A, mzp_t *P, mzp_t *Q) {
   return _mzd_slice_ple(A, P, Q, 0);
 }
 
+/**
+ * \brief PLUQ decomposition: \f$ L \cdot U \cdot Q = P \cdot A\f$.
+ *
+ * This function implements asymptotically fast PLE decomposition by
+ * reducing it to matrix multiplication. From PLE the PLUQ
+ * decomposition is then obtained.
+ *
+ * \param A Matrix
+ * \param P Permutation vector of length A->nrows
+ * \param Q Permutation vector of length A->ncols
+ * \param cutoff Crossover to base case if mzed_t::w * mzed_t::ncols * mzed_t::nrows < cutoff.
+ *
+ * \ingroup PLE
+ */
+
 rci_t _mzd_slice_pluq(mzd_slice_t *A, mzp_t *P, mzp_t *Q, rci_t cutoff);
+
+/**
+ * \brief PLUQ decomposition: \f$ L \cdot U \cdot Q = P \cdot A\f$.
+ *
+ * This function implements asymptotically fast PLE decomposition by
+ * reducing it to matrix multiplication. From PLE the PLUQ
+ * decomposition is then obtained.
+ *
+ * \param A Matrix
+ * \param P Permutation vector of length A->nrows
+ * \param Q Permutation vector of length A->ncols
+ *
+ * \ingroup PLE
+ */
 
 static inline rci_t mzd_slice_pluq(mzd_slice_t *A, mzp_t *P, mzp_t *Q) {
   assert(P->length == A->nrows);
@@ -123,10 +146,10 @@ static inline rci_t mzd_slice_pluq(mzd_slice_t *A, mzp_t *P, mzp_t *Q) {
 
 
 /**
- * \brief PLE decomposition: L*E = P*A 
+ * \brief PLE decomposition: \f$ L \cdot E = P \cdot A \f$.
  *
  * Modifies A in place to store lower triangular L below (and on) the
- * main diagonal and E -- a echelon form of A -- above the main
+ * main diagonal and E -- an echelon form of A -- above the main
  * diagonal (pivots are stored in Q). P and Q are updated with row and
  * column permutations respectively.
  *
@@ -143,27 +166,23 @@ static inline rci_t mzd_slice_pluq(mzd_slice_t *A, mzp_t *P, mzp_t *Q) {
  * \param cutoff Integer >= 0
  *
  * \ingroup PLE
- * 
- * \sa mzed_ple_naive mzed_ple_travolta _mzed_ple
- * 
- * \example tests/test_ple.cc bench/bench_ple.cc
+ *
+ * \sa mzed_ple_naive() mzed_ple_travolta() _mzed_ple()
  */
 
 rci_t _mzed_ple(mzed_t *A, mzp_t *P, mzp_t *Q, rci_t cutoff);
 
-
 /**
- * Default crossover to PLE base case (Travolta-based).
+ * Default crossover to PLE base case (Newton-John based).
  */
 
 #define __M4RIE_PLE_CUTOFF (__M4RI_CPU_L2_CACHE<<2)
 
-
 /**
- * \brief PLE decomposition: L*E = P*A 
+ * \brief PLE decomposition: \f$ L \cdot E = P \cdot A \f$.
  *
  * Modifies A in place to store lower triangular L below (and on) the
- * main diagonal and E -- a echelon form of A -- above the main
+ * main diagonal and E -- an echelon form of A -- above the main
  * diagonal (pivots are stored in Q). P and Q are updated with row and
  * column permutations respectively.
  *
@@ -176,10 +195,9 @@ rci_t _mzed_ple(mzed_t *A, mzp_t *P, mzp_t *Q, rci_t cutoff);
  * \param Q Permutation vector of length A->ncols
  *
  * \ingroup PLE
- * 
- * \sa mzed_ple_naive mzed_ple_travolta _mzed_ple
- * 
- * \example tests/test_ple.cc bench/bench_ple.cc
+ *
+ * \sa mzed_ple_naive() mzed_ple_travolta() _mzed_ple()
+ *
  */
 
 static inline rci_t mzed_ple(mzed_t *A, mzp_t *P, mzp_t *Q) {

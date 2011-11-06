@@ -39,30 +39,27 @@
  */
 
 typedef struct {
-  /**
-   * A map such that L[a] points to the row where the first entry is a.
-   */
-
-  rci_t *L;
-
-  /**
-   * Table of length \e which contains multiples of the input row such
-   * that \f$a^i\f$ is the first entry of row \f$i\f$.
-   */
-
-  mzed_t *M;
-
-  /**
-   * Actual table of length \f$2^e\f$ of all linear combinations of T.
-   */
-
-  mzed_t *T;
-
+  rci_t *L;  /**< A map such that L[a] points to the row where the first entry is a. */
+  mzed_t *M; /**< Table of length \e with multiples of the input s.t. \f$a^i\f$ is the first entry of row \f$i\f$. */
+  mzed_t *T; /**< Actual table of length \f$2^e\f$ of all linear combinations of T. */
 } njt_mzed_t;
+
+/**
+ * \brief Allocate Newton-John table of dimension gf2e::degree<<1 * ncols.
+ *
+ * \param ff Finite field.
+ * \param ncols Integer > 0.
+ */
 
 njt_mzed_t *njt_mzed_init(const gf2e *ff, const rci_t ncols);
 
-void njt_mzed_free(njt_mzed_t *);
+/**
+ * \brief Free Newton-John table
+ *
+ * \param t Table
+ */
+
+void njt_mzed_free(njt_mzed_t *t);
 
 /**
  * \brief Construct Newton-John table T for row r of A, and element A[r,c].
@@ -76,13 +73,13 @@ void njt_mzed_free(njt_mzed_t *);
 njt_mzed_t * mzed_make_table(njt_mzed_t *T, const mzed_t *A, const rci_t r, const rci_t c);
 
 /**
- * \brief Compute C such that C == AB using Newton-John tables.
+ * \brief \f$C = A \cdot B\f$ using Newton-John tables.
  *
  * \param C Preallocated return matrix, may be NULL for automatic creation.
  * \param A Input matrix A.
  * \param B Input matrix B.
  *
- * \sa mzed_mul _mzed_mul_travolta0
+ * \sa mzed_mul _mzed_mul_travolta0()
  *
  * \ingroup Multiplication
  */
@@ -90,13 +87,13 @@ njt_mzed_t * mzed_make_table(njt_mzed_t *T, const mzed_t *A, const rci_t r, cons
 mzed_t *mzed_mul_travolta(mzed_t *C, const mzed_t *A, const mzed_t *B);
 
 /**
- * \brief Compute C such that C == C + AB using Newton-John tables.
+ * \brief \f$C = C + A \cdot B\f$ using Newton-John tables.
  *
  * \param C Preallocated product matrix, may be NULL for automatic creation.
  * \param A Input matrix A.
  * \param B Input matrix B.
  *
- * \sa _mzed_mul_travolta mzed_mul
+ * \sa _mzed_mul_travolta() mzed_mul()
  *
  * \ingroup Multiplication
  */
@@ -104,15 +101,16 @@ mzed_t *mzed_mul_travolta(mzed_t *C, const mzed_t *A, const mzed_t *B);
 mzed_t *mzed_addmul_travolta(mzed_t *C, const mzed_t *A, const mzed_t *B);
 
 /**
- * \brief Compute C such that C == C + AB using Newton-John tables.
+ * \brief \f$C = C + A \cdot B\f$ using Newton-John tables.
  *
- * This is a simple implementation.
+ * This is a simple implementation for clarity of presentation. Do not
+ * call, it is slow.
  *
  * \param C Preallocated product matrix.
  * \param A Input matrix A.
  * \param B Input matrix B.
  *
- * \sa mzed_mul_travolta mzed_mul
+ * \sa mzed_mul_travolta() mzed_mul()
  *
  * \ingroup Multiplication
  */
@@ -120,7 +118,7 @@ mzed_t *mzed_addmul_travolta(mzed_t *C, const mzed_t *A, const mzed_t *B);
 mzed_t *_mzed_mul_travolta0(mzed_t *C, const mzed_t *A, const mzed_t *B);
 
 /**
- * \brief Compute C such that C == C + AB using Newton-John tables.
+ * \brief \f$C = C + A \cdot B\f$ using Newton-John tables.
  *
  * This is an optimised implementation.
  *
@@ -128,7 +126,7 @@ mzed_t *_mzed_mul_travolta0(mzed_t *C, const mzed_t *A, const mzed_t *B);
  * \param A Input matrix A.
  * \param B Input matrix B.
  *
- * \sa mzed_mul
+ * \sa mzed_mul()
  *
  * \ingroup Multiplication
  */
@@ -149,27 +147,61 @@ mzed_t *_mzed_mul_travolta(mzed_t *C, const mzed_t *A, const mzed_t *B);
 rci_t mzed_echelonize_travolta(mzed_t *A, int full);
 
 /**
- * \brief Invert the matrix A using Gauss-Newton-John elimination. 
+ * \brief Invert the matrix A using Gauss-Newton-John elimination.
  *
  * \param B Preallocated space for inversion matrix, may be NULL for
  * automatic creation.
  * \param A Matrix to be inverted.
- *
- * \ingroup Echelon
  */
 
 mzed_t *mzed_invert_travolta(mzed_t *B, const mzed_t *A);
 
+/**
+ * \brief \f$B = L^{-1} \cdot B\f$ using Newton-John tables.
+ *
+ * \param L Lower-triangular matrix (other entries are ignored).
+ * \param B Matrix.
+ *
+ * \ingroup Triangular
+ */
+
 void mzed_trsm_lower_left_travolta(const mzed_t *L, mzed_t *B);
+
+/**
+ * \brief \f$B = L^{-1} \cdot B\f$ using Newton-John tables.
+ *
+ * \param L Lower-triangular matrix (other entries are ignored).
+ * \param B Matrix.
+ *
+ * \ingroup Triangular
+ */
 
 void mzd_slice_trsm_lower_left_travolta(const mzd_slice_t *L, mzd_slice_t *B);
 
+/**
+ * \brief \f$B = U^{-1} \cdot B\f$ using Newton-John tables.
+ *
+ * \param U Upper-triangular matrix (other entries are ignored).
+ * \param B Matrix.
+ *
+ * \ingroup Triangular
+*/
+
 void mzed_trsm_upper_left_travolta(const mzed_t *U, mzed_t *B);
+
+/**
+ * \brief \f$B = U^{-1} \cdot B\f$ using Newton-John tables.
+ *
+ * \param U Upper-triangular matrix (other entries are ignored).
+ * \param B Matrix.
+ *
+ * \ingroup Triangular
+ */
 
 void mzd_slice_trsm_upper_left_travolta(const mzd_slice_t *U, mzd_slice_t *B);
 
 /**
- * \brief L*E = P*A
+ * \brief PLE decomposition: \f$L \cdot E = P\cdot A\f$ using Newton-John tables.
  *
  * \ingroup PLE
  */

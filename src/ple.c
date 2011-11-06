@@ -75,7 +75,7 @@ rci_t _mzed_ple(mzed_t *A, mzp_t *P, mzp_t *Q, rci_t cutoff) {
   if (cutoff == 0)
     cutoff = __M4RIE_PLE_CUTOFF;
 
-  if ((A->finite_field->degree <= __M4RIE_MAX_KARATSUBA_DEGREE) && 
+  if ((A->finite_field->degree <= __M4RIE_MAX_KARATSUBA_DEGREE) &&
       (A->ncols > m4ri_radix && (gf2e_degree_to_w(A->finite_field) * A->ncols * A->nrows) > cutoff)) {
     mzd_slice_t *a = mzed_slice(NULL, A);
     rci_t r = _mzd_slice_ple(a, P, Q, cutoff);

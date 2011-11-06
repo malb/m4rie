@@ -1,7 +1,7 @@
 /**
  * \file permutation.h
  * \brief Permutation matrices.
- * 
+ *
  * \author Martin Albrecht <martinralbrecht@googlemail.com>
  */
 

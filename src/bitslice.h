@@ -59,45 +59,25 @@
  */
 
 typedef struct {
-  /**
-   * A->x[e][i,j] is the \e-th bit of the entry A[i,j].
-   */
-  mzd_t *x[16];  // We only support 10 but 16 migh help with alignment.
+  mzd_t *x[16]; /**< mzd_slice_t::x[e][i,j] is the \e-th bit of the entry A[i,j]. */
 
-  /**
-   * A finite field \GF2E.
-   */
+  const gf2e *finite_field;   /**<A finite field \GF2E. */
 
-  const gf2e *finite_field;
+  rci_t nrows; /**< Number of rows. */
 
-  /**
-   * Number of rows.
-   */
 
-  rci_t nrows;
+  rci_t ncols; /**< Number of columns. */
 
-  /**
-   * Number of columns.
-   */
-
-  rci_t ncols;
-
-  /**
-   * Number of slices
-   *
-   * \note This value may be greater than finite_field->degree in some
-   * situations
-   */
-
-  int depth;
-
+  int depth;   /**< Number of slices
+                *
+                * \note This value may be greater than finite_field->degree in some situations */
 } mzd_slice_t;
 
 
 /**
  * \brief Create a new matrix of dimension \f$ m \times n\f$ over ff
  *
- * Use mzd_slice_free to free it.
+ * Use mzd_slice_free() to free it.
  *
  * \param ff Finite field
  * \param m Number of rows
@@ -141,8 +121,8 @@ static inline mzd_slice_t *mzd_slice_init(const gf2e *ff, const rci_t m, const r
  * If the matrix is not square then the largest possible square
  * submatrix is used.
  *
- * \param A Matrix
- * \param value Finite Field element
+ * \param A Matrix.
+ * \param value Finite Field element.
  *
  * \ingroup Assignment
  */
@@ -153,20 +133,20 @@ void mzd_slice_set_ui(mzd_slice_t *A, word value);
  * \brief Extend or truncate the depth of A to depth new_depth.
  *
  * We may think of mzd_slice_t as polynomials over matrices over
- * GF(2). This function then truncates/extends these polynomials to
+ * \GF2. This function then truncates/extends these polynomials to
  * degree new_depth-1. In case of extension, all newly created
  * coefficients are zero, hence the mathematical content of A is not
  * changed. In case of truncation higher degree terms are simply
  * deleted and A's mathematical content modified.
  *
- * \param A Matrix, modifed in place
- * \param new_depth Integer >= A->finite_field->degree
+ * \param A Matrix, modifed in place.
+ * \param new_depth Integer >= mzd_slice_t::finite_field::degree.
  */
 
 static inline mzd_slice_t *_mzd_slice_adapt_depth(mzd_slice_t *A, const int new_depth) {
   assert(A->finite_field->degree <= new_depth);
 
-  if (new_depth < A->depth) { 
+  if (new_depth < A->depth) {
     for(int i=new_depth; i<A->depth; i++) {
       mzd_free(A->x[i]);
       A->x[i] = NULL;
@@ -182,9 +162,9 @@ static inline mzd_slice_t *_mzd_slice_adapt_depth(mzd_slice_t *A, const int new_
 
 
 /**
- * \brief Free a matrix created with mzd_slice_init.
- * 
- * \param A Matrix
+ * \brief Free a matrix created with mzd_slice_init().
+ *
+ * \param A Matrix.
  *
  * \ingroup Constructions
  */
@@ -201,18 +181,16 @@ static inline void mzd_slice_free(mzd_slice_t *A) {
 
 /**
  * \brief Concatenate B to A and write the result to C.
- * 
- * That is,
  *
+ * That is,
  \verbatim
  [ A ], [ B ] -> [ A  B ] = C
  \endverbatim
- *
  * The inputs are not modified but a new matrix is created.
  *
- * \param C Matrix, may be NULL for automatic creation
- * \param A Matrix
- * \param B Matrix
+ * \param C Matrix, may be NULL for automatic creation.
+ * \param A Matrix.
+ * \param B Matrix.
  *
  * \note This is sometimes called augment.
  *
@@ -232,13 +210,11 @@ static inline mzd_slice_t *mzd_slice_concat(mzd_slice_t *C, const mzd_slice_t *A
 /**
  * \brief Stack A on top of B and write the result to C.
  *
- * That is, 
- *
+ * That is,
  \verbatim
  [ A ], [ B ] -> [ A ] = C
                  [ B ]
  \endverbatim
- *
  * The inputs are not modified but a new matrix is created.
  *
  * \param C Matrix, may be NULL for automatic creation
@@ -260,8 +236,6 @@ static inline mzd_slice_t *mzd_slice_stack(mzd_slice_t *C, const mzd_slice_t *A,
 
 /**
  * \brief Copy a submatrix.
- *
- * Note that the upper bounds are not included.
  *
  * \param S Preallocated space for submatrix, may be NULL for automatic creation.
  * \param A Matrix
@@ -295,7 +269,7 @@ static inline mzd_slice_t *mzd_slice_submatrix(mzd_slice_t *S, const mzd_slice_t
  * all parameters must be within range for M which is not currently
  * enforced.
  *
- * Use mzd_slice_free_window to free the window.
+ * Use mzd_slice_free_window() to free the window.
  *
  * \param A Matrix
  * \param lowr Starting row (inclusive)
@@ -321,8 +295,8 @@ static inline mzd_slice_t *mzd_slice_init_window(const mzd_slice_t *A,
 }
 
 /**
- * \brief Free a matrix window created with mzd_slice_init_window.
- * 
+ * \brief Free a matrix window created with mzd_slice_init_window().
+ *
  * \param A Matrix
  *
  * \ingroup Constructions
@@ -336,7 +310,7 @@ static inline void mzd_slice_free_window(mzd_slice_t *A) {
 }
 
 /**
- * \brief Same as mzd_add but without any checks on the input.
+ * \brief \f$ C = A + B\f$.
  *
  * \param C Preallocated sum matrix, may be NULL for automatic creation.
  * \param A Matrix
@@ -352,10 +326,10 @@ static inline mzd_slice_t *_mzd_slice_add(mzd_slice_t *C, const mzd_slice_t *A, 
 }
 
 /**
- * \brief Set C = A+B.
+ * \brief \f$ C = A + B\f$.
  *
  * C is also returned. If C is NULL then a new matrix is created which
- * must be freed by mzd_slice_free.
+ * must be freed by mzd_slice_free().
  *
  * \param C Preallocated sum matrix, may be NULL for automatic creation.
  * \param A Matrix
@@ -368,7 +342,7 @@ static inline mzd_slice_t *mzd_slice_add(mzd_slice_t *C, const mzd_slice_t *A, c
   if ( (A->finite_field != B->finite_field) | (A->nrows != B->nrows) | (A->ncols != B->ncols) ) 
     m4ri_die("mzd_slice_add: input matrices A (%d x %d) and B (%d x %d) do not match.\n",A->nrows,A->ncols, B->nrows,B->ncols);
 
-  if(C == NULL) 
+  if(C == NULL)
     mzd_slice_init(A->finite_field, A->nrows, A->ncols);
   else if ( (A->finite_field != C->finite_field) | (A->nrows != C->nrows) | (A->ncols != C->ncols) )
     m4ri_die("mzd_slice_add: input matrix A (%d x %d) and output matrix (%d x %d) do not match.\n",A->nrows,A->ncols, C->nrows, C->ncols);
@@ -377,10 +351,10 @@ static inline mzd_slice_t *mzd_slice_add(mzd_slice_t *C, const mzd_slice_t *A, c
 }
 
 /**
- * \brief Set C = A+B.
+ * \brief \f$ C = A + B\f$.
  *
  * C is also returned. If C is NULL then a new matrix is created which
- * must be freed by mzd_slice_free.
+ * must be freed by mzd_slice_free().
  *
  * \param C Preallocated sum matrix, may be NULL for automatic creation.
  * \param A Matrix
@@ -392,7 +366,7 @@ static inline mzd_slice_t *mzd_slice_add(mzd_slice_t *C, const mzd_slice_t *A, c
 #define mzd_slice_sub mzd_slice_add
 
 /**
- * \brief Same as mzd_add but without any checks on the input.
+ * \brief \f$ C = A + B\f$.
  *
  * \param C Preallocated sum matrix, may be NULL for automatic creation.
  * \param A Matrix
@@ -404,29 +378,32 @@ static inline mzd_slice_t *mzd_slice_add(mzd_slice_t *C, const mzd_slice_t *A, c
 #define _mzd_slice_sub _mzd_slice_add
 
 /**
- * \brief Compute C = A*B over GF(2^e) using naive polynomials multiplication.
+ * \brief \f$ C = A \cdot B \f$ using quadratic polynomial multiplication with matrix coefficients.
  *
  * \param C Preallocated return matrix, may be NULL for automatic creation.
  * \param A Input matrix A.
  * \param B Input matrix B.
  *
+ * \ingroup Multiplication
  */
 
 mzd_slice_t *_mzd_slice_mul_naive(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B);
 
 /**
- * \brief Compute C = A*B over GF(2^2) using 3 multiplications over GF(2) and 2 temporary GF(2) matrices..
+ * \brief \f$ C = A \cdot B \f$ over \GF4 using 3 multiplications over \GF2 and 2 temporary \GF2 matrices..
  *
  * \param C Preallocated return matrix, may be NULL for automatic creation.
  * \param A Input matrix A.
  * \param B Input matrix B.
  *
- * \sa _mzd_slice_mul_karatsuba
+ * \sa _mzd_slice_mul_karatsuba()
+ *
+ * \ingroup Multiplication
  */
 mzd_slice_t *_mzd_slice_mul_karatsuba2(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B);
 
 /**
- * \brief Compute C = A*B over GF(2^3) using 6 multiplications over GF(2) and 3 temporary GF(2) matrices..
+ * \brief \f$ C = A \cdot B \f$ over \GF8 using 6 multiplications over \GF2 and 3 temporary \GF2 matrices..
  *
  * The formula was taken from Peter L. Montgomery. "Five, Six, and
  * Seven-Term Karatsuba-Like Formulae" in IEEE TRANSACTIONS ON
@@ -436,25 +413,29 @@ mzd_slice_t *_mzd_slice_mul_karatsuba2(mzd_slice_t *C, const mzd_slice_t *A, con
  * \param A Input matrix A.
  * \param B Input matrix B.
  *
- * \sa _mzd_slice_mul_karatsuba
+ * \sa _mzd_slice_mul_karatsuba()
+ *
+ * \ingroup Multiplication
  */
 
 mzd_slice_t *_mzd_slice_mul_karatsuba3(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B);
 
 /**
- * \brief Compute C = A*B over GF(2^4) using 9 multiplications over GF(2) and 3 temporary GF(2) matrices..
+ * \brief \f$ C = A \cdot B \f$ over \GF16 using 9 multiplications over \GF2 and 3 temporary \GF2 matrices..
  *
  * \param C Preallocated return matrix, may be NULL for automatic creation.
  * \param A Input matrix A.
  * \param B Input matrix B.
  *
- * \sa _mzd_slice_mul_karatsuba
+ * \sa _mzd_slice_mul_karatsuba()
+ *
+ * \ingroup Multiplication
  */
 
 mzd_slice_t *_mzd_slice_mul_karatsuba4(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B);
 
 /**
- * \brief Compute C = A*B over GF(2^5) using 13 multiplications over GF(2) and 3 temporary GF(2) matrices..
+ * \brief \f$ C = A \cdot B \f$ over \GF32 using 13 multiplications over \GF2 and 3 temporary \GF2 matrices..
  *
  * The formula was taken from Peter L. Montgomery. "Five, Six, and
  * Seven-Term Karatsuba-Like Formulae" in IEEE TRANSACTIONS ON
@@ -464,13 +445,15 @@ mzd_slice_t *_mzd_slice_mul_karatsuba4(mzd_slice_t *C, const mzd_slice_t *A, con
  * \param A Input matrix A.
  * \param B Input matrix B.
  *
- * \sa _mzd_slice_mul_karatsuba
+ * \sa _mzd_slice_mul_karatsuba()
+ *
+ * \ingroup Multiplication
  */
 
 mzd_slice_t *_mzd_slice_mul_karatsuba5(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B);
 
 /**
- * \brief Compute C = A*B over GF(2^6) using 17 multiplications over GF(2) and 3 temporary GF(2) matrices.
+ * \brief \f$ C = A \cdot B \f$ over \GF64 using 17 multiplications over \GF2 and 3 temporary \GF2 matrices.
  *
  * The formula was taken from Peter L. Montgomery. "Five, Six, and
  * Seven-Term Karatsuba-Like Formulae" in IEEE TRANSACTIONS ON
@@ -480,13 +463,15 @@ mzd_slice_t *_mzd_slice_mul_karatsuba5(mzd_slice_t *C, const mzd_slice_t *A, con
  * \param A Input matrix A.
  * \param B Input matrix B.
  *
- * \sa _mzd_slice_mul_karatsuba
+ * \sa _mzd_slice_mul_karatsuba()
+ *
+ * \ingroup Multiplication
  */
 
 mzd_slice_t *_mzd_slice_mul_karatsuba6(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B);
 
 /**
- * \brief Compute C = A*B over GF(2^7) using 22 multiplications over GF(2) and 3 temporary GF(2) matrices.
+ * \brief \f$ C = A \cdot B \f$ over \GF128 using 22 multiplications over \GF2 and 3 temporary \GF2 matrices.
  *
  * The formula was taken from Peter L. Montgomery. "Five, Six, and
  * Seven-Term Karatsuba-Like Formulae" in IEEE TRANSACTIONS ON
@@ -496,46 +481,49 @@ mzd_slice_t *_mzd_slice_mul_karatsuba6(mzd_slice_t *C, const mzd_slice_t *A, con
  * \param A Input matrix A.
  * \param B Input matrix B.
  *
- * \sa _mzd_slice_mul_karatsuba
+ * \sa _mzd_slice_mul_karatsuba()
+ *
+ * \ingroup Multiplication
  */
 
 mzd_slice_t *_mzd_slice_mul_karatsuba7(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B);
 
 /**
- * \brief Compute C = A*B over GF(2^8) using 27 multiplications over GF(2) and 15 temporary GF(2) matrices.
+ * \brief \f$ C = A \cdot B \f$ over \GF256 using 27 multiplications over \GF2 and 15 temporary \GF2 matrices.
  *
  * \param C Preallocated return matrix, may be NULL for automatic creation.
  * \param A Input matrix A.
  * \param B Input matrix B.
  *
- * \sa _mzd_slice_mul_karatsuba
+ * \sa _mzd_slice_mul_karatsuba()
+ *
+ * \ingroup Multiplication
  */
-
 
 mzd_slice_t *_mzd_slice_mul_karatsuba8(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B);
 
 /**
- * \brief Compute C += A*B using Karatsuba multiplication of polynomials over GF(2).
+ * \brief \f$ C = C + A \cdot B \f$ using Karatsuba multiplication of polynomials over matrices over \GF2.
  *
- * This functionreduces matrix multiplication over GF(2^e) to matrix
- * multiplication over GF(2).
- * 
- * As an example consider GF(2^2). The minimal polynomial is x^2 + x +
- * 1. The matrix A can be represented as A0*x + A1 and the matrix B
+ * This function reduces matrix multiplication over \GF2E to matrix
+ * multiplication over \GF2.
+ *
+ * As an example consider \f$ \mathbb{F}_4 \f$. The minimal polynomial is
+ * \f$ x^2 + x + 1 \f$. The matrix A can be represented as A0*x + A1 and the matrix B
  * can be represented as B0*x + B1. Their product C is
  * \f[
- A0*B0*x^2 + (A0*B1 + A1*B0)*x + A1*B1.
+ A0 \cdot B0 \cdot x^2 + (A0 \cdot B1 + A1 \cdot B0) \cdot x + A1*B1.
  * \f]
  * Reduction modulo x^2 + x + 1 gives
  * \f[
- (A0*B0 + A0*B1 + A1*B0)*x + A1*B1 + A0*B0.
+ (A0 \cdot B0 + A0 \cdot B1 + A1 \cdot B0) \cdot x + A1 \cdot B1 + A0 \cdot B0.
  * \f]
  * This can be re-written as
  * \f[
- ((A0 + A1)*(B0 + B1) + A1*B1)*x + A1*B1 + A0*B0
+ ((A0 + A1) \cdot (B0 + B1) + A1 \cdot B1) \cdot x + A1 \cdot B1 + A0 \cdot B0
  * \f]
  * and thus this multiplication costs 3 matrix multiplications over
- * GF(2) and 4 matrix additions over GF(2).
+ * \GF2 and 4 matrix additions over \GF2.
  *
  * This technique was proposed in Tomas J. Boothby and Robert
  * W. Bradshaw; Bitslicing and the Method of Four Russians Over Larger
@@ -545,7 +533,9 @@ mzd_slice_t *_mzd_slice_mul_karatsuba8(mzd_slice_t *C, const mzd_slice_t *A, con
  * \param A Input matrix A.
  * \param B Input matrix B.
  *
- * \sa mzed_mul() mzd_slice_mul mzd_slice_mul_karatsuba
+ * \sa mzed_mul() mzd_slice_mul() mzd_slice_mul_karatsuba()
+ *
+ * \ingroup Multiplication
  */
 
 static inline mzd_slice_t *_mzd_slice_mul_karatsuba(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B) {
@@ -566,20 +556,22 @@ static inline mzd_slice_t *_mzd_slice_mul_karatsuba(mzd_slice_t *C, const mzd_sl
 }
 
 /**
- * \brief Compute C = A*B using Karatsuba multiplication of polynomials over GF(2).
+ * \brief \f$ C = A \cdot B \f$ using Karatsuba multiplication of polynomials over matrices over \GF2.
  *
  * \param C Preallocated return matrix, may be NULL for automatic creation.
  * \param A Input matrix A.
  * \param B Input matrix B.
  *
- * \sa _mzd_slice_mul_karatsuba
+ * \sa _mzd_slice_mul_karatsuba()
+ *
+ * \ingroup Multiplication
  */
 
 static inline mzd_slice_t *mzd_slice_mul_karatsuba(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B) {
-  if (A->ncols != B->nrows || A->finite_field != B->finite_field) 
+  if (A->ncols != B->nrows || A->finite_field != B->finite_field)
     m4ri_die("mzd_slice_mul_karatsuba: rows, columns and fields must match.\n");
   if (C != NULL) {
-    if (C->finite_field != A->finite_field || C->nrows != A->nrows || C->ncols != B->ncols) 
+    if (C->finite_field != A->finite_field || C->nrows != A->nrows || C->ncols != B->ncols)
       m4ri_die("mzd_slice_mul_karatsuba: rows and columns of returned matrix must match.\n");
     mzd_slice_set_ui(C,0);
   }
@@ -587,13 +579,15 @@ static inline mzd_slice_t *mzd_slice_mul_karatsuba(mzd_slice_t *C, const mzd_sli
 }
 
 /**
- * \brief Compute C += A*B using Karatsuba multiplication of polynomials over GF(2).
+ * \brief \f$ C = C + A \cdot B\f$ using Karatsuba multiplication of polynomials over matrices over \GF2.
  *
  * \param C Preallocated return matrix.
  * \param A Input matrix A.
  * \param B Input matrix B.
  *
- * \sa _mzd_slice_mul_karatsuba
+ * \sa _mzd_slice_mul_karatsuba()
+ *
+ * \ingroup Multiplication
  */
 
 static inline mzd_slice_t *mzd_slice_addmul_karatsuba(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B) {
@@ -606,13 +600,15 @@ static inline mzd_slice_t *mzd_slice_addmul_karatsuba(mzd_slice_t *C, const mzd_
 }
 
 /**
- * \brief Compute C = A*B.
+ * \brief \f$ C = A \cdot B \f$.
  *
  * \param C Preallocated return matrix, may be NULL for automatic creation.
  * \param A Input matrix A.
  * \param B Input matrix B.
  *
- * \sa _mzd_slice_mul_karatsuba
+ * \sa _mzd_slice_mul_karatsuba()
+ *
+ * \ingroup Multiplication
  */
 
 static inline mzd_slice_t *mzd_slice_mul(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B) {
@@ -620,13 +616,15 @@ static inline mzd_slice_t *mzd_slice_mul(mzd_slice_t *C, const mzd_slice_t *A, c
 }
 
 /**
- * \brief Compute C += A*B.
+ * \brief \f$ C = C + A \cdot B \f$.
  *
  * \param C Preallocated return matrix.
  * \param A Input matrix A.
  * \param B Input matrix B.
  *
- * \sa _mzd_slice_mul_karatsuba
+ * \sa _mzd_slice_mul_karatsuba()
+ *
+ * \ingroup Multiplication
  */
 
 static inline mzd_slice_t *mzd_slice_addmul(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B) {
@@ -710,7 +708,7 @@ static inline word mzd_slice_read_elem(const mzd_slice_t *A, const rci_t row, co
  * \todo This function is considerably slower than it needs to be.
  *
  * \ingroup Assignment
- */ 
+ */
 
 static inline void mzd_slice_add_elem(mzd_slice_t *A, const rci_t row, const rci_t col, word elem) {
   for(int i=0; i<A->depth; i++) {
@@ -785,8 +783,6 @@ static inline int mzd_slice_is_zero(const mzd_slice_t *A) {
  * \param rowb Row index.
  *
  * \ingroup RowOperations
- *
- * \wordoffset
  */
 
 static inline void mzd_slice_row_swap(mzd_slice_t *A, const rci_t rowa, const rci_t rowb) {

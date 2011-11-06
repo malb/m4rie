@@ -56,43 +56,18 @@
  */
 
 typedef struct {
-
-  /**
-   * \f$m \times n\f$ matrices over \GF2E are represented as \f$m \times (en)\f$ matrices over GF(2).
-   */
-  mzd_t *x;
-
-  /**
-   * A finite field \GF2E.
-   */
-
-  const gf2e *finite_field;
-
-  /**
-   * Number of rows.
-   */
-
-  rci_t nrows;
-
-  /**
-   * Number of columns.
-   */
-
-  rci_t ncols;
-
-  /**
-   * The internal width of elements (must divide 64).
-   */
-
-  wi_t w;
-
+  mzd_t *x; /**< \f$m \times n\f$ matrices over \GF2E are represented as \f$m \times (en)\f$ matrices over \GF2. */
+  const gf2e *finite_field; /**< A finite field \GF2E. */
+  rci_t nrows; /**< Number of rows. */
+  rci_t ncols; /**< Number of columns. */
+  wi_t w;   /**< The internal width of elements (must divide 64). */
 } mzed_t;
 
 
 /**
  * \brief Create a new matrix of dimension m x n over ff
  *
- * Use mzed_free to kill it.
+ * Use mzed_free() to kill it.
  *
  * \param ff Finite field
  * \param m Number of rows
@@ -104,8 +79,8 @@ typedef struct {
 mzed_t *mzed_init(const gf2e *ff, const rci_t m, const rci_t n);
 
 /**
- * \brief Free a matrix created with mzed_init.
- * 
+ * \brief Free a matrix created with mzed_init().
+ *
  * \param A Matrix
  *
  * \ingroup Constructions
@@ -116,13 +91,11 @@ void mzed_free(mzed_t *A);
 
 /**
  * \brief Concatenate B to A and write the result to C.
- * 
- * That is,
  *
+ * That is,
  \verbatim
  [ A ], [ B ] -> [ A  B ] = C
  \endverbatim
- *
  * The inputs are not modified but a new matrix is created.
  *
  * \param C Matrix, may be NULL for automatic creation
@@ -144,13 +117,11 @@ static inline mzed_t *mzed_concat(mzed_t *C, const mzed_t *A, const mzed_t *B) {
 /**
  * \brief Stack A on top of B and write the result to C.
  *
- * That is, 
- *
+ * That is,
  \verbatim
  [ A ], [ B ] -> [ A ] = C
                  [ B ]
  \endverbatim
- *
  * The inputs are not modified but a new matrix is created.
  *
  * \param C Matrix, may be NULL for automatic creation
@@ -170,7 +141,7 @@ static inline mzed_t *mzed_stack(mzed_t *C, const mzed_t *A, const mzed_t *B) {
 
 /**
  * \brief Copy a submatrix.
- * 
+ *
  * Note that the upper bounds are not included.
  *
  * \param S Preallocated space for submatrix, may be NULL for automatic creation.
@@ -191,19 +162,19 @@ static inline mzed_t *mzed_submatrix(mzed_t *S, const mzed_t *M, const rci_t low
 }
 
 /**
- * \brief Create a window/view into the matrix M.
+ * \brief Create a window/view into the matrix A.
  *
- * A matrix window for M is a meta structure on the matrix M. It is
- * setup to point into the matrix so M \em must \em not be freed while the
- * matrix window is used.
+ * A matrix window for A is a meta structure on the matrix A. It is
+ * setup to point into the matrix so M \em must \em not be freed while
+ * the matrix window is used.
  *
  * This function puts the restriction on the provided parameters that
- * all parameters must be within range for M which is not currently
+ * all parameters must be within range for A which is not currently
  * enforced.
  *
- * Use mzed_free_window to free the window.
+ * Use mzed_free_window() to free the window.
  *
- * \param M Matrix
+ * \param A Matrix
  * \param lowr Starting row (inclusive)
  * \param lowc Starting column (inclusive)
  * \param highr End row (exclusive)
@@ -223,8 +194,8 @@ static inline mzed_t *mzed_init_window(const mzed_t *A, const rci_t lowr, const 
 }
 
 /**
- * \brief Free a matrix window created with mzed_init_window.
- * 
+ * \brief Free a matrix window created with mzed_init_window().
+ *
  * \param A Matrix
  *
  * \ingroup Constructions
@@ -236,10 +207,10 @@ static inline void mzed_free_window(mzed_t *A) {
 }
 
 /**
- * \brief Set C = A+B.
+ * \brief \f$ C = A+B \f$.
  *
  * C is also returned. If C is NULL then a new matrix is created which
- * must be freed by mzed_free.
+ * must be freed by mzed_free().
  *
  * \param C Preallocated sum matrix, may be NULL for automatic creation.
  * \param A Matrix
@@ -251,7 +222,7 @@ static inline void mzed_free_window(mzed_t *A) {
 mzed_t *mzed_add(mzed_t *C, const mzed_t *A, const mzed_t *B);
 
 /**
- * \brief Same as mzed_add but without any checks on the input.
+ * \brief \f$ C = A+B \f$.
  *
  * \param C Preallocated sum matrix, may be NULL for automatic creation.
  * \param A Matrix
@@ -263,7 +234,7 @@ mzed_t *mzed_add(mzed_t *C, const mzed_t *A, const mzed_t *B);
 mzed_t *_mzed_add(mzed_t *C, const mzed_t *A, const mzed_t *B);
 
 /**
- * \brief Same as mzed_add.
+ * \brief \f$ C = A+B \f$.
  *
  * \param C Preallocated difference matrix, may be NULL for automatic creation.
  * \param A Matrix
@@ -275,7 +246,7 @@ mzed_t *_mzed_add(mzed_t *C, const mzed_t *A, const mzed_t *B);
 #define mzed_sub mzed_add
 
 /**
- * \brief Same as mzed_sub but without any checks on the input.
+ * \brief \f$ C = A+B \f$.
  *
  * \param C Preallocated difference matrix, may be NULL for automatic creation.
  * \param A Matrix
@@ -287,7 +258,7 @@ mzed_t *_mzed_add(mzed_t *C, const mzed_t *A, const mzed_t *B);
 #define _mzed_sub _mzed_add
 
 /**
- * \brief Compute C such that C == AB.
+ * \brief \f$ C = A \cdot B \f$.
  *
  * \param C Preallocated return matrix, may be NULL for automatic creation.
  * \param A Input matrix A.
@@ -295,11 +266,11 @@ mzed_t *_mzed_add(mzed_t *C, const mzed_t *A, const mzed_t *B);
  *
  * \ingroup Multiplication
  */
- 
+
 mzed_t *mzed_mul(mzed_t *C, const mzed_t *A, const mzed_t *B);
 
 /**
- * \brief Compute C such that C == C + AB.
+ * \brief \f$ C = C + A \cdot B \f$.
  *
  * \param C Preallocated product matrix, may be NULL for automatic creation.
  * \param A Input matrix A.
@@ -311,7 +282,7 @@ mzed_t *mzed_mul(mzed_t *C, const mzed_t *A, const mzed_t *B);
 mzed_t *mzed_addmul(mzed_t *C, const mzed_t *A, const mzed_t *B);
 
 /**
- * \brief C such that C == AB.
+ * \brief \f$ C = A \cdot B \f$.
  *
  * \param C Preallocated product matrix.
  * \param A Input matrix A.
@@ -323,7 +294,7 @@ mzed_t *mzed_addmul(mzed_t *C, const mzed_t *A, const mzed_t *B);
 mzed_t *_mzed_mul(mzed_t *C, const mzed_t *A, const mzed_t *B);
 
 /**
- * \brief C such that C == C + AB.
+ * \brief \f$ C = C + A \cdot B \f$.
  *
  * \param C Preallocated product matrix.
  * \param A Input matrix A.
@@ -336,11 +307,14 @@ mzed_t *_mzed_addmul(mzed_t *C, const mzed_t *A, const mzed_t *B);
 
 
 /**
- * \brief Compute C such that C == C + AB using naive cubic multiplication.
+ * \brief \f$ C = C + A \cdot B \f$ using naive cubic multiplication.
  *
- * \param C Preallocated product matrix, may be NULL for automatic creation.
+ * \param C Preallocated product matrix.
  * \param A Input matrix A.
  * \param B Input matrix B.
+ *
+ * \note There is no reason to call this function except for checking
+ * the correctness of other algorithms. It is very slow.
  *
  * \ingroup Multiplication
  */
@@ -348,11 +322,14 @@ mzed_t *_mzed_addmul(mzed_t *C, const mzed_t *A, const mzed_t *B);
 mzed_t *mzed_addmul_naive(mzed_t *C, const mzed_t *A, const mzed_t *B);
 
 /**
- * \brief Compute C such that C == AB using naive cubic multiplication.
+ * \brief \f$ C = A \cdot B \f$ using naive cubic multiplication.
  *
  * \param C Preallocated product matrix, may be NULL for automatic creation.
  * \param A Input matrix A.
  * \param B Input matrix B.
+ *
+ * \note There is no reason to call this function except for checking
+ * the correctness of other algorithms. It is very slow.
  *
  * \ingroup Multiplication
  */
@@ -360,7 +337,7 @@ mzed_t *mzed_addmul_naive(mzed_t *C, const mzed_t *A, const mzed_t *B);
 mzed_t *mzed_mul_naive(mzed_t *C, const mzed_t *A, const mzed_t *B);
 
 /**
- * \brief C such that C == AB.
+ * \brief \f$ C = C + A \cdot B \f$ using naive cubic multiplication.
  *
  * \param C Preallocated product matrix.
  * \param A Input matrix A.
@@ -372,7 +349,7 @@ mzed_t *mzed_mul_naive(mzed_t *C, const mzed_t *A, const mzed_t *B);
 mzed_t *_mzed_mul_naive(mzed_t *C, const mzed_t *A, const mzed_t *B);
 
 /**
- * \brief C such that C == aB.
+ * \brief \f$ C = a \cdot B \f$.
  *
  * \param C Preallocated product matrix or NULL.
  * \param a finite field element.
@@ -424,7 +401,7 @@ mzed_t *mzed_copy(mzed_t *B, const mzed_t *A);
  * If the matrix is not square then the largest possible square
  * submatrix is used.
  *
- * \param M Matrix
+ * \param A Matrix
  * \param value Finite Field element
  *
  * \ingroup Assignment
@@ -441,7 +418,7 @@ void mzed_set_ui(mzed_t *A, word value);
  * \param col Starting column.
  *
  * \ingroup Assignment
- */ 
+ */
 
 static inline word mzed_read_elem(const mzed_t *A, const rci_t row, const rci_t col) {
   return __mzd_read_bits(A->x, row, A->w*col, A->w);
@@ -456,10 +433,10 @@ static inline word mzed_read_elem(const mzed_t *A, const rci_t row, const rci_t 
  * \param elem finite field element.
  *
  * \ingroup Assignment
- */ 
+ */
 
-static inline void mzed_add_elem(mzed_t *a, const rci_t row, const rci_t col, const word elem) {
-  __mzd_xor_bits(a->x, row, a->w*col, a->w, elem);
+static inline void mzed_add_elem(mzed_t *A, const rci_t row, const rci_t col, const word elem) {
+  __mzd_xor_bits(A->x, row, A->w*col, A->w, elem);
 }
 
 /**
@@ -471,11 +448,11 @@ static inline void mzed_add_elem(mzed_t *a, const rci_t row, const rci_t col, co
  * \param elem finite field element.
  *
  * \ingroup Assignment
- */ 
+ */
 
-static inline void mzed_write_elem(mzed_t *a, const rci_t row, const rci_t col, const word elem) {
-  __mzd_clear_bits(a->x, row, a->w*col, a->w);
-  __mzd_xor_bits(a->x, row, a->w*col, a->w, elem);
+static inline void mzed_write_elem(mzed_t *A, const rci_t row, const rci_t col, const word elem) {
+  __mzd_clear_bits(A->x, row, A->w*col, A->w);
+  __mzd_xor_bits(A->x, row, A->w*col, A->w, elem);
 }
 
 /**
@@ -485,7 +462,7 @@ static inline void mzed_write_elem(mzed_t *a, const rci_t row, const rci_t col, 
  * \param B Matrix.
  *
  * \note This comparison is not well defined mathematically and
- * relatively arbitrary since elements of GF(2^k) don't have an
+ * relatively arbitrary since elements of \GF2E don't have an
  * ordering.
  *
  * \ingroup Comparison
@@ -508,7 +485,7 @@ static inline int mzed_is_zero(const mzed_t *A) {
 }
 
 /**
- *  Compute A[ar,c] = A[ar,c] + X*B[br,c] for all c >= startcol.
+ * A[ar,c] = A[ar,c] + X*B[br,c] for all c >= startcol.
  *
  * \param A Matrix.
  * \param ar Row index in A.
@@ -523,7 +500,7 @@ static inline int mzed_is_zero(const mzed_t *A) {
 void mzed_add_multiple_of_row(mzed_t *A, rci_t ar, const mzed_t *B, rci_t br, word *X, rci_t start_col);
 
 /**
- *  Compute A[ar,c] = A[ar,c] + B[br,c] for all c >= startcol.
+ * A[ar,c] = A[ar,c] + B[br,c] for all c >= startcol.
  *
  * \param A Matrix.
  * \param ar Row index in A.
@@ -552,19 +529,19 @@ static inline void mzed_add_row(mzed_t *A, rci_t ar, const mzed_t *B, rci_t br, 
     _a[startblock] ^= _b[startblock] & bitmask_begin;
     for(j=startblock+1; j<A->x->width-1; j++)
       _a[j] ^= _b[j];
-    _a[j] ^= _b[j] & bitmask_end;    
+    _a[j] ^= _b[j] & bitmask_end;
   } else {
     _a[startblock] ^= _b[startblock] & (bitmask_begin & bitmask_end);
   }
 }
 
 /**
- * \brief Recale the row r in A by X starting c.
- * 
+ * \brief Rescale the row r in A by X starting c.
+ *
  * \param A Matrix
  * \param r Row index.
  * \param start_col Column index.
- * \param X Multiplier 
+ * \param X Multiplier
  *
  * \ingroup RowOperations
  */
@@ -578,10 +555,10 @@ static inline void mzed_rescale_row(mzed_t *A, rci_t r, rci_t start_col, const w
   const word bitmask_begin = __M4RI_RIGHT_BITMASK(m4ri_radix - (start%m4ri_radix));
   const word bitmask_end = __M4RI_LEFT_BITMASK((A->x->offset + A->x->ncols) % m4ri_radix);
   register word __a = _a[startblock]>>(start%m4ri_radix);
-  register word __t = 0;    
+  register word __t = 0;
   int j;
 
-  if(A->w == 2) {    
+  if(A->w == 2) {
     switch( (start/2) % 32 ) {
     case  0:  __t ^= (X[((__a)& 0x0000000000000003ULL)])<<0;   __a >>= 2;
     case  1:  __t ^= (X[((__a)& 0x0000000000000003ULL)])<<2;   __a >>= 2;
@@ -833,7 +810,7 @@ static inline void mzed_rescale_row(mzed_t *A, rci_t r, rci_t start_col, const w
       __t0 ^= (X[((__a0)& 0x00000000000000FFULL)])<<56;
       _a[j] = __t0;
     }
-    
+
     __t = _a[j] & ~bitmask_end;
     switch( (A->x->offset + A->x->ncols) % m4ri_radix ) {
     case  0: __t ^= ((word)X[(int)((_a[j] & 0xFF00000000000000ULL)>>56)])<<56;
@@ -921,7 +898,7 @@ static inline void mzed_rescale_row(mzed_t *A, rci_t r, rci_t start_col, const w
 
 /**
  * \brief Swap the two rows rowa and rowb.
- * 
+ *
  * \param M Matrix
  * \param rowa Row index.
  * \param rowb Row index.
@@ -953,14 +930,14 @@ static inline void mzed_copy_row(mzed_t* B, rci_t i, const mzed_t* A, rci_t j) {
 
 /**
  * \brief Swap the two columns cola and colb.
- * 
+ *
  * \param M Matrix.
  * \param cola Column index.
  * \param colb Column index.
  *
  * \ingroup RowOperations
  */
- 
+
 static inline void mzed_col_swap(mzed_t *M, const rci_t cola, const rci_t colb) {
   for(rci_t i=0; i<M->w; i++)
     mzd_col_swap(M->x,M->w*cola+i, M->w*colb+i);
@@ -968,8 +945,8 @@ static inline void mzed_col_swap(mzed_t *M, const rci_t cola, const rci_t colb) 
 
 /**
  * \brief Swap the two columns cola and colb but only between start_row and stop_row.
- * 
- * \param M Matrix.
+ *
+ * \param A Matrix.
  * \param cola Column index.
  * \param colb Column index.
  * \param start_row Row index.
@@ -1032,7 +1009,7 @@ static inline void mzed_row_clear_offset(mzed_t *M, const rci_t row, const rci_t
 
 /**
  * \brief Gaussian elimination.
- * 
+ *
  * Perform Gaussian elimination on the matrix A.  If full=0, then it
  * will do triangular style elimination, and if full=1, it will do
  * Gauss-Jordan style, or full elimination.
@@ -1046,7 +1023,7 @@ static inline void mzed_row_clear_offset(mzed_t *M, const rci_t row, const rci_t
 rci_t mzed_echelonize_naive(mzed_t *A, int full);
 
 /**
- * \brief Print a matrix to stdout. 
+ * \brief Print a matrix to stdout.
  *
  * \param M Matrix
  *

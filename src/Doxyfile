@@ -179,7 +179,7 @@ TAB_SIZE               = 4
 # will result in a user-defined paragraph with heading "Side Effects:".
 # You can put \n's in the value part of an alias to insert newlines.
 
-ALIASES                = "GF2E=\f$\mathbb{F}_{2^e}\f$" "GF2=\f$\mathbb{F}_2\f$" "e=\f$e\f$"
+ALIASES                = "GF2E=\f$\mathbb{F}_{2^e}\f$" "GF2=\f$\mathbb{F}_2\f$" " e=\f$e\f$" "GF4=\f$\mathbb{F}_{2^2}\f$" "GF8=\f$\mathbb{F}_{2^3}\f$" "GF16=\f$\mathbb{F}_{2^4}\f$" "GF32=\f$\mathbb{F}_{2^5}\f$" "GF64=\f$\mathbb{F}_{2^6}\f$" "GF128=\f$\mathbb{F}_{2^7}\f$" "GF256=\f$\mathbb{F}_{2^8}\f$" "GF512=\f$\mathbb{F}_{2^9}\f$" "GF1024=\f$\mathbb{F}_{2^10}\f$"
 
 # Set the OPTIMIZE_OUTPUT_FOR_C tag to YES if your project consists of C
 # sources only. Doxygen will then generate output that is more tailored for C.
@@ -610,7 +610,7 @@ RECURSIVE              = NO
 # excluded from the INPUT source files. This way you can easily exclude a
 # subdirectory from a directory tree whose root is specified with the INPUT tag.
 
-EXCLUDE                =
+EXCLUDE                = config.h m4ri_functions.h
 
 # The EXCLUDE_SYMLINKS tag can be used select whether or not files or
 # directories that are symbolic links (a Unix filesystem feature) are excluded

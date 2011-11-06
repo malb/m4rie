@@ -9,14 +9,39 @@
  * M4RIE is a library to do fast compations with dense matrices over
  * \GF2E for small \e. M4RIE is available under the GPLv2+.
  *
+ * The two fundamental data types of this library are mzed_t and
+ * mzd_slice_t. For big matrices, i.e., those which do not fit into L2
+ * cache, it is recommended to use mzd_slice_t and for smaller
+ * matrices mzed_t will be slightly faster and use less memory.
+ *
+ * Function names follow the pattern
+\verbatim
+[_]_[type]_[what]_[algorithm]
+\endverbatim
+ *
+ * Function names beginning with an underscore perform less
+ * consistency checks (matching dimensions, matching fields) than
+ * those without, e.g., _mzed_ple() is called by mzed_ple() after some
+ * checks were performed.
+ *
+ * For both data types almost all functions are the same, e.g., there
+ * is a function mzd_slice_add() and there also should be a function
+ * mzed_add() with the same signature except for the matrix type.
+ *
+ * Functions which do not specify an algorithm choose the best
+ * available algorithm (based on some heuristic), e.g., mzed_ple()
+ * might call mzed_ple_travolta().
+ *
  * \defgroup Definitions        Type definitions
- * \defgroup Construction       Constructions
+ * \defgroup Constructions      Constructions
  * \defgroup Assignment         Assignment and basic manipulation
+ * \defgroup RowOperations      Operations on rows
+ * \defgroup StringConversions  String conversions and I/O
  * \defgroup Addition           Addition and subtraction
  * \defgroup Multiplication     Multiplication
+ * \defgroup PLE                PLE and PLUQ decomposition
  * \defgroup Echelon            Echelon forms
- * \defgroup StringConversions  String conversions and I/O
- * \defgroup RowOperations      Operations on rows
+ * \defgroup Triangular         Triangular matrices
  *
  * \example tests/test_elimination.cc tests/test_multiplication.cc
  */

@@ -40,7 +40,7 @@ mzed_t *mzed_addmul_strassen(mzed_t *C, const mzed_t *A, const mzed_t *B, int cu
   return _mzed_addmul_strassen(C, A, B, cutoff);
 }
 
-mzed_t *_mzed_mul_strassen_even(mzed_t *C, const mzed_t *A, const mzed_t *B, int cutoff) {
+mzed_t *_mzed_mul_strassen(mzed_t *C, const mzed_t *A, const mzed_t *B, int cutoff) {
   assert(C->x->offset == 0);
   assert(A->x->offset == 0);
   assert(B->x->offset == 0);
@@ -69,7 +69,7 @@ mzed_t *_mzed_mul_strassen_even(mzed_t *C, const mzed_t *A, const mzed_t *B, int
   rci_t mmm = m/2;
   rci_t kkk = k/2;
   rci_t nnn = n/2;
-    
+
   mmm = (mmm - mmm%(m4ri_radix/A->w));
   kkk = (kkk - kkk%(m4ri_radix/A->w));
   nnn = (nnn - nnn%(m4ri_radix/A->w));
@@ -81,17 +81,17 @@ mzed_t *_mzed_mul_strassen_even(mzed_t *C, const mzed_t *A, const mzed_t *B, int
   mzed_t *A12 = mzed_init_window(A,   0, kkk,   mmm, 2*kkk);
   mzed_t *A21 = mzed_init_window(A, mmm,   0, 2*mmm,   kkk);
   mzed_t *A22 = mzed_init_window(A, mmm, kkk, 2*mmm, 2*kkk);
-  
+
   mzed_t *B11 = mzed_init_window(B,   0,   0,   kkk,   nnn);
   mzed_t *B12 = mzed_init_window(B,   0, nnn,   kkk, 2*nnn);
   mzed_t *B21 = mzed_init_window(B, kkk,   0, 2*kkk,   nnn);
   mzed_t *B22 = mzed_init_window(B, kkk, nnn, 2*kkk, 2*nnn);
-  
+
   mzed_t *C11 = mzed_init_window(C,   0,   0,   mmm,   nnn);
   mzed_t *C12 = mzed_init_window(C,   0, nnn,   mmm, 2*nnn);
   mzed_t *C21 = mzed_init_window(C, mmm,   0, 2*mmm,   nnn);
   mzed_t *C22 = mzed_init_window(C, mmm, nnn, 2*mmm, 2*nnn);
-  
+
   /**
    * \note See Marco Bodrato; "A Strassen-like Matrix Multiplication
    * Suited for Squaring and Highest Power Computation";
@@ -102,58 +102,49 @@ mzed_t *_mzed_mul_strassen_even(mzed_t *C, const mzed_t *A, const mzed_t *B, int
   /* change this to mzd_init(mmm, MAX(nnn,kkk)) to fix the todo below */
   mzed_t *Wmk = mzed_init(A->finite_field, mmm, kkk);
   mzed_t *Wkn = mzed_init(A->finite_field, kkk, nnn);
-  
+
   _mzed_add(Wkn, B22, B12);		 /* Wkn = B22 + B12 */
   _mzed_add(Wmk, A22, A12);		 /* Wmk = A22 + A12 */
-  _mzed_mul_strassen_even(C21, Wmk, Wkn, cutoff);    /* C21 = Wmk * Wkn */
-  
+  _mzed_mul_strassen(C21, Wmk, Wkn, cutoff);    /* C21 = Wmk * Wkn */
+
   _mzed_add(Wmk, A22, A21);		 /* Wmk = A22 - A21 */
   _mzed_add(Wkn, B22, B21);		 /* Wkn = B22 - B21 */
-  _mzed_mul_strassen_even(C22, Wmk, Wkn, cutoff);    /* C22 = Wmk * Wkn */
-  
+  _mzed_mul_strassen(C22, Wmk, Wkn, cutoff);    /* C22 = Wmk * Wkn */
+
   _mzed_add(Wkn, Wkn, B12);		   /* Wkn = Wkn + B12 */
   _mzed_add(Wmk, Wmk, A12);		   /* Wmk = Wmk + A12 */
-  _mzed_mul_strassen_even(C11, Wmk, Wkn, cutoff); /* C11 = Wmk * Wkn */
-  
+  _mzed_mul_strassen(C11, Wmk, Wkn, cutoff); /* C11 = Wmk * Wkn */
+
   _mzed_add(Wmk, Wmk, A11);		 /* Wmk = Wmk - A11 */
-  _mzed_mul_strassen_even(C12, Wmk, B12, cutoff);    /* C12 = Wmk * B12 */
+  _mzed_mul_strassen(C12, Wmk, B12, cutoff);    /* C12 = Wmk * B12 */
   _mzed_add(C12, C12, C22);		 /* C12 = C12 + C22 */
-  
-  /**
-   * \todo ideally we would use the same Wmk throughout the function
-   * but some called function doesn't like that and we end up with a
-   * wrong result if we use virtual Wmk matrices. Ideally, this should
-   * be fixed not worked around. The check whether the bug has been
-   * fixed, use only one Wmk and check if mzd_mul(4096, 3528,
-   * 4096, 2124) still returns the correct answer.
-   */
-  
+
   mzed_free(Wmk);
   Wmk = mzed_mul_strassen(NULL, A12, B21, cutoff);/*Wmk = A12 * B21 */
-  
+
   _mzed_add(C11, C11, Wmk);		  /* C11 = C11 + Wmk */
   _mzed_add(C12, C11, C12);		  /* C12 = C11 - C12 */
   _mzed_add(C11, C21, C11);		  /* C11 = C21 - C11 */
   _mzed_add(Wkn, Wkn, B11);		  /* Wkn = Wkn - B11 */
-  _mzed_mul_strassen_even(C21, A21, Wkn, cutoff);     /* C21 = A21 * Wkn */
+  _mzed_mul_strassen(C21, A21, Wkn, cutoff);     /* C21 = A21 * Wkn */
   mzed_free(Wkn);
-  
+
   _mzed_add(C21, C11, C21);		  /* C21 = C11 - C21 */
   _mzed_add(C22, C22, C11);		  /* C22 = C22 + C11 */
-  _mzed_mul_strassen_even(C11, A11, B11, cutoff);     /* C11 = A11 * B11 */
-  
+  _mzed_mul_strassen(C11, A11, B11, cutoff);     /* C11 = A11 * B11 */
+
   _mzed_add(C11, C11, Wmk);		  /* C11 = C11 + Wmk */
-  
+
   /* clean up */
   mzed_free_window(A11); mzed_free_window(A12);
   mzed_free_window(A21); mzed_free_window(A22);
-  
+
   mzed_free_window(B11); mzed_free_window(B12);
   mzed_free_window(B21); mzed_free_window(B22);
-  
+
   mzed_free_window(C11); mzed_free_window(C12);
   mzed_free_window(C21); mzed_free_window(C22);
-  
+
   mzed_free(Wmk);
 
   /* deal with rest */
@@ -161,7 +152,7 @@ mzed_t *_mzed_mul_strassen_even(mzed_t *C, const mzed_t *A, const mzed_t *B, int
   if (n > nnn) {
     /*         |AA|   | B|   | C|
      * Compute |AA| x | B| = | C| */
-    mzed_t *B_last_col = mzed_init_window(B, 0, nnn, k, n); 
+    mzed_t *B_last_col = mzed_init_window(B, 0, nnn, k, n);
     mzed_t *C_last_col = mzed_init_window(C, 0, nnn, m, n);
     mzed_set_ui(C_last_col, 0);
     _mzed_mul_travolta(C_last_col, A, B_last_col);
@@ -197,7 +188,7 @@ mzed_t *_mzed_mul_strassen_even(mzed_t *C, const mzed_t *A, const mzed_t *B, int
   return C;
 }
 
-mzed_t *_mzed_addmul_strassen_even(mzed_t *C, const mzed_t *A, const mzed_t *B, int cutoff) {
+mzed_t *_mzed_addmul_strassen(mzed_t *C, const mzed_t *A, const mzed_t *B, int cutoff) {
   assert(C->x->offset == 0);
   assert(A->x->offset == 0);
   assert(B->x->offset == 0);
@@ -226,7 +217,7 @@ mzed_t *_mzed_addmul_strassen_even(mzed_t *C, const mzed_t *A, const mzed_t *B, 
   rci_t mmm = m/2;
   rci_t kkk = k/2;
   rci_t nnn = n/2;
-    
+
   mmm = (mmm - mmm%(m4ri_radix/A->w));
   kkk = (kkk - kkk%(m4ri_radix/A->w));
   nnn = (nnn - nnn%(m4ri_radix/A->w));
@@ -238,53 +229,53 @@ mzed_t *_mzed_addmul_strassen_even(mzed_t *C, const mzed_t *A, const mzed_t *B, 
   mzed_t *A12 = mzed_init_window(A,   0, kkk,   mmm, 2*kkk);
   mzed_t *A21 = mzed_init_window(A, mmm,   0, 2*mmm,   kkk);
   mzed_t *A22 = mzed_init_window(A, mmm, kkk, 2*mmm, 2*kkk);
-  
+
   mzed_t *B11 = mzed_init_window(B,   0,   0,   kkk,   nnn);
   mzed_t *B12 = mzed_init_window(B,   0, nnn,   kkk, 2*nnn);
   mzed_t *B21 = mzed_init_window(B, kkk,   0, 2*kkk,   nnn);
   mzed_t *B22 = mzed_init_window(B, kkk, nnn, 2*kkk, 2*nnn);
-  
+
   mzed_t *C11 = mzed_init_window(C,   0,   0,   mmm,   nnn);
   mzed_t *C12 = mzed_init_window(C,   0, nnn,   mmm, 2*nnn);
   mzed_t *C21 = mzed_init_window(C, mmm,   0, 2*mmm,   nnn);
   mzed_t *C22 = mzed_init_window(C, mmm, nnn, 2*mmm, 2*nnn);
-  
+
   /**
    * \note See Marco Bodrato; "A Strassen-like Matrix Multiplication
    * Suited for Squaring and Highest Power Computation";
    * http://bodrato.it/papres/#CIVV2008 for reference on the used
    * sequence of operations.
    */
-  
+
   mzed_t *S = mzed_init(A->finite_field, mmm, kkk);
   mzed_t *T = mzed_init(A->finite_field, kkk, nnn);
   mzed_t *U = mzed_init(A->finite_field, mmm, nnn);
 
   _mzed_add(S, A22, A21);                   /* 1  S = A22 - A21       */
   _mzed_add(T, B22, B21);                   /* 2  T = B22 - B21       */
-  _mzed_mul_strassen_even(U, S, T, cutoff); /* 3  U = S*T             */
+  _mzed_mul_strassen(U, S, T, cutoff); /* 3  U = S*T             */
   _mzed_add(C22, U, C22);                   /* 4  C22 = U + C22       */
   _mzed_add(C12, U, C12);                   /* 5  C12 = U + C12       */
 
-  _mzed_mul_strassen_even(U, A12, B21, cutoff); /* 8  U = A12*B21         */
+  _mzed_mul_strassen(U, A12, B21, cutoff); /* 8  U = A12*B21         */
   _mzed_add(C11, U, C11);                       /* 9  C11 = U + C11       */
 
-  _mzed_addmul_strassen_even(C11, A11, B11, cutoff); /* 11 C11 = A11*B11 + C11 */
+  _mzed_addmul_strassen(C11, A11, B11, cutoff); /* 11 C11 = A11*B11 + C11 */
 
   _mzed_add(S, S, A12);                     /* 6  S = S - A12         */
   _mzed_add(T, T, B12);                     /* 7  T = T - B12         */
-  _mzed_addmul_strassen_even(U, S, T, cutoff); /* 10 U = S*T + U         */
+  _mzed_addmul_strassen(U, S, T, cutoff); /* 10 U = S*T + U         */
   _mzed_add(C12, C12, U);                   /* 15 C12 = U + C12       */
 
   _mzed_add(S, A11, S);                     /* 12 S = A11 - S         */
-  _mzed_addmul_strassen_even(C12, S, B12, cutoff);   /* 14 C12 = S*B12 + C12   */
+  _mzed_addmul_strassen(C12, S, B12, cutoff);   /* 14 C12 = S*B12 + C12   */
 
   _mzed_add(T, B11, T);                     /* 13 T = B11 - T         */
-  _mzed_addmul_strassen_even(C21, A21, T, cutoff);   /* 16 C21 = A21*T + C21   */
+  _mzed_addmul_strassen(C21, A21, T, cutoff);   /* 16 C21 = A21*T + C21   */
 
   _mzed_add(S, A22, A12);                   /* 17 S = A22 + A21       */
   _mzed_add(T, B22, B12);                   /* 18 T = B22 + B21       */
-  _mzed_addmul_strassen_even(U, S, T, cutoff);       /* 19 U = U - S*T         */
+  _mzed_addmul_strassen(U, S, T, cutoff);       /* 19 U = U - S*T         */
   _mzed_add(C21, C21, U);                   /* 20 C21 = C21 - U3      */
   _mzed_add(C22, C22, U);                   /* 21 C22 = C22 - U3      */
 
@@ -363,15 +354,15 @@ rci_t _mzed_strassen_cutoff(const mzed_t *C, const mzed_t *A, const mzed_t *B) {
 
   case  9:
     /* on redhawk 2048 is much better, sage.math 1204 wins **/
-    cutoff = 2048; 
+    cutoff = 2048;
     break;
 
   case 10:
-    cutoff = 4096; 
+    cutoff = 4096;
     break;
 
   default:
-    cutoff = 1024; 
+    cutoff = 1024;
     break;
   }
 
