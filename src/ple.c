@@ -51,13 +51,13 @@ rci_t mzed_ple_naive(mzed_t *A, mzp_t *P, mzp_t *Q) {
         mzed_rescale_row(A, row_pos, j+1, ff->mul[ff->inv[tmp]]);
 
         for(rci_t l=row_pos+1; l<A->nrows; l++) {
-          if ((tmp = mzed_read_elem(A,l,j))) 
+          if ((tmp = mzed_read_elem(A,l,j)))
             mzed_add_multiple_of_row(A, l, A, row_pos, ff->mul[tmp], j+1);
         }
       }
       row_pos++;
       col_pos = j + 1;
-    } else {  
+    } else {
       break;
     }
   }

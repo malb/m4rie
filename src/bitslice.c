@@ -119,6 +119,21 @@ static inline mzd_t *mzd_add_to_all_modred(const gf2e *ff, mzd_t *A, mzd_t **X, 
   return A;
 }
 
+mzd_slice_t *mzd_slice_mul_scalar(mzd_slice_t *C, const word a, const mzd_slice_t *B) {
+  if(C == NULL)
+    C = mzd_slice_init(B->finite_field, B->nrows, B->ncols);
+  assert( (C->finite_field == B->finite_field) && (((C->nrows ^ B->nrows) | (C->ncols ^ B->ncols)) == 0));
+
+  const gf2e *ff = B->finite_field;
+
+  for(int i=0; i<ff->degree; i++) {
+    if(a&(1<<i)) {
+      for(int j=0; j<B->depth; j++)
+        mzd_add_modred(ff, B->x[j], C->x, i+j);
+    }
+  }
+  return C;
+}
 
 void mzd_slice_set_ui(mzd_slice_t *A, word value) {
   for(int i=0; i<A->depth; i++) {
@@ -771,6 +786,10 @@ mzd_slice_t *_mzd_slice_mul_karatsuba7(mzd_slice_t *C, const mzd_slice_t *A, con
 
 mzd_slice_t *_mzd_slice_mul_karatsuba8(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B) {
   /** 8 + 7 temporaries **/
+  /**
+   * \todo reduce memory requirements by writing formula explicitly 
+   **/
+
   if (C == NULL)
     C = mzd_slice_init(A->finite_field, A->nrows, B->ncols);
 

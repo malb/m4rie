@@ -46,7 +46,7 @@ int test_addmul(gf2e *ff, rci_t m, rci_t n, rci_t l) {
   mzed_set_canary(C2);
   mzed_set_canary(C3);
   mzed_set_canary(C4);
-        
+
   mzed_addmul_travolta(C0, A, B);
   mzed_addmul_naive(C1, A, B);
   mzed_addmul_strassen(C2, A, B, 64);
@@ -67,7 +67,7 @@ int test_addmul(gf2e *ff, rci_t m, rci_t n, rci_t l) {
   m4rie_check( mzed_canary_is_alive(C2) );
   m4rie_check( mzed_canary_is_alive(C3) );
   m4rie_check( mzed_canary_is_alive(C4) );
-        
+
   mzed_free(A);
   mzed_free(B);
   mzed_free(C0);
@@ -89,7 +89,7 @@ int test_mul(gf2e *ff, rci_t m, rci_t n, rci_t l) {
   mzed_t *C2 = random_mzed_t(ff, m, n);
   mzed_t *C3 = random_mzed_t(ff, m, n);
   mzed_t *C4 = random_mzed_t(ff, m, n);
-        
+
   mzed_mul_travolta(C0, A, B);
   mzed_mul_naive(C1, A, B);
   mzed_mul_strassen(C2, A, B, 64);
@@ -109,7 +109,6 @@ int test_mul(gf2e *ff, rci_t m, rci_t n, rci_t l) {
   m4rie_check( mzed_canary_is_alive(C1) );
   m4rie_check( mzed_canary_is_alive(C2) );
   m4rie_check( mzed_canary_is_alive(C3) );
-        
 
   mzed_free((mzed_t*)A);
   mzed_free((mzed_t*)B);
@@ -140,6 +139,17 @@ int test_scalar(gf2e *ff, rci_t m, rci_t n) {
 
   m4rie_check( mzed_cmp(C0, C1) == 0);
   m4rie_check( mzed_cmp(C1, C2) == 0);
+
+  if (ff->degree <= __M4RIE_MAX_KARATSUBA_DEGREE) {
+    mzed_t *C3 = NULL;
+    mzd_slice_t *BB = mzed_slice(NULL, B);
+    mzd_slice_t *CC = mzd_slice_mul_scalar(NULL, a, BB);
+    C3 = mzed_cling(C3, CC);
+    mzd_slice_free(BB);
+    mzd_slice_free(CC);
+    m4rie_check( mzed_cmp(C2, C3) == 0);
+    mzed_free(C3);
+  }
 
   const word a_inv = ff->inv[a];
 

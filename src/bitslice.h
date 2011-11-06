@@ -60,16 +60,10 @@
 
 typedef struct {
   mzd_t *x[16]; /**< mzd_slice_t::x[e][i,j] is the \e-th bit of the entry A[i,j]. */
-
-  const gf2e *finite_field;   /**<A finite field \GF2E. */
-
+  const gf2e *finite_field; /**<A finite field \GF2E. */
   rci_t nrows; /**< Number of rows. */
-
-
   rci_t ncols; /**< Number of columns. */
-
-  int depth;   /**< Number of slices
-                *
+  int depth;   /**< Number of slices                *
                 * \note This value may be greater than finite_field->degree in some situations */
 } mzd_slice_t;
 
@@ -320,7 +314,7 @@ static inline void mzd_slice_free_window(mzd_slice_t *A) {
  */
 
 static inline mzd_slice_t *_mzd_slice_add(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B) {
-  for(int i=0; i<A->depth; i++) 
+  for(int i=0; i<A->depth; i++)
     _mzd_add(C->x[i], A->x[i], B->x[i]);
   return C;
 }
@@ -598,6 +592,18 @@ static inline mzd_slice_t *mzd_slice_addmul_karatsuba(mzd_slice_t *C, const mzd_
     m4ri_die("mzd_slice_addmul_karatsuba: rows and columns of returned matrix must match.\n");
   return _mzd_slice_mul_karatsuba(C, A, B);
 }
+
+/**
+ * \brief \f$ C = a \cdot B \f$.
+ *
+ * \param C Preallocated product matrix or NULL.
+ * \param a finite field element.
+ * \param B Input matrix B.
+ *
+ * \ingroup Multiplication
+ */
+
+mzd_slice_t *mzd_slice_mul_scalar(mzd_slice_t *C, const word a, const mzd_slice_t *B);
 
 /**
  * \brief \f$ C = A \cdot B \f$.
