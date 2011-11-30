@@ -3,7 +3,7 @@
 #define m4rie_check(expr)						\
   if (!expr) {								\
     fail_ret += 1;                                                      \
-    printf("\n%s in %s:%d failed\n",__STRING(expr), __FILE__, __LINE__);  \
+    printf("\n%s in %s:%d failed\n", #expr, __FILE__, __LINE__);  \
   } 
 
 const word m4rie_canary = (word)"canary!";
