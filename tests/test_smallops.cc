@@ -162,9 +162,8 @@ int main(int argc, char **argv) {
   int fail_ret = 0;
 
   for(int k=2; k<=10; k++) {
-    FiniteField *F = (FiniteField*)(new GFqDom<int>(2,k));
-    ff[k] = gf2e_init_givgfq(F);
-    delete F;
+    GFqDom<int> GF = GFqDom<int>(2,k);
+    ff[k] = gf2e_init_givgfq((FiniteField*)&GF);
   }
 
   for(int k=2; k<=8; k++) {
