@@ -20,7 +20,7 @@ typedef struct {
    * The degree \e.
    */
 
-  size_t degree;
+  unsigned int degree;
 
   /**
    * Irreducible polynomial of degree \e.
