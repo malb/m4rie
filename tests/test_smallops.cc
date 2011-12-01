@@ -91,15 +91,14 @@ int test_add(gf2e *ff, int m, int n) {
   mzd_slice_t *a = mzed_slice(NULL, A);
   mzd_slice_t *b = mzed_slice(NULL, B);
   mzd_slice_t *c = mzed_slice(NULL, C);
-  mzd_slice_t *d = mzed_slice(NULL, D);
-
+  
   mzd_slice_set_canary(a);
   mzd_slice_set_canary(b);
   mzd_slice_set_canary(c);
 
   mzd_slice_add(c, a, b);
 
-  d = mzd_slice_copy(NULL, c);
+  mzd_slice_t *d = mzd_slice_copy(NULL, c);
   mzd_slice_set_canary(d);
 
   mzed_cling(D, d);
