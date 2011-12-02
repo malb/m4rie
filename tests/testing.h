@@ -8,14 +8,38 @@
 
 const word m4rie_canary = (word)"canary!";
 
+static inline word field_mask(const gf2e *ff) {
+  const word mask_fld = ((1<<ff->degree)-1);
+  word mask = 0;
+  switch(gf2e_degree_to_w(ff)) {
+  case 2:
+    break;
+  case 4:
+    mask |= mask_fld<< 0 | mask_fld<< 4 | mask_fld<< 8 | mask_fld<<12;
+    mask |= mask_fld<<16 | mask_fld<<20 | mask_fld<<24 | mask_fld<<28;
+    mask |= mask_fld<<32 | mask_fld<<36 | mask_fld<<40 | mask_fld<<44;
+    mask |= mask_fld<<48 | mask_fld<<52 | mask_fld<<56 | mask_fld<<60;
+    break;
+  case 8:
+    mask |= mask_fld<< 0 | mask_fld<< 8 | mask_fld<<16 | mask_fld<<24;
+    mask |= mask_fld<<32 | mask_fld<<40 | mask_fld<<48 | mask_fld<<56;
+    break;
+  case 16:
+    mask |= mask_fld<< 0 | mask_fld<<16 | mask_fld<<32 | mask_fld<<48;
+    break;
+  }
+  return mask;
+}
+
 static inline void mzed_set_canary(mzed_t *A) {
   const word mask_begin = __M4RI_RIGHT_BITMASK(m4ri_radix - A->x->offset);
   const word mask_end   = __M4RI_LEFT_BITMASK((A->x->offset + A->x->ncols)%m4ri_radix);
+  const word mask_field = field_mask(A->finite_field);
   const rci_t n = A->x->width-1;
 
   for(rci_t i=0; i<A->nrows; i++) {
-    A->x->rows[i][0] = (A->x->rows[i][0] & mask_begin) | (m4rie_canary & ~mask_begin);
-    A->x->rows[i][n] = (A->x->rows[i][n] & mask_end)   | (m4rie_canary & ~mask_end);
+    A->x->rows[i][0] = (A->x->rows[i][0] & mask_begin) | (m4rie_canary & mask_field & ~mask_begin);
+    A->x->rows[i][n] = (A->x->rows[i][n] & mask_end)   | (m4rie_canary & mask_field & ~mask_end);
   }
 }
 
@@ -33,23 +57,39 @@ static inline void mzed_clear_canary(mzed_t *A) {
 static inline int mzed_canary_is_alive(mzed_t *A) {
   const word mask_begin = __M4RI_RIGHT_BITMASK(m4ri_radix - A->x->offset);
   const word mask_end   = __M4RI_LEFT_BITMASK((A->x->offset + A->x->ncols)%m4ri_radix);
+  const word mask_field = field_mask(A->finite_field);
   const rci_t n = A->x->width-1;
 
   if(n == 0) {
     for(rci_t i=0; i<A->nrows; i++) {
-      if ((A->x->rows[i][0] & ~mask_begin & ~mask_begin) !=  (m4rie_canary & ~mask_begin & ~mask_begin)) {
+      if ((A->x->rows[i][0] & ~mask_begin & ~mask_begin) !=  (m4rie_canary & mask_field & ~mask_begin & ~mask_begin)) {
         return 0;
       }
     }
   } else {
     for(rci_t i=0; i<A->nrows; i++) {
-      if ((A->x->rows[i][0] & ~mask_begin) !=  (m4rie_canary & ~mask_begin)) {
+      if ((A->x->rows[i][0] & ~mask_begin) !=  (m4rie_canary & mask_field & ~mask_begin)) {
         return 0;
       }
-      if ((A->x->rows[i][n] & ~mask_end)   !=  (m4rie_canary & ~mask_end)) {
+      if ((A->x->rows[i][n] & ~mask_end)   !=  (m4rie_canary & mask_field & ~mask_end)) {
         return 0;
       }
     }
+  }
+  return 1;
+};
+
+static inline int mzed_interval_clean(mzed_t *A) {
+  assert(A->x->offset == 0);
+  const word mask_end  = __M4RI_LEFT_BITMASK((A->x->offset + A->x->ncols)%m4ri_radix);
+  const word mask_field = field_mask(A->finite_field);
+  for(rci_t i=0; i<A->nrows; i++) {
+    for(wi_t j=0; j<A->x->width-1; j++) {
+      if (A->x->rows[i][j] & mask_field)
+        return 0;
+    }
+    if (A->x->rows[i][A->x->width-1] & mask_field & mask_end)
+      return 0;
   }
   return 1;
 };
