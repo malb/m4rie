@@ -42,7 +42,7 @@ void mzed_free(mzed_t *A) {
 }
 
 void mzed_randomize(mzed_t *A) {
-  int bitmask = (1<<A->finite_field->degree)-1;
+  unsigned int bitmask = (1<<A->finite_field->degree)-1;
   for(rci_t r=0; r<A->nrows; r++) {
     for(rci_t c=0; c<A->ncols; c++) {
       mzed_write_elem(A,r,c, random()&bitmask);
