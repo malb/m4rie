@@ -173,6 +173,8 @@ int test_scalar(gf2e *ff, rci_t m, rci_t n) {
   mzed_free(B1);
   mzed_free(B2);
 
+  mzed_free(B);
+
   return fail_ret;
 }
 
