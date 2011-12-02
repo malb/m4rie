@@ -189,7 +189,8 @@ int main(int argc, char **argv) {
 
   for(int k=2; k<=10; k++) {
     GFqDom<int> GF = GFqDom<int>(2,k);
-    ff[k] = gf2e_init_givgfq((FiniteField*)&GF);
+    FiniteField *F = (FiniteField*)&GF;
+    ff[k] = gf2e_init_givgfq(F);
   }
 
   for(int k=2; k<=10; k++) {
