@@ -1,5 +1,5 @@
 /**
- * \file bitslice.h
+ * \file mzd_slice.h
  *
  * \brief Matrices using a bitsliced representation.
  *
@@ -13,8 +13,8 @@
  * \author Martin Albrecht <martinralbrecht@googlemail.com>
  */
 
-#ifndef M4RIE_BITSLICE_H
-#define M4RIE_BITSLICE_H
+#ifndef M4RIE_MZD_SLICE
+#define M4RIE_MZD_SLICE
 
 /******************************************************************************
 *
@@ -36,7 +36,7 @@
 ******************************************************************************/
 
 #include <m4ri/m4ri.h>
-#include "gf2e_matrix.h"
+#include "mzed.h"
 
 /**
  * Degree up to which Karatsuba multiplication and slicing/cling is
@@ -916,4 +916,4 @@ static inline void _mzd_slice_compress_l(mzd_slice_t *A, const rci_t r1, const r
   };
 }
 
-#endif //M4RIE_BITSLICE_H
+#endif //M4RIE_MZD_SLICE

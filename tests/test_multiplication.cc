@@ -47,7 +47,7 @@ int test_addmul(gf2e *ff, rci_t m, rci_t n, rci_t l) {
   mzed_set_canary(C3);
   mzed_set_canary(C4);
 
-  mzed_addmul_travolta(C0, A, B);
+  mzed_addmul_newton_john(C0, A, B);
   mzed_addmul_naive(C1, A, B);
   mzed_addmul_strassen(C2, A, B, 64);
   mzed_addmul(C3, A, B);
@@ -90,7 +90,7 @@ int test_mul(gf2e *ff, rci_t m, rci_t n, rci_t l) {
   mzed_t *C3 = random_mzed_t(ff, m, n);
   mzed_t *C4 = random_mzed_t(ff, m, n);
 
-  mzed_mul_travolta(C0, A, B);
+  mzed_mul_newton_john(C0, A, B);
   mzed_mul_naive(C1, A, B);
   mzed_mul_strassen(C2, A, B, 64);
   mzed_mul(C3, A, B);

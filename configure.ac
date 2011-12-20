@@ -4,7 +4,7 @@ dnl AC_PREREQ([2.64])
 
 AC_CANONICAL_HOST
 
-AC_CONFIG_SRCDIR(src/travolta.c)
+AC_CONFIG_SRCDIR(src/newton_john.c)
 
 AC_CONFIG_MACRO_DIR([m4])
 

@@ -1,5 +1,5 @@
 /**
- * \file travolta.h
+ * \file newton_john.h
  *
  * \brief Newton-John table based algorithms
  *
@@ -8,8 +8,8 @@
  * \author Martin Albrecht <martinralbrecht@googlemail.com>
  */
 
-#ifndef M4RIE_TRAVOLTA_H
-#define M4RIE_TRAVOLTA_H
+#ifndef M4RIE_NEWTON_JOHN_H
+#define M4RIE_NEWTON_JOHN_H
 
 /******************************************************************************
 *
@@ -30,9 +30,9 @@
 *                  http://www.gnu.org/licenses/
 ******************************************************************************/
 
-#include "finite_field.h"
-#include "gf2e_matrix.h"
-#include "bitslice.h"
+#include "gf2e.h"
+#include "mzed.h"
+#include "mzd_slice.h"
 
 /**
  * \brief Newton-John table
@@ -79,12 +79,12 @@ njt_mzed_t * mzed_make_table(njt_mzed_t *T, const mzed_t *A, const rci_t r, cons
  * \param A Input matrix A.
  * \param B Input matrix B.
  *
- * \sa mzed_mul _mzed_mul_travolta0()
+ * \sa mzed_mul _mzed_mul_newton_john0()
  *
  * \ingroup Multiplication
  */
 
-mzed_t *mzed_mul_travolta(mzed_t *C, const mzed_t *A, const mzed_t *B);
+mzed_t *mzed_mul_newton_john(mzed_t *C, const mzed_t *A, const mzed_t *B);
 
 /**
  * \brief \f$C = C + A \cdot B\f$ using Newton-John tables.
@@ -93,12 +93,12 @@ mzed_t *mzed_mul_travolta(mzed_t *C, const mzed_t *A, const mzed_t *B);
  * \param A Input matrix A.
  * \param B Input matrix B.
  *
- * \sa _mzed_mul_travolta() mzed_mul()
+ * \sa _mzed_mul_newton_john() mzed_mul()
  *
  * \ingroup Multiplication
  */
 
-mzed_t *mzed_addmul_travolta(mzed_t *C, const mzed_t *A, const mzed_t *B);
+mzed_t *mzed_addmul_newton_john(mzed_t *C, const mzed_t *A, const mzed_t *B);
 
 /**
  * \brief \f$C = C + A \cdot B\f$ using Newton-John tables.
@@ -110,12 +110,12 @@ mzed_t *mzed_addmul_travolta(mzed_t *C, const mzed_t *A, const mzed_t *B);
  * \param A Input matrix A.
  * \param B Input matrix B.
  *
- * \sa mzed_mul_travolta() mzed_mul()
+ * \sa mzed_mul_newton_john() mzed_mul()
  *
  * \ingroup Multiplication
  */
 
-mzed_t *_mzed_mul_travolta0(mzed_t *C, const mzed_t *A, const mzed_t *B);
+mzed_t *_mzed_mul_newton_john0(mzed_t *C, const mzed_t *A, const mzed_t *B);
 
 /**
  * \brief \f$C = C + A \cdot B\f$ using Newton-John tables.
@@ -131,7 +131,7 @@ mzed_t *_mzed_mul_travolta0(mzed_t *C, const mzed_t *A, const mzed_t *B);
  * \ingroup Multiplication
  */
 
-mzed_t *_mzed_mul_travolta(mzed_t *C, const mzed_t *A, const mzed_t *B);
+mzed_t *_mzed_mul_newton_john(mzed_t *C, const mzed_t *A, const mzed_t *B);
 
 /**
  * \brief Reduce matrix A to row echelon form using Gauss-Newton-John
@@ -144,7 +144,7 @@ mzed_t *_mzed_mul_travolta(mzed_t *C, const mzed_t *A, const mzed_t *B);
  * \ingroup Echelon
  */
 
-rci_t mzed_echelonize_travolta(mzed_t *A, int full);
+rci_t mzed_echelonize_newton_john(mzed_t *A, int full);
 
 /**
  * \brief Invert the matrix A using Gauss-Newton-John elimination.
@@ -154,7 +154,7 @@ rci_t mzed_echelonize_travolta(mzed_t *A, int full);
  * \param A Matrix to be inverted.
  */
 
-mzed_t *mzed_invert_travolta(mzed_t *B, const mzed_t *A);
+mzed_t *mzed_invert_newton_john(mzed_t *B, const mzed_t *A);
 
 /**
  * \brief \f$B = L^{-1} \cdot B\f$ using Newton-John tables.
@@ -165,7 +165,7 @@ mzed_t *mzed_invert_travolta(mzed_t *B, const mzed_t *A);
  * \ingroup Triangular
  */
 
-void mzed_trsm_lower_left_travolta(const mzed_t *L, mzed_t *B);
+void mzed_trsm_lower_left_newton_john(const mzed_t *L, mzed_t *B);
 
 /**
  * \brief \f$B = L^{-1} \cdot B\f$ using Newton-John tables.
@@ -176,7 +176,7 @@ void mzed_trsm_lower_left_travolta(const mzed_t *L, mzed_t *B);
  * \ingroup Triangular
  */
 
-void mzd_slice_trsm_lower_left_travolta(const mzd_slice_t *L, mzd_slice_t *B);
+void mzd_slice_trsm_lower_left_newton_john(const mzd_slice_t *L, mzd_slice_t *B);
 
 /**
  * \brief \f$B = U^{-1} \cdot B\f$ using Newton-John tables.
@@ -187,7 +187,7 @@ void mzd_slice_trsm_lower_left_travolta(const mzd_slice_t *L, mzd_slice_t *B);
  * \ingroup Triangular
 */
 
-void mzed_trsm_upper_left_travolta(const mzed_t *U, mzed_t *B);
+void mzed_trsm_upper_left_newton_john(const mzed_t *U, mzed_t *B);
 
 /**
  * \brief \f$B = U^{-1} \cdot B\f$ using Newton-John tables.
@@ -198,7 +198,7 @@ void mzed_trsm_upper_left_travolta(const mzed_t *U, mzed_t *B);
  * \ingroup Triangular
  */
 
-void mzd_slice_trsm_upper_left_travolta(const mzd_slice_t *U, mzd_slice_t *B);
+void mzd_slice_trsm_upper_left_newton_john(const mzd_slice_t *U, mzd_slice_t *B);
 
 /**
  * \brief PLE decomposition: \f$L \cdot E = P\cdot A\f$ using Newton-John tables.
@@ -206,7 +206,7 @@ void mzd_slice_trsm_upper_left_travolta(const mzd_slice_t *U, mzd_slice_t *B);
  * \ingroup PLE
  */
 
-rci_t mzed_ple_travolta(mzed_t *A, mzp_t *P, mzp_t *Q);
+rci_t mzed_ple_newton_john(mzed_t *A, mzp_t *P, mzp_t *Q);
 
 /**
  * \brief The function looks up 6 entries from position i,startcol in
@@ -262,7 +262,7 @@ static inline void mzed_process_rows2(mzed_t *M, const rci_t startrow, const rci
  * \ingroup RowOperations
  */
 
-static inline void mzed_process_rows3(mzed_t *M, const rci_t startrow, const rci_t endrow, const rci_t startcol, 
+static inline void mzed_process_rows3(mzed_t *M, const rci_t startrow, const rci_t endrow, const rci_t startcol,
                                       const njt_mzed_t *T0, const njt_mzed_t *T1, const njt_mzed_t *T2) {
   mzd_process_rows3(M->x, startrow, endrow, startcol*M->w, 3*M->w, T0->T->x, T0->L, T1->T->x, T1->L, T2->T->x, T2->L);
 }
@@ -287,7 +287,6 @@ static inline void mzed_process_rows4(mzed_t *M, const rci_t startrow, const rci
                                       const njt_mzed_t *T0, const njt_mzed_t *T1, const njt_mzed_t *T2, const njt_mzed_t *T3) {
   mzd_process_rows4(M->x, startrow, endrow, startcol*M->w, 4*M->w, T0->T->x, T0->L, T1->T->x, T1->L, T2->T->x, T2->L, T3->T->x, T3->L);
 }
-
 
 /**
  * \brief Same as mzed_process_rows but works with five Newton-John
@@ -337,4 +336,4 @@ static inline void mzed_process_rows6(mzed_t *M, const rci_t startrow, const rci
 }
 
 
-#endif //M4RIE_TRAVOLTA_H
+#endif //M4RIE_NEWTON_JOHN_H

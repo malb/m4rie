@@ -4,26 +4,26 @@ AM_CFLAGS=${SIMD_FLAGS} ${OPENMP_CFLAGS} ${DEBUG_FLAGS} ${M4RIE_M4RI_CFLAGS} ${M
 
 lib_LTLIBRARIES = libm4rie.la
 
-libm4rie_la_SOURCES = src/finite_field.c \
-	src/gf2e_matrix.c \
-	src/travolta.c \
+libm4rie_la_SOURCES = src/gf2e.c \
+	src/mzed.c \
+	src/newton_john.c \
 	src/echelonform.c \
 	src/strassen.c \
-	src/bitslice.c \
+	src/mzd_slice.c \
 	src/trsm.c \
 	src/ple.c \
 	src/conversion.c
 
 pkgincludesubdir = $(includedir)/m4rie
 
-pkgincludesub_HEADERS = src/finite_field.h \
-	src/gf2e_matrix.h \
+pkgincludesub_HEADERS = src/gf2e.h \
+	src/mzed.h \
 	src/m4rie.h \
 	src/m4ri_functions.h \
-	src/travolta.h \
+	src/newton_john.h \
 	src/echelonform.h \
 	src/strassen.h \
-	src/bitslice.h \
+	src/mzd_slice.h \
 	src/trsm.h \
 	src/ple.h \
 	src/permutation.h \

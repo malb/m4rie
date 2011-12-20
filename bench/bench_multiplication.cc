@@ -31,8 +31,8 @@ int run_mzed(void *_p, unsigned long long *data, int *data_len) {
   data[0] = walltime(0);
   data[1] = cpucycles();
 
-  if(strcmp(p->algorithm, "travolta")==0)
-    C = mzed_mul_travolta(NULL, A, B);
+  if(strcmp(p->algorithm, "newton-john")==0)
+    C = mzed_mul_newton_john(NULL, A, B);
   else if(strcmp(p->algorithm,"naive")==0)
     C = mzed_mul_naive(NULL, A, B);
   else if(strcmp(p->algorithm,"strassen")==0)
@@ -102,8 +102,8 @@ void print_help() {
   printf("  n -- integer > 0, number of columns\n");
   printf("  algorithm -- default -- let M4RIE decide (mzed_t, mzd_slice_t)\n");
   printf("               naive -- cubic multiplication (mzed_t)\n");
-  printf("               travolta -- Travolta tables (mzed_t) \n");
-  printf("               strassen -- Strasen+Travolta (mzed_t)\n");
+  printf("               newton-john -- Newton-John tables (mzed_t) \n");
+  printf("               strassen -- Strassen+Newton-John (mzed_t)\n");
   printf("               karatsuba -- Karatsuba (mzed_t)\n");
   printf(" type -- mzed_t or mzd_slice_t (default: mzed_t)\n");
   printf("\n");

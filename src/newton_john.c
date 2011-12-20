@@ -24,7 +24,7 @@
 #include <m4ri/brilliantrussian.h>
 #include <m4ri/xor.h>
 
-#include "travolta.h"
+#include "newton_john.h"
 #include "trsm.h"
 #include "ple.h"
 #include "conversion.h"
@@ -222,7 +222,7 @@ njt_mzed_t *mzed_make_table(njt_mzed_t *T, const mzed_t *A, const rci_t r, const
   return T;
 }
 
-rci_t mzed_echelonize_travolta(mzed_t *A, int full) {
+rci_t mzed_echelonize_newton_john(mzed_t *A, int full) {
   const gf2e* ff = A->finite_field;
 
   rci_t r,c;
@@ -336,7 +336,7 @@ rci_t mzed_echelonize_travolta(mzed_t *A, int full) {
   return r;
 }
 
-rci_t mzed_ple_travolta(mzed_t *A, mzp_t *P, mzp_t *Q) {
+rci_t mzed_ple_newton_john(mzed_t *A, mzp_t *P, mzp_t *Q) {
   rci_t col_pos = 0;
   rci_t row_pos = 0;
   word tmp = 0;
@@ -386,7 +386,7 @@ rci_t mzed_ple_travolta(mzed_t *A, mzp_t *P, mzp_t *Q) {
   return row_pos;
 }
 
-mzed_t *_mzed_mul_travolta0(mzed_t *C, const mzed_t *A, const mzed_t *B) {
+mzed_t *_mzed_mul_newton_john0(mzed_t *C, const mzed_t *A, const mzed_t *B) {
 
   njt_mzed_t *T0 = njt_mzed_init(B->finite_field, B->ncols);
 
@@ -399,7 +399,7 @@ mzed_t *_mzed_mul_travolta0(mzed_t *C, const mzed_t *A, const mzed_t *B) {
   return C;
 }
 
-mzed_t *_mzed_mul_travolta(mzed_t *C, const mzed_t *A, const mzed_t *B) {
+mzed_t *_mzed_mul_newton_john(mzed_t *C, const mzed_t *A, const mzed_t *B) {
   if (A->finite_field->degree > A->nrows)
     return _mzed_mul_naive(C, A, B);
 
@@ -485,32 +485,32 @@ mzed_t *_mzed_mul_travolta(mzed_t *C, const mzed_t *A, const mzed_t *B) {
 }
 
 
-mzed_t *mzed_mul_travolta(mzed_t *C, const mzed_t *A, const mzed_t *B) {
+mzed_t *mzed_mul_newton_john(mzed_t *C, const mzed_t *A, const mzed_t *B) {
   C = _mzed_mul_init(C,A,B, TRUE);
-  return _mzed_mul_travolta(C, A, B);
+  return _mzed_mul_newton_john(C, A, B);
 }
 
-mzed_t *mzed_addmul_travolta(mzed_t *C, const mzed_t *A, const mzed_t *B) {
+mzed_t *mzed_addmul_newton_john(mzed_t *C, const mzed_t *A, const mzed_t *B) {
   C = _mzed_mul_init(C,A,B, FALSE);
-  return _mzed_mul_travolta(C, A, B);
+  return _mzed_mul_newton_john(C, A, B);
 }
 
-mzed_t *mzed_invert_travolta(mzed_t *B, const mzed_t *A) {
+mzed_t *mzed_invert_newton_john(mzed_t *B, const mzed_t *A) {
   assert(A->nrows == A->ncols);
   mzed_t *I = mzed_init(A->finite_field, A->nrows, A->ncols);
   mzed_set_ui(I, 1);
   mzed_t *T = mzed_concat(NULL, A, I);
   mzed_free(I);
 
-  rci_t r = mzed_echelonize_travolta(T, 1);
+  rci_t r = mzed_echelonize_newton_john(T, 1);
   if (r != A->nrows) 
-    m4ri_die("mzed_invert_travolta: input matrix does not have full rank.");
+    m4ri_die("mzed_invert_newton_john: input matrix does not have full rank.");
   B = mzed_submatrix(B, T, 0, A->ncols, A->nrows, T->ncols);
   mzed_free(T);
   return B;
 }
 
-void mzed_trsm_lower_left_travolta(const mzed_t *L, mzed_t *B) {
+void mzed_trsm_lower_left_newton_john(const mzed_t *L, mzed_t *B) {
   assert(L->finite_field == B->finite_field);
   assert(L->nrows == L->ncols);
   assert(B->nrows == L->ncols);
@@ -532,7 +532,7 @@ void mzed_trsm_lower_left_travolta(const mzed_t *L, mzed_t *B) {
   njt_mzed_free(T0);
 }
 
-void mzed_trsm_upper_left_travolta(const mzed_t *U, mzed_t *B) {
+void mzed_trsm_upper_left_newton_john(const mzed_t *U, mzed_t *B) {
   assert(U->finite_field == B->finite_field);
   assert(U->nrows == U->ncols);
   assert(B->nrows == U->ncols);
@@ -554,7 +554,7 @@ void mzed_trsm_upper_left_travolta(const mzed_t *U, mzed_t *B) {
   njt_mzed_free(T0);
 }
 
-void mzd_slice_trsm_lower_left_travolta(const mzd_slice_t *L, mzd_slice_t *B) {
+void mzd_slice_trsm_lower_left_newton_john(const mzd_slice_t *L, mzd_slice_t *B) {
   assert(B->x[0]->offset = 0);
   assert(L->finite_field == B->finite_field);
   assert(L->nrows == L->ncols);
@@ -580,7 +580,7 @@ void mzd_slice_trsm_lower_left_travolta(const mzd_slice_t *L, mzd_slice_t *B) {
   njt_mzed_free(T0);
 }
 
-void mzd_slice_trsm_upper_left_travolta(const mzd_slice_t *U, mzd_slice_t *B) {
+void mzd_slice_trsm_upper_left_newton_john(const mzd_slice_t *U, mzd_slice_t *B) {
   assert(B->x[0]->offset = 0);
   assert(U->finite_field == B->finite_field);
   assert(U->nrows == U->ncols);

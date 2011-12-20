@@ -18,7 +18,7 @@
 ******************************************************************************/
 
 #include "echelonform.h"
-#include "travolta.h"
+#include "newton_john.h"
 #include "permutation.h"
 #include "trsm.h"
 #include "ple.h"
@@ -27,7 +27,7 @@ rci_t mzed_echelonize(mzed_t *A, int full) {
   if (A->finite_field->degree > A->nrows) {
     return mzed_echelonize_naive(A, full);
   } else if ((A->nrows * A->ncols * A->w <= 2*__M4RIE_PLE_CUTOFF) || (A->finite_field->degree > __M4RIE_MAX_KARATSUBA_DEGREE)) {
-    return mzed_echelonize_travolta(A, full);
+    return mzed_echelonize_newton_john(A, full);
   } else {
     return mzed_echelonize_ple(A, full);
   }

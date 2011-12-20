@@ -10,7 +10,7 @@ void _matrix_trsm_lower_left(const matrix_t *L, matrix_t *B, const rci_t cutoff)
   assert((L->finite_field == B->finite_field) && (L->nrows == L->ncols) && (B->nrows == L->ncols));
 
   if (L->nrows <= cutoff || B->ncols <= cutoff) {
-    matrix_trsm_lower_left_travolta(L,B);
+    matrix_trsm_lower_left_newton_john(L,B);
     return;
   }
 
@@ -54,7 +54,7 @@ void _matrix_trsm_upper_left(matrix_t const *U, matrix_t *B, const rci_t cutoff)
   assert((U->finite_field == B->finite_field) && (U->nrows == U->ncols) && (B->nrows == U->ncols));
 
   if (U->nrows <= cutoff || B->ncols <= cutoff) {
-    matrix_trsm_upper_left_travolta(U,B);
+    matrix_trsm_upper_left_newton_john(U,B);
     return;
   }
   /**

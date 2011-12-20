@@ -28,8 +28,8 @@
 ******************************************************************************/
 
 #include <m4ri/m4ri.h>
-#include "gf2e_matrix.h"
-#include "bitslice.h"
+#include "mzed.h"
+#include "mzd_slice.h"
 #include "conversion.h"
 
 /**
@@ -49,7 +49,7 @@
  *
  * \ingroup PLE
  *
- * \sa mzed_ple_travolta() mzed_ple()
+ * \sa mzed_ple_newton_john() mzed_ple()
  */
 
 rci_t mzed_ple_naive(mzed_t *A, mzp_t *P, mzp_t *Q);
@@ -66,7 +66,7 @@ rci_t mzed_ple_naive(mzed_t *A, mzp_t *P, mzp_t *Q);
  * reducing it to matrix multiplication or naive cubic PLE
  * decomposition depending on the size of the underlying field. If
  * asymptotically fast PLE decomposition is used, then the algorithm
- * switches to mzed_ple_travolta if e * ncols * nrows is <= cutoff
+ * switches to mzed_ple_newton_john if e * ncols * nrows is <= cutoff
  * where e is the exponent of the finite field.
  *
  * \param A Matrix
@@ -76,7 +76,7 @@ rci_t mzed_ple_naive(mzed_t *A, mzp_t *P, mzp_t *Q);
  *
  * \ingroup PLE
  *
- * \sa mzed_ple_naive() mzed_ple_travolta() mzed_ple()
+ * \sa mzed_ple_naive() mzed_ple_newton_john() mzed_ple()
  */
 
 rci_t _mzd_slice_ple(mzd_slice_t *A, mzp_t *P, mzp_t *Q, rci_t cutoff);
@@ -98,7 +98,7 @@ rci_t _mzd_slice_ple(mzd_slice_t *A, mzp_t *P, mzp_t *Q, rci_t cutoff);
  *
  * \ingroup PLE
  *
- * \sa mzed_ple_naive() mzed_ple_travolta() _mzd_slice_ple()
+ * \sa mzed_ple_naive() mzed_ple_newton_john() _mzd_slice_ple()
  */
 
 static inline rci_t mzd_slice_ple(mzd_slice_t *A, mzp_t *P, mzp_t *Q) {
@@ -157,7 +157,7 @@ static inline rci_t mzd_slice_pluq(mzd_slice_t *A, mzp_t *P, mzp_t *Q) {
  * reducing it to matrix multiplication or naive cubic PLE
  * decomposition depending on the size of the underlying field. If
  * asymptotically fast PLE decomposition is used, then the algorithm
- * switches to mzed_ple_travolta if e * ncols * nrows is <= cutoff
+ * switches to mzed_ple_newton_john if e * ncols * nrows is <= cutoff
  * where e is the exponent of the finite field.
  *
  * \param A Matrix
@@ -167,7 +167,7 @@ static inline rci_t mzd_slice_pluq(mzd_slice_t *A, mzp_t *P, mzp_t *Q) {
  *
  * \ingroup PLE
  *
- * \sa mzed_ple_naive() mzed_ple_travolta() _mzed_ple()
+ * \sa mzed_ple_naive() mzed_ple_newton_john() _mzed_ple()
  */
 
 rci_t _mzed_ple(mzed_t *A, mzp_t *P, mzp_t *Q, rci_t cutoff);
@@ -196,7 +196,7 @@ rci_t _mzed_ple(mzed_t *A, mzp_t *P, mzp_t *Q, rci_t cutoff);
  *
  * \ingroup PLE
  *
- * \sa mzed_ple_naive() mzed_ple_travolta() _mzed_ple()
+ * \sa mzed_ple_naive() mzed_ple_newton_john() _mzed_ple()
  *
  */
 

@@ -78,7 +78,7 @@ int test_mzed_ple(gf2e *ff, const rci_t m, const rci_t n, const rci_t r) {
   m4rie_check( r0 == r);
   
   mzed_set_canary(LE1);
-  rci_t r1 = mzed_ple_travolta(LE1, P1, Q1);
+  rci_t r1 = mzed_ple_newton_john(LE1, P1, Q1);
   m4rie_check( mzed_canary_is_alive(LE1) );
   m4rie_check( r1 == r);
 

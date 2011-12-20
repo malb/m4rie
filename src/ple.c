@@ -20,7 +20,7 @@
 #include "permutation.h"
 #include "trsm.h"
 #include "ple.h"
-#include "travolta.h"
+#include "newton_john.h"
 
 rci_t mzed_ple_naive(mzed_t *A, mzp_t *P, mzp_t *Q) {
   rci_t col_pos = 0;
@@ -83,7 +83,7 @@ rci_t _mzed_ple(mzed_t *A, mzp_t *P, mzp_t *Q, rci_t cutoff) {
     mzd_slice_free(a);
     return r;
   } else {
-    return mzed_ple_travolta(A, P, Q);
+    return mzed_ple_newton_john(A, P, Q);
   }
 }
 
@@ -98,7 +98,7 @@ rci_t _mzd_slice_ple(mzd_slice_t *A, mzp_t *P, mzp_t *Q, rci_t cutoff) {
 
   if (ncols <= m4ri_radix || (gf2e_degree_to_w(A->finite_field) * A->ncols * A->nrows) <= cutoff) {
     mzed_t *Abar = mzed_cling(NULL, A);
-    rci_t r = mzed_ple_travolta(Abar, P, Q);
+    rci_t r = mzed_ple_newton_john(Abar, P, Q);
     mzed_slice(A, Abar);
     mzed_free(Abar);
     return r;

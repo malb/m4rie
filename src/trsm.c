@@ -1,5 +1,5 @@
 #include "trsm.h"
-#include "travolta.h"
+#include "newton_john.h"
 #include "conversion.h"
 
 void mzed_trsm_upper_left_naive(const mzed_t *U, mzed_t *B) {
@@ -62,11 +62,11 @@ void mzd_slice_trsm_lower_left_naive(const mzd_slice_t *L, mzd_slice_t *B) {
   mzed_free(Be);
 }
 
-#include "mzed_t_intro.inl"
+#include "mzed_intro.inl"
 #include "trsm.inl"
-#include "mzed_t_outro.inl"
+#include "mzed_outro.inl"
 
-#include "mzd_slice_t_intro.inl"
+#include "mzd_slice_intro.inl"
 #include "trsm.inl"
-#include "mzd_slice_t_outro.inl"
+#include "mzd_slice_outro.inl"
 

@@ -30,7 +30,7 @@
  *
  * Functions which do not specify an algorithm choose the best
  * available algorithm (based on some heuristic), e.g., mzed_ple()
- * might call mzed_ple_travolta().
+ * might call mzed_ple_newton_john().
  *
  * \defgroup Definitions        Type definitions
  * \defgroup Constructions      Constructions
@@ -72,12 +72,12 @@
 extern "C" {
 #endif //__cplusplus
 
-#include "finite_field.h"
-#include "gf2e_matrix.h"
-#include "travolta.h"
+#include "gf2e.h"
+#include "mzed.h"
+#include "newton_john.h"
 #include "echelonform.h"
 #include "strassen.h"
-#include "bitslice.h"
+#include "mzd_slice.h"
 #include "trsm.h"
 #include "ple.h"
 #include "conversion.h"

@@ -1,5 +1,5 @@
 #include <m4ri/m4ri.h>
-#include "finite_field.h"
+#include "gf2e.h"
 
 void gf2e_free(gf2e *ff) {
 

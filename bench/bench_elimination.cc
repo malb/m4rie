@@ -27,8 +27,8 @@ int run_mzed(void *_p, unsigned long long *data, int *data_len) {
   data[0] = walltime(0);
   data[1] = cpucycles();
 
-  if(strcmp(p->algorithm,"travolta")==0)
-    p->r=  mzed_echelonize_travolta(A, 1);
+  if(strcmp(p->algorithm,"newton-john")==0)
+    p->r=  mzed_echelonize_newton_john(A, 1);
   else if(strcmp(p->algorithm,"naive")==0)
     p->r = mzed_echelonize_naive(A, 1);
   else if(strcmp(p->algorithm,"ple")==0)
@@ -59,10 +59,10 @@ int run_mzd_slice(void *_p, unsigned long long *data, int *data_len) {
   data[0] = walltime(0);
   data[1] = cpucycles();
 
-  if(strcmp(p->algorithm,"travolta")==0) {
+  if(strcmp(p->algorithm,"newton-john")==0) {
 
     mzed_t *B = mzed_cling(NULL, A);
-    p->r=  mzed_echelonize_travolta(B, 1);
+    p->r=  mzed_echelonize_newton_john(B, 1);
     mzed_slice(A, B);
     mzed_free(B);
 
@@ -103,7 +103,7 @@ void print_help() {
   printf("  n -- integer > 0, number of columns\n");
   printf("  algorithm -- default -- let M4RIE decide\n");
   printf("               naive -- cubic Gaussian elimination\n");
-  printf("               travolta -- Travolta tables\n");
+  printf("               newton-john -- Newton-John tables\n");
   printf("               ple -- PLE based\n");
   printf(" type -- mzed_t or mzd_slice_t (default: mzed_t)\n");
   printf("\n");

@@ -20,9 +20,9 @@
 #include <stdlib.h>
 
 #include "config.h"
-#include "gf2e_matrix.h"
+#include "mzed.h"
 #include "strassen.h"
-#include "bitslice.h"
+#include "mzd_slice.h"
 #include "conversion.h"
 
 mzed_t *mzed_init(const gf2e* k, rci_t m, rci_t n) {

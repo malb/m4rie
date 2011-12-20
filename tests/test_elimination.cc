@@ -14,7 +14,7 @@ int test_equality(gf2e *ff, rci_t m, rci_t n) {
   mzed_set_canary(A2);
   mzed_set_canary(A3);
 
-  const rci_t r0 = mzed_echelonize_travolta(A0,1);
+  const rci_t r0 = mzed_echelonize_newton_john(A0,1);
   const rci_t r1 = mzed_echelonize_naive(A1,1);
   const rci_t r2 = mzed_echelonize(A2,1);
   rci_t r3 = 0;

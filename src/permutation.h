@@ -28,8 +28,8 @@
 ******************************************************************************/
 
 #include <m4ri/permutation.h>
-#include "gf2e_matrix.h"
-#include "bitslice.h"
+#include "mzed.h"
+#include "mzd_slice.h"
 
 /**
  * Apply the permutation P to A from the left.

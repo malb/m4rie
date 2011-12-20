@@ -31,8 +31,8 @@ int run(void *_p, unsigned long long *data, int *data_len) {
 
   if(strcmp(p->algorithm,"default")==0)
     p->r = _mzed_ple(A, P, Q, p->c);
-  else if(strcmp(p->algorithm,"travolta")==0)
-    p->r = mzed_ple_travolta(A, P, Q);
+  else if(strcmp(p->algorithm,"newton-john")==0)
+    p->r = mzed_ple_newton_john(A, P, Q);
   else if(strcmp(p->algorithm,"naive")==0)
     p->r = mzed_ple_naive(A, P, Q);
   else
@@ -55,7 +55,7 @@ void print_help() {
   printf("  m -- integer > 0\n");
   printf("  n -- integer > 0\n");
   printf("  algorithm -- default\n");
-  printf("               travolta\n");
+  printf("               newton-john\n");
   printf("               naive\n");
   printf("  c -- cutoff (for 'default')\n");
   printf("\n");

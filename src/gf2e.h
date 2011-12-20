@@ -1,13 +1,13 @@
 /**
- * \file finite_field.h
+ * \file gf2e.h
  *
  * \brief \GF2E
  *
  * \author Martin Albrecht <martinralbrecht@googlemail.com>
  */
 
-#ifndef M4RIE_FINITE_FIELD_H
-#define M4RIE_FINITE_FIELD_H
+#ifndef M4RIE_GF2E
+#define M4RIE_GF2E
 
 #include <m4ri/m4ri.h>
 
@@ -157,4 +157,4 @@ static inline void gf2e_make_pow_gen(gf2e *ff) {
 }
 
 
-#endif //M4RIE_FINITE_FIELD_H
+#endif //M4RIE_GF2E

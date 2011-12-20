@@ -23,9 +23,9 @@
 #include <m4ri/packedmatrix.h>
 #include <m4ri/m4ri_config.h>
 
-#include "gf2e_matrix.h"
-#include "travolta.h"
-#include "bitslice.h"
+#include "mzed.h"
+#include "newton_john.h"
+#include "mzd_slice.h"
 #include "strassen.h"
 
 #define CLOSER(a,b,target) (abs((long)a-(long)target)<abs((long)b-(long)target))
@@ -59,7 +59,7 @@ mzed_t *_mzed_mul_strassen(mzed_t *C, const mzed_t *A, const mzed_t *B, int cuto
        there are no speed regressions */
     /* C = _mzd_mul_m4rm(C, A, B, 0, TRUE); */
     mzed_t *Cbar = mzed_init(C->finite_field, C->nrows, C->ncols);
-    _mzed_mul_travolta(Cbar, A, B);
+    _mzed_mul_newton_john(Cbar, A, B);
 
     mzed_copy(C, Cbar);
     mzed_free(Cbar);
@@ -155,7 +155,7 @@ mzed_t *_mzed_mul_strassen(mzed_t *C, const mzed_t *A, const mzed_t *B, int cuto
     mzed_t *B_last_col = mzed_init_window(B, 0, nnn, k, n);
     mzed_t *C_last_col = mzed_init_window(C, 0, nnn, m, n);
     mzed_set_ui(C_last_col, 0);
-    _mzed_mul_travolta(C_last_col, A, B_last_col);
+    _mzed_mul_newton_john(C_last_col, A, B_last_col);
     mzed_free_window(B_last_col);
     mzed_free_window(C_last_col);
   }
@@ -167,7 +167,7 @@ mzed_t *_mzed_mul_strassen(mzed_t *C, const mzed_t *A, const mzed_t *B, int cuto
     mzed_t *B_first_col= mzed_init_window(B,   0, 0, k, nnn);
     mzed_t *C_last_row = mzed_init_window(C, mmm, 0, m, nnn);
     mzed_set_ui(C_last_row, 0);
-    _mzed_mul_travolta(C_last_row, A_last_row, B_first_col);
+    _mzed_mul_newton_john(C_last_row, A_last_row, B_first_col);
     mzed_free_window(A_last_row);
     mzed_free_window(B_first_col);
     mzed_free_window(C_last_row);
@@ -179,7 +179,7 @@ mzed_t *_mzed_mul_strassen(mzed_t *C, const mzed_t *A, const mzed_t *B, int cuto
     mzed_t *A_last_col = mzed_init_window(A,   0, kkk, mmm, k);
     mzed_t *B_last_row = mzed_init_window(B, kkk,   0,   k, nnn);
     mzed_t *C_bulk = mzed_init_window(C, 0, 0, mmm, nnn);
-    _mzed_mul_travolta(C_bulk, A_last_col, B_last_row);
+    _mzed_mul_newton_john(C_bulk, A_last_col, B_last_row);
     mzed_free_window(A_last_col);
     mzed_free_window(B_last_row);
     mzed_free_window(C_bulk);
@@ -207,7 +207,7 @@ mzed_t *_mzed_addmul_strassen(mzed_t *C, const mzed_t *A, const mzed_t *B, int c
        there are no speed regressions */
     /* C = _mzd_mul_m4rm(C, A, B, 0, TRUE); */
     mzed_t *Cbar = mzed_copy(NULL, C);
-    _mzed_mul_travolta(Cbar, A, B);
+    _mzed_mul_newton_john(Cbar, A, B);
 
     mzed_copy(C, Cbar);
     mzed_free(Cbar);
@@ -301,7 +301,7 @@ mzed_t *_mzed_addmul_strassen(mzed_t *C, const mzed_t *A, const mzed_t *B, int c
      * Compute |AA| x | B| = | C| */
     mzed_t const *B_last_col = mzed_init_window(B, 0, nnn, k, n); 
     mzed_t *C_last_col = mzed_init_window(C, 0, nnn, m, n);
-    _mzed_mul_travolta(C_last_col, A, B_last_col);
+    _mzed_mul_newton_john(C_last_col, A, B_last_col);
     mzed_free_window((mzed_t*)B_last_col);
     mzed_free_window((mzed_t*)C_last_col);
   }
@@ -312,7 +312,7 @@ mzed_t *_mzed_addmul_strassen(mzed_t *C, const mzed_t *A, const mzed_t *B, int c
     mzed_t const *A_last_row = mzed_init_window(A, mmm, 0, m, k);
     mzed_t const *B_first_col= mzed_init_window(B,   0, 0, k, nnn);
     mzed_t *C_last_row = mzed_init_window(C, mmm, 0, m, nnn);
-    _mzed_mul_travolta(C_last_row, A_last_row, B_first_col);
+    _mzed_mul_newton_john(C_last_row, A_last_row, B_first_col);
     mzed_free_window((mzed_t*)A_last_row);
     mzed_free_window((mzed_t*)B_first_col);
     mzed_free_window(C_last_row);
@@ -324,7 +324,7 @@ mzed_t *_mzed_addmul_strassen(mzed_t *C, const mzed_t *A, const mzed_t *B, int c
     mzed_t const *A_last_col = mzed_init_window(A,   0, kkk, mmm, k);
     mzed_t const *B_last_row = mzed_init_window(B, kkk,   0,   k, nnn);
     mzed_t *C_bulk = mzed_init_window(C, 0, 0, mmm, nnn);
-    _mzed_mul_travolta(C_bulk, A_last_col, B_last_row);
+    _mzed_mul_newton_john(C_bulk, A_last_col, B_last_row);
     mzed_free_window((mzed_t*)A_last_col);
     mzed_free_window((mzed_t*)B_last_row);
     mzed_free_window(C_bulk);

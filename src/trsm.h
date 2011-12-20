@@ -27,8 +27,8 @@
 *                  http://www.gnu.org/licenses/
 ******************************************************************************/
 
-#include <gf2e_matrix.h>
-#include <bitslice.h>
+#include <mzed.h>
+#include <mzd_slice.h>
 
 #define MZED_TRSM_CUTOFF 512 /**< Crossover dimension to TRSM base cases */
 

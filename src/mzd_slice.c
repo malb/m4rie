@@ -17,7 +17,7 @@
 *                  http://www.gnu.org/licenses/
 ******************************************************************************/
 
-#include "bitslice.h"
+#include "mzd_slice.h"
 #include <stdarg.h>
 
 /**

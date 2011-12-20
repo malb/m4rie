@@ -9,9 +9,9 @@ struct elim_params {
   rci_t e; 
   rci_t m;
   rci_t n;
-  char const *matrix_type;  
-  char const *direction;  
-  char const *algorithm;  
+  char const *matrix_type;
+  char const *direction;
+  char const *algorithm;
   rci_t cutoff;
 };
 
@@ -37,20 +37,20 @@ int run_mzed(void *_p, unsigned long long *data, int *data_len) {
 
   data[0] = walltime(0);
   data[1] = cpucycles();
-  
+
   if (strcmp(p->direction,"lower_left")==0) {
     if(strcmp(p->algorithm,"naive")==0)
       mzed_trsm_lower_left_naive(A, B);
-    else if(strcmp(p->algorithm,"travolta")==0) 
-      mzed_trsm_lower_left_travolta(A, B);
-    else 
+    else if(strcmp(p->algorithm,"newton-john")==0)
+      mzed_trsm_lower_left_newton_john(A, B);
+    else
       _mzed_trsm_lower_left(A, B, p->cutoff);
   } else if (strcmp(p->direction,"upper_left")==0) {
     if(strcmp(p->algorithm,"naive")==0)
       mzed_trsm_upper_left_naive(A, B);
-    else if(strcmp(p->algorithm,"travolta")==0) 
-      mzed_trsm_upper_left_travolta(A, B);
-    else 
+    else if(strcmp(p->algorithm,"newton-john")==0)
+      mzed_trsm_upper_left_newton_john(A, B);
+    else
       _mzed_trsm_upper_left(A, B, p->cutoff);
   } else {
     m4ri_die("unknown direction");
@@ -58,7 +58,7 @@ int run_mzed(void *_p, unsigned long long *data, int *data_len) {
 
   data[1] = cpucycles() - data[1];
   data[0] = walltime(data[0]);
-  
+
   mzed_free(A);
   mzed_free(B);
   gf2e_free(ff);
@@ -88,27 +88,27 @@ int run_mzd_slice(void *_p, unsigned long long *data, int *data_len) {
 
   data[0] = walltime(0);
   data[1] = cpucycles();
-  
+
   if (strcmp(p->direction,"lower_left")==0) {
     if(strcmp(p->algorithm,"naive")==0)
       mzd_slice_trsm_lower_left_naive(A, B);
-    else if(strcmp(p->algorithm,"travolta")==0) 
-      mzd_slice_trsm_lower_left_travolta(A, B);
+    else if(strcmp(p->algorithm,"newton-john")==0)
+      mzd_slice_trsm_lower_left_newton_john(A, B);
     else 
       _mzd_slice_trsm_lower_left(A, B, p->cutoff);
   } else if (strcmp(p->direction,"upper_left")==0) {
     if(strcmp(p->algorithm,"naive")==0)
       mzd_slice_trsm_upper_left_naive(A, B);
-    else if(strcmp(p->algorithm,"travolta")==0) 
-      mzd_slice_trsm_upper_left_travolta(A, B);
-    else 
+    else if(strcmp(p->algorithm,"newton-john")==0)
+      mzd_slice_trsm_upper_left_newton_john(A, B);
+    else
       _mzd_slice_trsm_upper_left(A, B, p->cutoff);
   } else {
     m4ri_die("unknown direction");
   }
   data[1] = cpucycles() - data[1];
   data[0] = walltime(data[0]);
-  
+
   mzd_slice_free(A);
   mzd_slice_free(B);
   gf2e_free(ff);

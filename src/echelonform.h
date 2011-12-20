@@ -28,8 +28,8 @@
 *                  http://www.gnu.org/licenses/
 ******************************************************************************/
 
-#include "gf2e_matrix.h"
-#include "bitslice.h"
+#include "mzed.h"
+#include "mzd_slice.h"
 #include "conversion.h"
 
 /**
@@ -61,7 +61,7 @@ rci_t mzd_slice_echelonize_ple(mzd_slice_t *A, int full);
  *
  * \note This function converts A to bitslice representation and
  * back. Hence, it uses more memory than using
- * mzed_echelonize_travolta() or mzd_slice_echelonize_ple()
+ * mzed_echelonize_newton_john() or mzd_slice_echelonize_ple()
  */
 
 static inline rci_t mzed_echelonize_ple(mzed_t *A, int full) {
