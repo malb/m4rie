@@ -1,4 +1,39 @@
-static inline word __mzd_read_bits(const mzd_t *M, const size_t x, const size_t y, const size_t n) {
+/**
+ * \file m4ri_functions.h
+ *
+ * \brief Utility functions handly mzd_t
+ *
+ * \note Some of these functions might be moved M4RI in the future.
+ *
+ * \author Martin Albrecht <martinralbrecht@googlemail.com>
+ */
+
+#ifndef M4RIE_M4RI_FUNCTIONS_H
+#define M4RIE_M4RI_FUNCTIONS_H
+
+/******************************************************************************
+*
+*            M4RIE: Linear Algebra over GF(2^e)
+*
+*    Copyright (C) 2010,2011 Martin Albrecht <martinralbrecht@googlemail.com>
+*
+*  Distributed under the terms of the GNU General Public License (GEL)
+*  version 2 or higher.
+*
+*    This code is distributed in the hope that it will be useful,
+*    but WITHOUT ANY WARRANTY; without even the implied warranty of
+*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+*    General Public License for more details.
+*
+*  The full text of the GPL is available at:
+*
+*                  http://www.gnu.org/licenses/
+******************************************************************************/
+
+#include <m4ri/m4ri.h>
+#include <stdarg.h>
+
+static inline word __mzd_read_bits(const mzd_t *M, const rci_t x, const rci_t y, const rci_t n) {
   int const spot = (y + M->offset) % m4ri_radix;
   wi_t const block = (y + M->offset) / m4ri_radix;
   int const spill = spot + n - m4ri_radix;
@@ -6,15 +41,66 @@ static inline word __mzd_read_bits(const mzd_t *M, const size_t x, const size_t 
   return temp >> (m4ri_radix - n);
 }
 
-static inline void __mzd_xor_bits(const mzd_t *M, const size_t x, const size_t y, const size_t n, word values) {
+static inline void __mzd_xor_bits(const mzd_t *M, const rci_t x, const rci_t y, const rci_t n, word values) {
   int const spot = (y + M->offset) % m4ri_radix;
   wi_t const block = (y + M->offset) / m4ri_radix;
   M->rows[x][block] ^= values << spot;
 }
 
-static inline void __mzd_clear_bits(const mzd_t *M, const size_t x, const size_t y, const size_t n) {
+static inline void __mzd_clear_bits(const mzd_t *M, const rci_t x, const rci_t y, const rci_t n) {
   word values = m4ri_ffff >> (m4ri_radix - n);
   int const spot = (y + M->offset) % m4ri_radix;
   wi_t const block = (y + M->offset) / m4ri_radix;
   M->rows[x][block] &= ~(values << spot);
 }
+
+/**
+ * \brief Add n elements to A
+ *
+ * A += B[0] + ... + B[n-1]
+ *
+ * \param A Matrix
+ * \param n Number of elements in list
+ * \param ... Matrices
+ */
+
+static inline mzd_t *mzd_sum(mzd_t *A, const int n, ...) {
+  assert(n>1);
+  va_list b_list;
+  va_start( b_list, n );
+
+  mzd_add(A, va_arg(b_list, mzd_t *), va_arg(b_list, mzd_t *));
+
+  for( int i = 0 ; i < n-2; i++ ) {
+    mzd_t *B = va_arg(b_list, mzd_t *);
+    mzd_add(A, A, B);
+  }
+
+  va_end( b_list );
+  return A;
+}
+
+/**
+ * \brief Add A to n elements
+ *
+ * B[0] += A, ...,  B[n-1] +=  A
+ *
+ * \param A Matrix
+ * \param n Number of elements in list
+ * \param ... Matrices
+ */
+
+static inline mzd_t *mzd_add_to_all(mzd_t *A, const int n, ...) {
+  va_list b_list;
+  va_start( b_list, n );
+
+  for( int i = 0 ; i < n; i++ ) {
+    mzd_t *B = va_arg(b_list, mzd_t *);
+    mzd_add(B, B, A);
+  }
+
+  va_end( b_list );
+  return A;
+}
+
+#endif //M4RIE_M4RI_FUNCTIONS_H

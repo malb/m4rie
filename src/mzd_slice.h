@@ -36,6 +36,7 @@
 ******************************************************************************/
 
 #include <m4ri/m4ri.h>
+#include "mzd_poly.h"
 #include "mzed.h"
 
 /**
@@ -60,11 +61,11 @@
 
 typedef struct {
   mzd_t *x[16]; /**< mzd_slice_t::x[e][i,j] is the \e-th bit of the entry A[i,j]. */
-  const gf2e *finite_field; /**<A finite field \GF2E. */
   rci_t nrows; /**< Number of rows. */
   rci_t ncols; /**< Number of columns. */
-  int depth;   /**< Number of slices                *
-                * \note This value may be greater than finite_field->degree in some situations */
+  unsigned int depth;   /**< Number of slices                *
+                         * \note This value may be greater than finite_field->degree in some situations */
+  const gf2e *finite_field; /**<A finite field \GF2E. */
 } mzd_slice_t;
 
 
@@ -81,23 +82,7 @@ typedef struct {
  */
 
 static inline mzd_slice_t *mzd_slice_init(const gf2e *ff, const rci_t m, const rci_t n) {
-
-  /**
-   * \todo avoid all these malloc() calls and call it once only
-   */
-  mzd_slice_t *A;
-
-#if __M4RI_USE_MM_MALLOC
-  A = (mzd_slice_t*)_mm_malloc(sizeof(mzd_slice_t), 64);
-#elif __M4RI_USE_POSIX_MEMALIGN
-  int error = posix_memalign(&A, 64, sizeof(mzd_slice_t));
-  if (error) A = NULL;
-#else
-  A = (mzd_slice_t*)malloc(sizeof(mzd_slice_t));
-#endif
-
-  if(__M4RI_UNLIKELY(A == NULL))
-    m4ri_die("m4ri_slice_init: could not allocate memory.\n");
+  mzd_slice_t *A = m4ri_mm_malloc(sizeof(mzd_slice_t));
 
   A->finite_field = ff;
   A->nrows = m;
@@ -314,8 +299,7 @@ static inline void mzd_slice_free_window(mzd_slice_t *A) {
  */
 
 static inline mzd_slice_t *_mzd_slice_add(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B) {
-  for(int i=0; i<A->depth; i++)
-    _mzd_add(C->x[i], A->x[i], B->x[i]);
+  _poly_add(C->x, (const mzd_t**)A->x, (const mzd_t**)B->x, A->depth);
   return C;
 }
 
@@ -604,6 +588,19 @@ static inline mzd_slice_t *mzd_slice_addmul_karatsuba(mzd_slice_t *C, const mzd_
  */
 
 mzd_slice_t *mzd_slice_mul_scalar(mzd_slice_t *C, const word a, const mzd_slice_t *B);
+
+/**
+ * \brief \f$ C += a \cdot B \f$.
+ *
+ * \param C Preallocated product matrix.
+ * \param a finite field element.
+ * \param B Input matrix B.
+ *
+ * \ingroup Multiplication
+ */
+
+mzd_slice_t *mzd_slice_addmul_scalar(mzd_slice_t *C, const word a, const mzd_slice_t *B);
+
 
 /**
  * \brief \f$ C = A \cdot B \f$.

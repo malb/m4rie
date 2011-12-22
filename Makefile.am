@@ -10,6 +10,7 @@ libm4rie_la_SOURCES = src/gf2e.c \
 	src/echelonform.c \
 	src/strassen.c \
 	src/mzd_slice.c \
+	src/mzd_poly.c \
 	src/trsm.c \
 	src/ple.c \
 	src/conversion.c
@@ -24,6 +25,7 @@ pkgincludesub_HEADERS = src/gf2e.h \
 	src/echelonform.h \
 	src/strassen.h \
 	src/mzd_slice.h \
+	src/mzd_poly.h \
 	src/trsm.h \
 	src/ple.h \
 	src/permutation.h \

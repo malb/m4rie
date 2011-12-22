@@ -18,56 +18,7 @@
 ******************************************************************************/
 
 #include "mzd_slice.h"
-#include <stdarg.h>
-
-/**
- * \brief Add n elements to A
- *
- * A += B[0] + ... + B[n-1]
- *
- * \param A Matrix
- * \param n Number of elements in list
- * \param ... Matrices
- */
-
-static inline mzd_t *mzd_sum(mzd_t *A, const int n, ...) {
-  assert(n>1);
-  va_list b_list;
-  va_start( b_list, n );
-
-  mzd_add(A, va_arg(b_list, mzd_t *), va_arg(b_list, mzd_t *));
-
-  for( int i = 0 ; i < n-2; i++ ) {
-    mzd_t *B = va_arg(b_list, mzd_t *);
-    mzd_add(A, A, B);
-  }
-
-  va_end( b_list );
-  return A;
-}
-
-/**
- * \brief Add A to n elements
- *
- * B[0] += A, ...,  B[n-1] +=  A
- *
- * \param A Matrix
- * \param n Number of elements in list
- * \param ... Matrices
- */
-
-static inline mzd_t *mzd_add_to_all(mzd_t *A, const int n, ...) {
-  va_list b_list;
-  va_start( b_list, n );
-
-  for( int i = 0 ; i < n; i++ ) {
-    mzd_t *B = va_arg(b_list, mzd_t *);
-    mzd_add(B, B, A);
-  }
-
-  va_end( b_list );
-  return A;
-}
+#include "m4ri_functions.h"
 
 /**
  * \brief Add A to coefficient of X^t but perform modular reductions on the fly.
@@ -122,6 +73,22 @@ static inline mzd_t *mzd_add_to_all_modred(const gf2e *ff, mzd_t *A, mzd_t **X, 
 mzd_slice_t *mzd_slice_mul_scalar(mzd_slice_t *C, const word a, const mzd_slice_t *B) {
   if(C == NULL)
     C = mzd_slice_init(B->finite_field, B->nrows, B->ncols);
+  else
+    mzd_slice_set_ui(C, 0);
+  assert( (C->finite_field == B->finite_field) && (((C->nrows ^ B->nrows) | (C->ncols ^ B->ncols)) == 0));
+
+  const gf2e *ff = B->finite_field;
+
+  for(int i=0; i<ff->degree; i++) {
+    if(a&(1<<i)) {
+      for(int j=0; j<B->depth; j++)
+        mzd_add_modred(ff, B->x[j], C->x, i+j);
+    }
+  }
+  return C;
+}
+
+mzd_slice_t *mzd_slice_addmul_scalar(mzd_slice_t *C, const word a, const mzd_slice_t *B) {
   assert( (C->finite_field == B->finite_field) && (((C->nrows ^ B->nrows) | (C->ncols ^ B->ncols)) == 0));
 
   const gf2e *ff = B->finite_field;
@@ -268,101 +235,6 @@ mzd_slice_t *_mzd_slice_mul_karatsuba3(mzd_slice_t *C, const mzd_slice_t *A, con
   _mzd_slice_adapt_depth(C,3);
 
   return C;
-}
-
-static void _poly_add(mzd_t **c, const mzd_t **a, const mzd_t **b,const int length) {
-  switch(length) {
-  case 16: mzd_add(c[15], a[15], b[15]);
-  case 15: mzd_add(c[14], a[14], b[14]);
-  case 14: mzd_add(c[13], a[13], b[13]);
-  case 13: mzd_add(c[12], a[12], b[12]);
-  case 12: mzd_add(c[11], a[11], b[11]);
-  case 11: mzd_add(c[10], a[10], b[10]);
-  case 10: mzd_add(c[ 9], a[ 9], b[ 9]);
-  case  9: mzd_add(c[ 8], a[ 8], b[ 8]);
-  case  8: mzd_add(c[ 7], a[ 7], b[ 7]);
-  case  7: mzd_add(c[ 6], a[ 6], b[ 6]);
-  case  6: mzd_add(c[ 5], a[ 5], b[ 5]);
-  case  5: mzd_add(c[ 4], a[ 4], b[ 4]);
-  case  4: mzd_add(c[ 3], a[ 3], b[ 3]);
-  case  3: mzd_add(c[ 2], a[ 2], b[ 2]);
-  case  2: mzd_add(c[ 1], a[ 1], b[ 1]);
-  case  1: mzd_add(c[ 0], a[ 0], b[ 0]);
-    break;
-  case 0:
-  default:
-    m4ri_die("this should never happen.");
-  }
-}
-
-static void _poly_addmul2(mzd_t **X, const mzd_t **a, const mzd_t **b) {
-  mzd_t *t0 = mzd_init(a[0]->nrows, a[0]->ncols);
-  mzd_t *t1 = mzd_init(b[0]->nrows, b[0]->ncols);
-
-  mzd_add(t0, a[0], a[1]);
-  mzd_add(t1, b[0], b[1]);
-
-  mzd_addmul(X[1], t0, t1, 0); /* + (a0+a1)(b0+b1)X */
-
-  mzd_free(t0);
-  mzd_free(t1);
-
-  t0 = mzd_init(a[0]->nrows, b[0]->ncols);
-
-  mzd_mul(t0, a[0], b[0], 0); /* + a0b0(1-X) */
-  mzd_add(X[0], X[0], t0);
-  mzd_add(X[1], X[1], t0);
-
-  mzd_mul(t0, a[1], b[1], 0); /* + a1b1(X+X^2) */
-  mzd_add(X[1], X[1], t0);
-  mzd_add(X[2], X[2], t0);
-
-  mzd_free(t0);
-}
-
-static void _poly_addmul4(mzd_t **c, const mzd_t **a, const mzd_t **b) {
-  const mzd_t *a0[2] = {a[0],a[1]};
-  const mzd_t *a1[2] = {a[2],a[3]};
-  const mzd_t *b0[2] = {b[0],b[1]};
-  const mzd_t *b1[2] = {b[2],b[3]};
-
-  mzd_t *X[3][3] = { {c[0],c[1],c[2]},
-                     {c[2],c[3],c[4]},
-                     {c[4],c[5],c[6]} };
-
-  mzd_t *t0[3];
-  mzd_t *t1[2];
-
-  t0[0] = mzd_init(a[0]->nrows, a[0]->ncols);
-  t0[1] = mzd_init(a[0]->nrows, a[0]->ncols);
-  t1[0] = mzd_init(b[0]->nrows, b[0]->ncols);
-  t1[1] = mzd_init(b[0]->nrows, b[0]->ncols);
-
-  _poly_add(t0, a0, a1, 2);
-  _poly_add(t1, b0, b1, 2);
-
-  _poly_addmul2(X[1], (const mzd_t**)t0, (const mzd_t**)t1);
-
-  mzd_free(t0[0]);  mzd_free(t0[1]);
-  mzd_free(t1[0]);  mzd_free(t1[1]);
-
-  t0[0] = mzd_init(a[0]->nrows, b[0]->ncols);
-  t0[1] = mzd_init(a[0]->nrows, b[0]->ncols);
-  t0[2] = mzd_init(a[0]->nrows, b[0]->ncols);
-
-  _poly_addmul2(t0, a0, b0);
-  _poly_add(X[0], (const mzd_t**)X[0], (const mzd_t**)t0, 3);
-  _poly_add(X[1], (const mzd_t**)X[1], (const mzd_t**)t0, 3);
-
-  mzd_set_ui(t0[0], 0);
-  mzd_set_ui(t0[1], 0);
-  mzd_set_ui(t0[2], 0);
-
-  _poly_addmul2(t0, a1, b1);
-  _poly_add(X[1], (const mzd_t**)X[1], (const mzd_t**)t0, 3);
-  _poly_add(X[2], (const mzd_t**)X[2], (const mzd_t**)t0, 3);
-
-  mzd_free(t0[0]); mzd_free(t0[1]); mzd_free(t0[2]);
 }
 
 mzd_slice_t *_mzd_slice_mul_karatsuba4(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B) {
@@ -850,7 +722,7 @@ mzd_slice_t *_mzd_slice_mul_karatsuba8(mzd_slice_t *C, const mzd_slice_t *A, con
   _poly_add(X[1], (const mzd_t**)X[1], (const mzd_t**)t0, 7);
   _poly_add(X[2], (const mzd_t**)X[2], (const mzd_t**)t0, 7);
 
-  mzd_free(t0[0]); mzd_free(t0[1]); mzd_free(t0[2]); mzd_free(t0[3]); 
+  mzd_free(t0[0]); mzd_free(t0[1]); mzd_free(t0[2]); mzd_free(t0[3]);
   mzd_free(t0[4]); mzd_free(t0[5]); mzd_free(t0[6]);
 
   for(unsigned int i=2*8-2; i>= 8; i--)
