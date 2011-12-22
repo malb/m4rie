@@ -6,8 +6,8 @@
  * \author Martin Albrecht <martinralbrecht@googlemail.com>
  */
 
-#ifndef M4RIE_GF2E
-#define M4RIE_GF2E
+#ifndef M4RIE_GF2E_H
+#define M4RIE_GF2E_H
 
 #include <m4ri/m4ri.h>
 
@@ -16,37 +16,13 @@
  */
 
 typedef struct {
-  /**
-   * The degree \e.
-   */
-
-  unsigned int degree;
-
-  /**
-   * Irreducible polynomial of degree \e.
-   */
-
-  word minpoly;
-
-  /**
-   * mul[a][b] holds \f$ a \cdot b\f$.
-   *
-   * \warning this entry will disappear in future releases.
-   */
-  word **mul;
-
-  /**
-   * inv[a] holds \f$a^{-1}\f$.
-   */
-
-  word *inv;
-
-  /**
-   * pow_gen[i] holds \f$a^i / <f>\f$ for \f$a\f$ a generator of
-   * this field.
-   */
-
-  word *pow_gen;
+  unsigned int degree; /**< The degree \e. */
+  word minpoly;   /**<  Irreducible polynomial of degree \e. */
+  word **mul;   /**<
+                 * mul[a][b] holds \f$ a \cdot b\f$.
+                 * \warning this entry will disappear in future releases. */
+  word *inv; /**< inv[a] holds \f$a^{-1}\f$. */
+  word *pow_gen;   /**< pow_gen[i] holds \f$a^i / <f>\f$ for \f$a\f$ a generator of this field.  */
 } gf2e;
 
 /**
@@ -156,5 +132,4 @@ static inline void gf2e_make_pow_gen(gf2e *ff) {
   ff->pow_gen = m;
 }
 
-
-#endif //M4RIE_GF2E
+#endif //M4RIE_GF2E_H
