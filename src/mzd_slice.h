@@ -82,7 +82,7 @@ typedef struct {
  */
 
 static inline mzd_slice_t *mzd_slice_init(const gf2e *ff, const rci_t m, const rci_t n) {
-  mzd_slice_t *A = m4ri_mm_malloc(sizeof(mzd_slice_t));
+  mzd_slice_t *A = (mzd_slice_t*)m4ri_mm_malloc(sizeof(mzd_slice_t));
 
   A->finite_field = ff;
   A->nrows = m;

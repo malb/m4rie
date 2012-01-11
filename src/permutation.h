@@ -27,7 +27,7 @@
 *                  http://www.gnu.org/licenses/
 ******************************************************************************/
 
-#include <m4ri/permutation.h>
+#include <m4ri/mzp.h>
 #include "mzed.h"
 #include "mzd_slice.h"
 

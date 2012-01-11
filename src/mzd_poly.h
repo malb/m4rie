@@ -84,7 +84,7 @@ static inline mzd_poly_t *mzd_poly_add(mzd_poly_t *C, const mzd_poly_t *A, const
 }
 
 static inline mzd_poly_t *mzd_poly_init(const deg_t d, const rci_t m, const rci_t n) {
-  mzd_poly_t *A = m4ri_mm_malloc(sizeof(mzd_poly_t));
+  mzd_poly_t *A = (mzd_poly_t*)m4ri_mm_malloc(sizeof(mzd_poly_t));
   A->x = (mzd_t**)m4ri_mm_malloc(sizeof(mzd_t*)*d);
 
   A->nrows = m;
