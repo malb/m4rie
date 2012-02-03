@@ -76,7 +76,7 @@ static inline size_t gf2e_degree_to_w(const gf2e *ff) {
 static inline word *gf2e_t16_init(const gf2e *ff, const word a) {
   word *mul = (word*)m4ri_mm_calloc(1<<16, sizeof(word));
 
-  const int w = gf2e_degree_to_w(ff);
+  const unsigned int w = gf2e_degree_to_w(ff);
   const word mask_w = (1<<w)-1;
   const word *x = ff->mul[a];
 
@@ -120,11 +120,11 @@ static inline void gf2e_t16_free(word *mul) {
  */
 
 static inline void gf2e_make_pow_gen(gf2e *ff) {
-  int n = 2*ff->degree-1;
+  unsigned int n = 2*ff->degree-1;
   word *m = (word*)m4ri_mm_malloc( n * sizeof(word));
-  for(int i=0; i<n; i++) {
+  for(unsigned int i=0; i<n; i++) {
     m[i] = 1<<i;
-    for(int j=i; j>=ff->degree; j--) {
+    for(unsigned int j=i; j>=ff->degree; j--) {
       if (m[i] & 1<<j)
         m[i] ^= ff->minpoly<<(j - ff->degree);
     }

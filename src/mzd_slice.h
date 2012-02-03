@@ -122,16 +122,16 @@ void mzd_slice_set_ui(mzd_slice_t *A, word value);
  * \param new_depth Integer >= mzd_slice_t::finite_field::degree.
  */
 
-static inline mzd_slice_t *_mzd_slice_adapt_depth(mzd_slice_t *A, const int new_depth) {
+static inline mzd_slice_t *_mzd_slice_adapt_depth(mzd_slice_t *A, const unsigned int new_depth) {
   assert(A->finite_field->degree <= new_depth);
 
   if (new_depth < A->depth) {
-    for(int i=new_depth; i<A->depth; i++) {
+    for(unsigned int i=new_depth; i<A->depth; i++) {
       mzd_free(A->x[i]);
       A->x[i] = NULL;
     }
   } else {
-    for(int i=A->depth; i<new_depth; i++) {
+    for(unsigned int i=A->depth; i<new_depth; i++) {
       A->x[i] = mzd_init(A->nrows,A->ncols);
     }
   }
@@ -839,7 +839,7 @@ static inline void mzd_slice_col_swap(mzd_slice_t *A, const rci_t cola, const rc
  */
 
 static inline void mzd_slice_col_swap_in_rows(mzd_slice_t *A, const rci_t cola, const rci_t colb, const rci_t start_row, rci_t stop_row) {
-  for(int e=0; e < A->finite_field->degree; e++) {
+  for(unsigned int e=0; e < A->finite_field->degree; e++) {
     mzd_col_swap_in_rows(A->x[e], cola, colb, start_row, stop_row);
   };
 }

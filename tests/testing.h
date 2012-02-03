@@ -77,7 +77,7 @@ static inline int mzed_canary_is_alive(mzed_t *A) {
     }
   }
   return 1;
-};
+}
 
 static inline int mzed_interval_clean(mzed_t *A) {
   assert(A->x->offset == 0);
@@ -100,14 +100,14 @@ static inline void mzd_slice_set_canary(mzd_slice_t *A) {
   const rci_t n = A->x[0]->width-1;
 
   if(n != 0) {
-    for(int e=0; e<A->finite_field->degree; e++) {
+    for(unsigned int e=0; e<A->finite_field->degree; e++) {
       for(rci_t i=0; i<A->nrows; i++) {
         A->x[e]->rows[i][0] = (A->x[e]->rows[i][0] & mask_begin) | (m4rie_canary & ~mask_begin);
         A->x[e]->rows[i][n] = (A->x[e]->rows[i][n] & mask_end)   | (m4rie_canary & ~mask_end);
       }
     }
   } else {
-    for(int e=0; e<A->finite_field->degree; e++) {
+    for(unsigned int e=0; e<A->finite_field->degree; e++) {
       for(rci_t i=0; i<A->nrows; i++) {
         A->x[e]->rows[i][0] = (A->x[e]->rows[i][0] & mask_begin & mask_end) | (m4rie_canary & ~(mask_begin & mask_end));
       }
@@ -133,7 +133,7 @@ static inline int mzd_slice_canary_is_alive(mzd_slice_t *A) {
   const word mask_end   = __M4RI_LEFT_BITMASK((A->x[0]->offset + A->ncols)%m4ri_radix);
   const rci_t n = A->x[0]->width-1;
 
-  for(int e=0; e<A->finite_field->degree; e++) {
+  for(unsigned int e=0; e<A->finite_field->degree; e++) {
     for(rci_t i=0; i<A->nrows; i++) {
       if ((A->x[e]->rows[i][0] & ~mask_begin) != (m4rie_canary & ~mask_begin)) {
         return 0;
