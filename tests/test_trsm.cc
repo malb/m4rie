@@ -472,7 +472,7 @@ int test_batch(gf2e *ff, rci_t m, rci_t n) {
 int main(int argc, char **argv) {
   srandom(17);
 
-  gf2e *ff[10];
+  gf2e *ff[11];
   int fail_ret = 0;
 
   for(int k=2; k<=10; k++) {
