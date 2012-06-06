@@ -17,16 +17,24 @@
 *                  http://www.gnu.org/licenses/
 ******************************************************************************/
 
+#include <givaro/givconfig.h>
 #include <givaro/givgfq.h>
 #include <m4rie.h>
 
 namespace M4RIE {
 
+#if GIVARO_VERSION  <  30400 || GIVARO_VERSION >= 196608 // old Givaro versions used 0x03xxyy
   class FiniteField: public GFqDom<int> {
-  public: 
-    unsigned int  log2pol(int x) { return _log2pol[x]; };
-    unsigned int  pol2log(int x) { return _pol2log[x]; };
-  }; 
+  public:
+  FiniteField(const unsigned int e) : GFqDom<int>(2, e){};
+#else
+  class FiniteField: public Givaro::GFqDom<int> {
+  public:
+  FiniteField(const unsigned int e) : Givaro::GFqDom<int>(2, e){};
+#endif
+      unsigned int  log2pol(int x) { return _log2pol[x]; };
+      unsigned int  pol2log(int x) { return _pol2log[x]; };
+  };
 };
 
 static inline gf2e *gf2e_init_givgfq(M4RIE::FiniteField *givgfq) {
@@ -54,7 +62,7 @@ static inline gf2e *gf2e_init_givgfq(M4RIE::FiniteField *givgfq) {
   gf2e_make_pow_gen(ff);
   return ff;
 }
- 
+
 static inline int mzed_read_elem_log(const mzed_t *a, const size_t row, const size_t col, M4RIE::FiniteField *ff) {
   return ff->pol2log((int)__mzd_read_bits(a->x, row, a->w*col, a->w));
 };

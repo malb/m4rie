@@ -1,7 +1,6 @@
 #include "testing.h"
 
 #include <gf2e_cxx/finite_field_givaro.h>
-#include <m4rie/m4rie.h>
 
 using namespace M4RIE;
 
@@ -161,9 +160,8 @@ int main(int argc, char **argv) {
   int fail_ret = 0;
 
   for(int k=2; k<=10; k++) {
-    GFqDom<int> GF = GFqDom<int>(2,k);
-    FiniteField *F = (FiniteField*)&GF;
-    ff[k] = gf2e_init_givgfq(F);
+    FiniteField F = FiniteField(k);
+    ff[k] = gf2e_init_givgfq(&F);
   }
 
   for(int k=2; k<=8; k++) {
