@@ -145,7 +145,7 @@ int main(int argc, char **argv) {
   else
     run_bench(run_mzd_slice, (void*)&params, data, 2);
 
-  double cc_per_op = ((double)data[1])/ (2 * (double)params.m * (double)params.n * powl((double)params.r,__M4RIE_OMEGA-2) );
+  double cc_per_op = ((double)data[1])/ ((double)params.m * (double)params.n * powl((double)params.r,__M4RIE_OMEGA-2) );
 
-  printf("e: %2d, m: %5d, n: %5d, type: %d, algo: %10s, cpu cycles: %10llu, cc/(2mnr^0.807): %.5lf, wall time: %lf\n", params.k, params.m, params.n, params.type, params.algorithm, data[1], cc_per_op, data[0] / 1000000.0);
+  printf("e: %2d, m: %5d, n: %5d, type: %d, algo: %10s, cpu cycles: %10llu, cc/(mnr^0.807): %.5lf, wall time: %lf\n", params.k, params.m, params.n, params.type, params.algorithm, data[1], cc_per_op, data[0] / 1000000.0);
 }
