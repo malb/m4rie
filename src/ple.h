@@ -30,7 +30,7 @@
 #include <m4ri/m4ri.h>
 #include <m4rie/mzed.h>
 #include <m4rie/mzd_slice.h>
-#include <m4rie/conversion.h
+#include <m4rie/conversion.h>
 
 /**
  * \brief PLE decomposition: \f$ L \cdot E = P \cdot A \f$.
