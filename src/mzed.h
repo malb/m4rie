@@ -23,6 +23,7 @@
  * \author Martin Albrecht <martinralbrecht@googlemail.com>
  */
 
+
 #ifndef M4RIE_MZED_H
 #define M4RIE_MZED_H
 
@@ -46,8 +47,8 @@
 ******************************************************************************/
 
 #include <m4ri/m4ri.h>
-#include "gf2e.h"
-#include "m4ri_functions.h"
+#include <m4rie/gf2e.h>
+#include <m4rie/m4ri_functions.h>
 
 /**
  * \brief Dense matrices over \GF2E represented as packed matrices.

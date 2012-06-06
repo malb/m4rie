@@ -36,8 +36,8 @@
 ******************************************************************************/
 
 #include <m4ri/m4ri.h>
-#include "mzd_poly.h"
-#include "mzed.h"
+#include <m4rie/mzd_poly.h>
+#include <m4rie/mzed.h>
 
 /**
  * Degree up to which Karatsuba multiplication and slicing/cling is

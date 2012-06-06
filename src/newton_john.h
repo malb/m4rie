@@ -30,9 +30,9 @@
 *                  http://www.gnu.org/licenses/
 ******************************************************************************/
 
-#include "gf2e.h"
-#include "mzed.h"
-#include "mzd_slice.h"
+#include <m4rie/gf2e.h>
+#include <m4rie/mzed.h>
+#include <m4rie/mzd_slice.h>
 
 /**
  * \brief Newton-John table

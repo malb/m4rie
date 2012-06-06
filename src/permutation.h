@@ -28,8 +28,8 @@
 ******************************************************************************/
 
 #include <m4ri/mzp.h>
-#include "mzed.h"
-#include "mzd_slice.h"
+#include <m4rie/mzed.h>
+#include <m4rie/mzd_slice.h>
 
 /**
  * Apply the permutation P to A from the left.
