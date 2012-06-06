@@ -29,8 +29,8 @@
 ******************************************************************************/
 
 #include <m4ri/m4ri.h>
-#include "mzed.h"
-#include "mzd_slice.h"
+#include <m4rie/mzed.h>
+#include <m4rie/mzd_slice.h>
 
 /**
  * \brief Pack a bitslice matrix into a packed represenation.

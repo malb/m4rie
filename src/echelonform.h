@@ -28,9 +28,9 @@
 *                  http://www.gnu.org/licenses/
 ******************************************************************************/
 
-#include "mzed.h"
-#include "mzd_slice.h"
-#include "conversion.h"
+#include <m4rie/mzed.h>
+#include <m4rie/mzd_slice.h>
+#include <m4rie/conversion.h>
 
 /**
  * \brief Compute row echelon forms using PLE decomposition.

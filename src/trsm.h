@@ -27,8 +27,8 @@
 *                  http://www.gnu.org/licenses/
 ******************************************************************************/
 
-#include <mzed.h>
-#include <mzd_slice.h>
+#include <m4rie/mzed.h>
+#include <m4rie/mzd_slice.h>
 
 #define MZED_TRSM_CUTOFF 512 /**< Crossover dimension to TRSM base cases */
 

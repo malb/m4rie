@@ -72,16 +72,16 @@
 extern "C" {
 #endif //__cplusplus
 
-#include "gf2e.h"
-#include "mzed.h"
-#include "newton_john.h"
-#include "echelonform.h"
-#include "strassen.h"
-#include "mzd_slice.h"
-#include "trsm.h"
-#include "ple.h"
-#include "conversion.h"
-#include "permutation.h"
+#include <m4rie/gf2e.h>
+#include <m4rie/mzed.h>
+#include <m4rie/newton_john.h>
+#include <m4rie/echelonform.h>
+#include <m4rie/strassen.h>
+#include <m4rie/mzd_slice.h>
+#include <m4rie/trsm.h>
+#include <m4rie/ple.h>
+#include <m4rie/conversion.h>
+#include <m4rie/permutation.h>
 
 #ifdef __cplusplus
 }
