@@ -32,7 +32,7 @@ pkgincludesub_HEADERS = src/gf2e.h \
 	src/conversion.h \
 	gf2e_cxx/finite_field_givaro.h
 
-libm4rie_la_LDFLAGS = -release 0.0.20120613 -no-undefined ${M4RIE_M4RI_LDFLAGS}
+libm4rie_la_LDFLAGS = -release 0.0.$(RELEASE) -no-undefined ${M4RIE_M4RI_LDFLAGS}
 libm4rie_la_LIBADD = -lm4ri
 
 #testing
