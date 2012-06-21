@@ -4,7 +4,7 @@ dnl AC_PREREQ([2.64])
 
 AC_CANONICAL_HOST
 
-AC_CONFIG_SRCDIR(src/newton_john.c)
+AC_CONFIG_SRCDIR(m4rie/newton_john.c)
 
 AC_CONFIG_MACRO_DIR([m4])
 
@@ -14,7 +14,7 @@ AC_PROG_LIBTOOL
 
 AC_PROG_INSTALL
 
-AC_CONFIG_HEADERS(src/config.h)
+AC_CONFIG_HEADERS(m4rie/config.h)
 
 AC_PROG_CXX
 

@@ -4,32 +4,37 @@ AM_CFLAGS=${SIMD_FLAGS} ${OPENMP_CFLAGS} ${DEBUG_FLAGS} ${M4RIE_M4RI_CFLAGS} ${M
 
 lib_LTLIBRARIES = libm4rie.la
 
-libm4rie_la_SOURCES = src/gf2e.c \
-	src/mzed.c \
-	src/newton_john.c \
-	src/echelonform.c \
-	src/strassen.c \
-	src/mzd_slice.c \
-	src/mzd_poly.c \
-	src/trsm.c \
-	src/ple.c \
-	src/conversion.c
+libm4rie_la_SOURCES = m4rie/gf2e.c \
+	m4rie/mzed.c \
+	m4rie/newton_john.c \
+	m4rie/echelonform.c \
+	m4rie/strassen.c \
+	m4rie/mzd_slice.c \
+	m4rie/mzd_poly.c \
+	m4rie/trsm.c \
+	m4rie/ple.c \
+	m4rie/conversion.c \
+	m4rie/mzd_slice_intro.inl \
+	m4rie/mzd_slice_outro.inl \
+	m4rie/mzed_intro.inl \
+	m4rie/mzed_outro.inl \
+	m4rie/trsm.inl
 
 pkgincludesubdir = $(includedir)/m4rie
 
-pkgincludesub_HEADERS = src/gf2e.h \
-	src/mzed.h \
-	src/m4rie.h \
-	src/m4ri_functions.h \
-	src/newton_john.h \
-	src/echelonform.h \
-	src/strassen.h \
-	src/mzd_slice.h \
-	src/mzd_poly.h \
-	src/trsm.h \
-	src/ple.h \
-	src/permutation.h \
-	src/conversion.h \
+pkgincludesub_HEADERS = m4rie/gf2e.h \
+	m4rie/mzed.h \
+	m4rie/m4rie.h \
+	m4rie/m4ri_functions.h \
+	m4rie/newton_john.h \
+	m4rie/echelonform.h \
+	m4rie/strassen.h \
+	m4rie/mzd_slice.h \
+	m4rie/mzd_poly.h \
+	m4rie/trsm.h \
+	m4rie/ple.h \
+	m4rie/permutation.h \
+	m4rie/conversion.h \
 	gf2e_cxx/finite_field_givaro.h
 
 libm4rie_la_LDFLAGS = -release 0.0.$(RELEASE) -no-undefined ${M4RIE_M4RI_LDFLAGS}
