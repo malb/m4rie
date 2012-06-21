@@ -39,7 +39,7 @@ libm4rie_la_LIBADD = -lm4ri
 TESTCXXFLAGS = ${AM_CFLAGS} @CXXFLAGS@ ${M4RIE_M4RI_CFLAGS} ${M4RIE_GIVARO_CXXFLAGS} ${M4RI_CFLAGS}
 TESTLIBADD = -lm4ri -lm4rie -lgivaro -lgmpxx -lgmp -lm -lstdc++
 TESTLDADD = ${M4RIE_GIVARO_LDFLAGS}
-TESTLDFLAGS =  -Wl,-rpath,.libs/
+TESTLDFLAGS =
 
 check_PROGRAMS=test_trsm test_elimination test_multiplication test_smallops test_ple
 test_elimination_SOURCES=tests/test_elimination.cc
