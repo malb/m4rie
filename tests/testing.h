@@ -92,7 +92,7 @@ static inline int mzed_interval_clean(mzed_t *A) {
       return 0;
   }
   return 1;
-};
+}
 
 static inline void mzd_slice_set_canary(mzd_slice_t *A) {
   const word mask_begin = __M4RI_RIGHT_BITMASK(m4ri_radix - A->x[0]->offset);
@@ -144,7 +144,7 @@ static inline int mzd_slice_canary_is_alive(mzd_slice_t *A) {
     }
     return 1;
   }
-};
+}
 
 static inline mzed_t *random_mzed_t(gf2e *ff, int m, int n) {
   mzed_t *A  = mzed_init(ff,m,n);

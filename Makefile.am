@@ -46,34 +46,33 @@ TESTLIBADD = -lm4ri -lm4rie -lgivaro -lgmpxx -lgmp -lm -lstdc++
 TESTLDADD = ${M4RIE_GIVARO_LDFLAGS}
 TESTLDFLAGS =
 
-check_PROGRAMS=test_trsm test_elimination test_multiplication test_smallops test_ple
-test_elimination_SOURCES=tests/test_elimination.cc tests/testing.h
-test_elimination_LDADD= ${TESTLDADD} ${TESTLIBADD}
-test_elimination_LDFLAGS= ${TESTLDFLAGS}
-test_elimination_CXXFLAGS=${TESTCXXFLAGS}
+check_PROGRAMS = test_trsm test_elimination test_multiplication test_smallops test_ple test_gf2e
+test_elimination_SOURCES = tests/test_elimination.cc tests/testing.h
+test_elimination_LDADD =  ${TESTLDADD} ${TESTLIBADD}
+test_elimination_LDFLAGS = ${TESTLDFLAGS}
+test_elimination_CXXFLAGS = ${TESTCXXFLAGS}
 
-test_multiplication_SOURCES=tests/test_multiplication.cc tests/testing.h
-test_multiplication_LDADD=${TESTLDADD} ${TESTLIBADD}
-test_multiplication_LDFLAGS= ${TESTLDFLAGS}
-test_multiplication_CXXFLAGS=${TESTCXXFLAGS}
+test_multiplication_SOURCES = tests/test_multiplication.cc tests/testing.h
+test_multiplication_LDADD = ${TESTLDADD} ${TESTLIBADD}
+test_multiplication_LDFLAGS = ${TESTLDFLAGS}
+test_multiplication_CXXFLAGS = ${TESTCXXFLAGS}
 
-test_smallops_SOURCES=tests/test_smallops.cc tests/testing.h
-test_smallops_LDADD=${TESTLDADD} ${TESTLIBADD}
-test_smallops_LDFLAGS= ${TESTLDFLAGS}
-test_smallops_CXXFLAGS=${TESTCXXFLAGS}
+test_smallops_SOURCES = tests/test_smallops.cc tests/testing.h
+test_smallops_LDADD = ${TESTLDADD} ${TESTLIBADD}
+test_smallops_LDFLAGS = ${TESTLDFLAGS}
+test_smallops_CXXFLAGS = ${TESTCXXFLAGS}
 
-test_trsm_SOURCES=tests/test_trsm.cc tests/testing.h
-test_trsm_LDADD=${TESTLDADD} ${TESTLIBADD}
-test_trsm_LDFLAGS= ${TESTLDFLAGS}
-test_trsm_CXXFLAGS=${TESTCXXFLAGS}
+test_trsm_SOURCES = tests/test_trsm.cc tests/testing.h
+test_trsm_LDADD = ${TESTLDADD} ${TESTLIBADD}
+test_trsm_LDFLAGS = ${TESTLDFLAGS}
+test_trsm_CXXFLAGS = ${TESTCXXFLAGS}
 
-test_ple_SOURCES=tests/test_ple.cc tests/testing.h
-test_ple_LDADD=${TESTLDADD} ${TESTLIBADD}
-test_ple_LDFLAGS= ${TESTLDFLAGS}
-test_ple_CXXFLAGS=${TESTCXXFLAGS}
+test_ple_SOURCES = tests/test_ple.cc tests/testing.h
+test_ple_LDADD = ${TESTLDADD} ${TESTLIBADD}
+test_ple_LDFLAGS = ${TESTLDFLAGS}
+test_ple_CXXFLAGS = ${TESTCXXFLAGS}
 
-
-TESTS=test_trsm test_elimination test_multiplication test_smallops test_ple
+TESTS = test_trsm test_elimination test_multiplication test_smallops test_ple
 
 # benchmarketing
 

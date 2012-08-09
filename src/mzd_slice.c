@@ -23,7 +23,7 @@
 /**
  * \brief Add A to coefficient of X^t but perform modular reductions on the fly.
  *
- * B[0] += (A*X^t % minpoly)[0] , ...,  B[degree-1] += (A*X^t % minpoly)[degree-1]
+ * (A + X^t % minpoly)
  *
  * \param ff Finite field
  * \param A Matrix
