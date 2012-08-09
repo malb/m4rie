@@ -1,9 +1,6 @@
-#include <gf2e_cxx/finite_field_givaro.h>
 #include <m4rie/m4rie.h>
 #include <cpucycles.h>
 #include "benchmarking.h"
-
-using namespace M4RIE;
 
 struct elim_params {
   rci_t k; 
@@ -18,8 +15,7 @@ int run_mzed(void *_p, unsigned long long *data, int *data_len) {
   struct elim_params *p = (struct elim_params *)_p;
   *data_len = 2;
 
-  FiniteField *F = (FiniteField*)(new GFqDom<int>(2,p->k));
-  gf2e *ff = gf2e_init_givgfq(F);
+  gf2e *ff = gf2e_init(irreducible_polynomials[p->k][1]);
 
   mzed_t *A = mzed_init(ff,p->m,p->n);
   mzed_randomize(A);
@@ -42,7 +38,6 @@ int run_mzed(void *_p, unsigned long long *data, int *data_len) {
 
   mzed_free(A);
   gf2e_free(ff);
-  delete F;
   return 0;
 }
 
@@ -50,8 +45,7 @@ int run_mzd_slice(void *_p, unsigned long long *data, int *data_len) {
   struct elim_params *p = (struct elim_params *)_p;
   *data_len = 2;
 
-  FiniteField *F = (FiniteField*)(new GFqDom<int>(2,p->k));
-  gf2e *ff = gf2e_init_givgfq(F);
+  gf2e *ff = gf2e_init(irreducible_polynomials[p->k][1]);
 
   mzd_slice_t *A = mzd_slice_init(ff,p->m,p->n);
   mzd_slice_randomize(A);
@@ -91,7 +85,6 @@ int run_mzd_slice(void *_p, unsigned long long *data, int *data_len) {
 
   mzd_slice_free(A);
   gf2e_free(ff);
-  delete F;
   return 0;
 }
 

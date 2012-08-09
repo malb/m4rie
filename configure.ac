@@ -56,17 +56,6 @@ if test -n $m4rie_config_m4riprefix; then
    AC_SUBST(M4RIE_M4RI_CFLAGS)
 fi
 
-AC_ARG_WITH(givaro,
-        AS_HELP_STRING([--with-givaro@<:@=VALUE@:>@], [Optional prefix for Givaro library (for testing).]),[m4rie_config_givaroprefix=$withval])
-if test -n $m4rie_config_givaroprefix; then
-   M4RIE_GIVARO_PREFIX=${m4rie_givaro_prefix}
-   AC_SUBST(M4RIE_GIVARO_PREFIX)
-   M4RIE_GIVARO_LDFLAGS="-L${m4rie_config_givaroprefix}/lib"
-   AC_SUBST(M4RIE_GIVARO_LDFLAGS)
-   M4RIE_GIVARO_CXXFLAGS="-I${m4rie_config_givaroprefix}/include"
-   AC_SUBST(M4RIE_GIVARO_CXXFLAGS)
-fi
-
 AX_M4RI_CFLAGS()
 M4RI_CFLAGS=$ax_cv_m4ri_cflags
 AC_SUBST(M4RI_CFLAGS)

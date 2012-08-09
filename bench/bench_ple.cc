@@ -1,9 +1,6 @@
-#include <gf2e_cxx/finite_field_givaro.h>
 #include <m4rie/m4rie.h>
 #include <cpucycles.h>
 #include "benchmarking.h"
-
-using namespace M4RIE;
 
 struct ple_params {
   rci_t k; 
@@ -18,8 +15,7 @@ int run(void *_p, unsigned long long *data, int *data_len) {
   struct ple_params *p = (struct ple_params *)_p;
   *data_len = 2;
 
-  FiniteField *F = (FiniteField*)(new GFqDom<int>(2,p->k));
-  gf2e *ff = gf2e_init_givgfq(F);
+  gf2e *ff = gf2e_init(irreducible_polynomials[p->k][1]);
   mzed_t *A = mzed_init(ff, p->m, p->n);
   mzed_randomize(A);
 
@@ -44,7 +40,6 @@ int run(void *_p, unsigned long long *data, int *data_len) {
   mzp_free(P);
   mzp_free(Q);
   gf2e_free(ff);
-  delete F;
   return 0;
 }
 

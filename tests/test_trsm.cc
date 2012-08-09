@@ -1,5 +1,5 @@
 /**
- * \file test_multiplication.cc
+ * \file test_trsm.cc
  * \brief Test code for triangular system solving with matrices (TRSM) routines
  *
  * \author Martin Albrecht <martinralbrecht@googlemail.com>
@@ -25,10 +25,6 @@
 ******************************************************************************/
 
 #include "testing.h"
-#include <gf2e_cxx/finite_field_givaro.h>
-
-using namespace M4RIE;
-
 
 mzed_t *random_mzed_t_upper_left(gf2e *ff, rci_t m) {
   const int bitmask = (1<<ff->degree)-1;
@@ -154,7 +150,7 @@ int test_mzed_trsm_upper_left(gf2e *ff, rci_t m, rci_t n) {
   m4rie_check( mzed_canary_is_alive(B) );
   m4rie_check( mzed_canary_is_alive(U) );
   m4rie_check( mzed_canary_is_alive(X) );
-  
+
   m4rie_check(mzed_is_zero(B) == 1);
 
   mzed_free(U);
@@ -201,7 +197,7 @@ int test_mzed_trsm_upper_left_echelonize(gf2e *ff, rci_t m, rci_t n) {
   mzed_free_window(U);
   mzed_free_window(B);
   mzed_free(C);
-  
+
   return fail_ret;
 }
 
@@ -270,7 +266,7 @@ int test_mzed_trsm_lower_left(gf2e *ff, rci_t m, rci_t n) {
   m4rie_check( mzed_canary_is_alive(B) );
   m4rie_check( mzed_canary_is_alive(L) );
   m4rie_check( mzed_canary_is_alive(X) );
-  
+
   m4rie_check(mzed_is_zero(B) == 1);
 
   mzed_free(L);
@@ -333,7 +329,7 @@ int test_mzd_slice_trsm_upper_left(gf2e *ff, rci_t m, rci_t n) {
 
   m4rie_check( mzd_slice_canary_is_alive(U) );
   m4rie_check( mzd_slice_canary_is_alive(X) );
-  
+
   m4rie_check(mzd_slice_cmp(U,H) == 0);
 
   for(rci_t i=0; i<m; i++) {
@@ -412,7 +408,7 @@ int test_mzd_slice_trsm_lower_left(gf2e *ff, rci_t m, rci_t n) {
 
   m4rie_check( mzd_slice_canary_is_alive(L) );
   m4rie_check( mzd_slice_canary_is_alive(X) );
-  
+
   m4rie_check(mzd_slice_cmp(L,H) == 0);
 
   for(rci_t i=0; i<m; i++) {
@@ -476,8 +472,7 @@ int main(int argc, char **argv) {
   int fail_ret = 0;
 
   for(int k=2; k<=10; k++) {
-    FiniteField F = FiniteField(k);
-    ff[k] = gf2e_init_givgfq(&F);
+    ff[k] = gf2e_init(irreducible_polynomials[k][1]);
   }
 
   for(int k=2; k<=10; k++) {

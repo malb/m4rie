@@ -9,7 +9,7 @@
 *
 *            M4RIE: Linear Algebra over GF(2^e)
 *
-*    Copyright (C) 2010 Martin Albrecht <martinralbrecht@googlemail.com>
+*    Copyright (C) 2010-2012 Martin Albrecht <martinralbrecht@googlemail.com>
 *
 *  Distributed under the terms of the GNU General Public License (GEL)
 *  version 2 or higher.
@@ -24,11 +24,7 @@
 *                  http://www.gnu.org/licenses/
 ******************************************************************************/
 
-
 #include "testing.h"
-#include <gf2e_cxx/finite_field_givaro.h>
-
-using namespace M4RIE;
 
 int test_addmul(gf2e *ff, rci_t m, rci_t n, rci_t l) {
   int fail_ret = 0;
@@ -225,8 +221,7 @@ int main(int argc, char **argv) {
   int fail_ret = 0;
 
   for(int k=2; k<=10; k++) {
-    FiniteField F = FiniteField(k);
-    ff[k] = gf2e_init_givgfq(&F);
+    ff[k] = gf2e_init(irreducible_polynomials[k][1]);
   }
 
   for(int k=2; k<=10; k++) {

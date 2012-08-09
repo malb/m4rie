@@ -41,9 +41,9 @@ libm4rie_la_LDFLAGS = -release 0.0.$(RELEASE) -no-undefined ${M4RIE_M4RI_LDFLAGS
 libm4rie_la_LIBADD = -lm4ri
 
 #testing
-TESTCXXFLAGS = ${AM_CFLAGS} @CXXFLAGS@ ${M4RIE_M4RI_CFLAGS} ${M4RIE_GIVARO_CXXFLAGS} ${M4RI_CFLAGS} -I./tests
-TESTLIBADD = -lm4ri -lm4rie -lgivaro -lgmpxx -lgmp -lm -lstdc++
-TESTLDADD = ${M4RIE_GIVARO_LDFLAGS}
+TESTCXXFLAGS = ${AM_CFLAGS} @CXXFLAGS@ ${M4RIE_M4RI_CFLAGS} ${M4RI_CFLAGS} -I./tests
+TESTLIBADD = -lm4ri -lm4rie
+TESTLDADD =
 TESTLDFLAGS =
 
 check_PROGRAMS = test_trsm test_elimination test_multiplication test_smallops test_ple

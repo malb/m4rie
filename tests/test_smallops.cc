@@ -1,8 +1,30 @@
+/**
+ * \file test_smallops.cc
+ * \brief Test code for auxilary routines
+ *
+ * \author Martin Albrecht <martinralbrecht@googlemail.com>
+ */
+
+/******************************************************************************
+*
+*            M4RIE: Linear Algebra over GF(2^e)
+*
+*    Copyright (C) 2010-2012 Martin Albrecht <martinralbrecht@googlemail.com>
+*
+*  Distributed under the terms of the GNU General Public License (GEL)
+*  version 2 or higher.
+*
+*    This code is distributed in the hope that it will be useful,
+*    but WITHOUT ANY WARRANTY; without even the implied warranty of
+*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+*    General Public License for more details.
+*
+*  The full text of the GPL is available at:
+*
+*                  http://www.gnu.org/licenses/
+******************************************************************************/
+
 #include "testing.h"
-
-#include <gf2e_cxx/finite_field_givaro.h>
-
-using namespace M4RIE;
 
 int test_slice(gf2e *ff, int m, int n) {
   int fail_ret = 0;
@@ -160,8 +182,7 @@ int main(int argc, char **argv) {
   int fail_ret = 0;
 
   for(int k=2; k<=10; k++) {
-    FiniteField F = FiniteField(k);
-    ff[k] = gf2e_init_givgfq(&F);
+    ff[k] = gf2e_init(irreducible_polynomials[k][1]);
   }
 
   for(int k=2; k<=8; k++) {
