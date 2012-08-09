@@ -46,7 +46,7 @@ TESTLIBADD = -lm4ri -lm4rie -lgivaro -lgmpxx -lgmp -lm -lstdc++
 TESTLDADD = ${M4RIE_GIVARO_LDFLAGS}
 TESTLDFLAGS =
 
-check_PROGRAMS = test_trsm test_elimination test_multiplication test_smallops test_ple test_gf2e
+check_PROGRAMS = test_trsm test_elimination test_multiplication test_smallops test_ple
 test_elimination_SOURCES = tests/test_elimination.cc tests/testing.h
 test_elimination_LDADD =  ${TESTLDADD} ${TESTLIBADD}
 test_elimination_LDFLAGS = ${TESTLDFLAGS}

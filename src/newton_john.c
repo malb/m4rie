@@ -555,7 +555,7 @@ void mzed_trsm_upper_left_newton_john(const mzed_t *U, mzed_t *B) {
 }
 
 void mzd_slice_trsm_lower_left_newton_john(const mzd_slice_t *L, mzd_slice_t *B) {
-  assert(B->x[0]->offset = 0);
+  assert(B->x[0]->offset == 0);
   assert(L->finite_field == B->finite_field);
   assert(L->nrows == L->ncols);
   assert(B->nrows == L->ncols);
@@ -581,7 +581,7 @@ void mzd_slice_trsm_lower_left_newton_john(const mzd_slice_t *L, mzd_slice_t *B)
 }
 
 void mzd_slice_trsm_upper_left_newton_john(const mzd_slice_t *U, mzd_slice_t *B) {
-  assert(B->x[0]->offset = 0);
+  assert(B->x[0]->offset == 0);
   assert(U->finite_field == B->finite_field);
   assert(U->nrows == U->ncols);
   assert(B->nrows == U->ncols);
