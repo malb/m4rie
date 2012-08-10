@@ -48,7 +48,7 @@ rci_t mzed_ple_naive(mzed_t *A, mzp_t *P, mzp_t *Q) {
       mzed_row_swap(A, row_pos, i);
 
       if(j+1 < A->ncols) {
-        mzed_rescale_row(A, row_pos, j+1, ff->mul[ff->inv[tmp]]);
+        mzed_rescale_row(A, row_pos, j+1, ff->mul[gf2e_inv(ff, tmp)]);
 
         for(rci_t l=row_pos+1; l<A->nrows; l++) {
           if ((tmp = mzed_read_elem(A,l,j)))

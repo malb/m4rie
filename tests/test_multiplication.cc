@@ -147,7 +147,7 @@ int test_scalar(gf2e *ff, rci_t m, rci_t n) {
     mzed_free(C3);
   }
 
-  const word a_inv = ff->inv[a];
+  const word a_inv = gf2e_inv(ff, a);
 
   mzed_t *B0 = mzed_init(ff, m, n);
   mzed_t *B1 = random_mzed_t(ff, m, n);

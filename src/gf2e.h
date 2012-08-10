@@ -47,6 +47,7 @@ static inline word gf2x_mul(const word a, const word b, unsigned int d) {
 
 /**
  * \brief Degree of elements in GF(2)[x].
+ *
  */
 
 static inline unsigned int gf2x_deg(word a) {
@@ -109,6 +110,7 @@ static inline word gf2x_invmod(word a, word b, unsigned int d) {
   return lastx;
 }
 
+
 /**
  * \brief \GF2E
  */
@@ -117,7 +119,6 @@ typedef struct {
   unsigned int degree; /**< The degree \e. */
   word minpoly;   /**<  Irreducible polynomial of degree \e. */
 
-  word *inv; /**< inv[a] holds \f$a^{-1}\f$. */
   word *pow_gen;   /**< pow_gen[i] holds \f$a^i / <f>\f$ for \f$a\f$ a generator of this field.  */
 
   word **mul;   /**<
@@ -140,6 +141,10 @@ gf2e *gf2e_init(const word minpoly);
  */
 
 void gf2e_free(gf2e *ff);
+
+static inline word gf2e_inv(const gf2e *ff, word a) {
+  return gf2x_invmod(a, ff->minpoly, ff->degree);
+}
 
 /**
  * Return the width used for storing elements of ff

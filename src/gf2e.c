@@ -35,12 +35,6 @@ gf2e *gf2e_init(const word minpoly) {
     }
   }
 
-  ff->inv = (word *)m4ri_mm_calloc(order, sizeof(word));
-  ff->inv[0] = 1;
-  for(unsigned int i=1; i<order; i++) {
-    ff->inv[i] = gf2x_invmod(i, ff->minpoly, ff->degree);
-  }
-
   m4ri_mm_free(red);
 
   return ff;
@@ -51,7 +45,6 @@ void gf2e_free(gf2e *ff) {
     m4ri_mm_free(ff->mul[i]);
   }
   m4ri_mm_free(ff->mul);
-  m4ri_mm_free(ff->inv);
   m4ri_mm_free(ff->pow_gen);
 }
 

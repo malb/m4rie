@@ -225,7 +225,7 @@ rci_t mzed_echelonize_naive(mzed_t *A, int full) {
     for(r=start_row; r<nr; r++) {
       x = mzed_read_elem(A, r, c);
       if (x) {
-        mzed_rescale_row(A, r, c, ff->mul[ff->inv[x]]);
+        mzed_rescale_row(A, r, c, ff->mul[gf2e_inv(ff, x)]);
         mzd_row_swap(A->x, r, start_row);
         if (full)
           elim_start = 0;

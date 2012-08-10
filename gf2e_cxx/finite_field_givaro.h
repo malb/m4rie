@@ -49,11 +49,6 @@ static inline gf2e *gf2e_init_givgfq(M4RIE::FiniteField *givgfq) {
       ff->mul[i][j] = givgfq->log2pol(prod);
     }
   }
-  ff->inv = (word*)m4ri_mm_calloc(__M4RI_TWOPOW(givgfq->exponent()), sizeof(word));
-  for(unsigned int i = 0; i<__M4RI_TWOPOW(givgfq->exponent()); i++) {
-    int tmp = givgfq->inv(tmp, givgfq->pol2log(i));
-    ff->inv[i] = givgfq->log2pol(tmp);
-  }
   word tmp = 1;
   for(unsigned int i = 0; i<ff->degree; i++) {
     tmp = ff->mul[2][tmp];
