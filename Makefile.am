@@ -22,7 +22,8 @@ libm4rie_la_SOURCES = m4rie/gf2e.c \
 
 pkgincludesubdir = $(includedir)/m4rie
 
-pkgincludesub_HEADERS = m4rie/gf2e.h \
+pkgincludesub_HEADERS = m4rie/gf2x.h \
+	m4rie/gf2e.h \
 	m4rie/mzed.h \
 	m4rie/m4rie.h \
 	m4rie/m4ri_functions.h \

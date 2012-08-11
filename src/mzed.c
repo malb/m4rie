@@ -134,7 +134,7 @@ mzed_t *_mzed_mul_naive(mzed_t *C, const mzed_t *A, const mzed_t *B) {
   for (rci_t i=0; i<C->nrows; ++i) {
     for (rci_t j=0; j<C->ncols; ++j) {
       for (rci_t k=0; k<A->ncols; ++k) {
-        mzed_add_elem(C, i, j, ff->mul[mzed_read_elem(A,i, k)][mzed_read_elem(B, k, j)]);
+        mzed_add_elem(C, i, j, gf2e_mul(ff, mzed_read_elem(A,i, k), mzed_read_elem(B, k, j)));
       }
     }
   }
