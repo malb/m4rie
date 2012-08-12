@@ -37,16 +37,19 @@
  * \brief \GF2E
  */
 
-typedef struct {
+typedef struct gf2e_struct gf2e;
+
+struct gf2e_struct {
   unsigned int degree; /**< The degree \e. */
   word minpoly;   /**<  Irreducible polynomial of degree \e. */
 
-  word *pow_gen;   /**< pow_gen[i] holds \f$a^i / <f>\f$ for \f$a\f$ a generator of this field.  */
+  word *pow_gen; /**< pow_gen[i] holds \f$a^i / <f>\f$ for \f$a\f$ a generator of this field.  */
+  word *red;     /**< red[i] holds precomputed reductors for the minpoly. \f$\f$. */
+  word **_mul;   /**< mul[a][b] holds \f$ a \cdot b\f for small fields$. */
 
-  word **mul;   /**<
-                 * mul[a][b] holds \f$ a \cdot b\f$.
-                 * \warning this entry will disappear in future releases. */
-} gf2e;
+  word (*inv)(const gf2e *ff, const word a); /**< implements a^(-1) for a in \GF2E */
+  word (*mul)(const gf2e *ff, const word a, const word b); /**< implements a*b for a in \GF2E */
+};
 
 /**
  * Create finite field from minimal polynomial
@@ -55,25 +58,6 @@ typedef struct {
  */
 
 gf2e *gf2e_init(const word minpoly);
-
-/**
- * Generate gf2e::pow_gen.
- *
- * \param ff Finite field.
- */
-
-static inline void gf2e_make_pow_gen(gf2e *ff) {
-  unsigned int n = 2*ff->degree-1;
-  word *m = (word*)m4ri_mm_malloc( n * sizeof(word));
-  for(unsigned int i=0; i<n; i++) {
-    m[i] = 1<<i;
-    for(unsigned int j=i; j>=ff->degree; j--) {
-      if (m[i] & 1<<j)
-        m[i] ^= ff->minpoly<<(j - ff->degree);
-    }
-  }
-  ff->pow_gen = m;
-}
 
 /**
  * Free ff
@@ -92,10 +76,31 @@ static inline word gf2e_inv(const gf2e *ff, word a) {
 }
 
 /**
- * \brief a*b in \GF2E
+ * \brief a*b in \GF2E using a table lookups.
  */
+
+static inline word _gf2e_mul_table(const gf2e *ff, const word a, const word b) {
+  return ff->_mul[a][b];
+}
+
+/**
+ * \brief a*b in \GF2E using a gf2x_mul() lookups.
+ */
+
+static inline word _gf2e_mul_arith(const gf2e *ff, const word a, const word b) {
+  const word res = gf2x_mul(a, b, ff->degree);
+  return res ^ ff->red[res>>ff->degree];
+}
+
+/**
+ * \brief a*b in \GF2E.
+ */
+
 static inline word gf2e_mul(const gf2e *ff, const word a, const word b) {
-  return ff->mul[a][b];
+  if( ff->_mul != NULL )
+    return _gf2e_mul_table(ff, a, b);
+  else
+    return _gf2e_mul_arith(ff, a, b);
 }
 
 /**

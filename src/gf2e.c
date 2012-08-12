@@ -1,7 +1,6 @@
 #include <m4ri/m4ri.h>
 #include "gf2e.h"
 
-
 gf2e *gf2e_init(const word minpoly) {
   gf2e *ff = (gf2e*)m4ri_mm_calloc(1, sizeof(gf2e));
 
@@ -10,42 +9,59 @@ gf2e *gf2e_init(const word minpoly) {
       ff->degree = i;
 
   ff->minpoly = minpoly;
-  gf2e_make_pow_gen(ff);
 
-  const size_t order = __M4RI_TWOPOW(ff->degree);
+  const unsigned int order = __M4RI_TWOPOW(ff->degree);
 
-  word *red = (word*)m4ri_mm_calloc(order, sizeof(word));
-
+  /** red **/
+  ff->red = (word*)m4ri_mm_calloc(order, sizeof(word));
   for(unsigned int i=1; i<order; i++) {
     word tmp = 0;
     for(unsigned int j=0; j<ff->degree; j++)
       if (__M4RI_TWOPOW(j) & i)
         tmp ^= minpoly<<j;
-    assert(red[tmp>>ff->degree] == 0);
-    red[tmp>>ff->degree] = tmp;
+    assert(ff->red[tmp>>ff->degree] == 0);
+    ff->red[tmp>>ff->degree] = tmp;
   }
 
-  ff->mul = (word **)m4ri_mm_calloc(order, sizeof(word *));
-  ff->mul[0] = (word *)m4ri_mm_calloc(order, sizeof(word));
-  for(unsigned int i = 1; i<order; i++) {
-    ff->mul[i] = (word *)m4ri_mm_calloc(order, sizeof(word));
-    for(unsigned int j=1; j<order; j++) {
-      word res = gf2x_mul(i,j, ff->degree);
-      ff->mul[i][j] = res ^ red[res>>ff->degree];
+  /** pow_gen: X^i **/
+  unsigned int n = 2*ff->degree-1;
+  ff->pow_gen = (word*)m4ri_mm_malloc( n * sizeof(word));
+  for(unsigned int i=0; i<n; i++) {
+    ff->pow_gen[i] = 1<<i;
+    for(unsigned int j=i; j>=ff->degree; j--) {
+      if (ff->pow_gen[i] & 1<<j)
+        ff->pow_gen[i] ^= ff->minpoly<<(j - ff->degree);
     }
   }
 
-  m4ri_mm_free(red);
-
+  if(ff->degree <= 8) {
+    /** mul tables **/
+    ff->_mul = (word **)m4ri_mm_calloc(order, sizeof(word *));
+    ff->_mul[0] = (word *)m4ri_mm_calloc(order, sizeof(word));
+    for(unsigned int i = 1; i<order; i++) {
+      ff->_mul[i] = (word *)m4ri_mm_calloc(order, sizeof(word));
+      for(unsigned int j=1; j<order; j++) {
+        word res = gf2x_mul(i,j, ff->degree);
+        ff->_mul[i][j] = res ^ ff->red[res>>ff->degree];
+      }
+    }
+    ff->mul = _gf2e_mul_table;
+  } else {
+    ff->mul = _gf2e_mul_arith;
+  }
+  ff->inv = gf2e_inv;
   return ff;
 }
 
 void gf2e_free(gf2e *ff) {
-  for(size_t i=0; i<__M4RI_TWOPOW(ff->degree); i++) {
-    m4ri_mm_free(ff->mul[i]);
+  if (ff->_mul) {
+    for(size_t i=0; i<__M4RI_TWOPOW(ff->degree); i++) {
+      m4ri_mm_free(ff->_mul[i]);
+    }
+    m4ri_mm_free(ff->_mul);
   }
-  m4ri_mm_free(ff->mul);
   m4ri_mm_free(ff->pow_gen);
+  m4ri_mm_free(ff->red);
 }
 
 const word _irreducible_polynomials_degree_02[   2]  = {    1, 0x00007 };

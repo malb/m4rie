@@ -38,24 +38,14 @@ namespace M4RIE {
 };
 
 static inline gf2e *gf2e_init_givgfq(M4RIE::FiniteField *givgfq) {
-  gf2e *ff = (gf2e*)m4ri_mm_malloc(sizeof(gf2e));
-  ff->degree = givgfq->exponent();
-
-  ff->mul = (word **)m4ri_mm_calloc(__M4RI_TWOPOW(givgfq->exponent()), sizeof(word *));
-  for(unsigned int i = 0; i<__M4RI_TWOPOW(givgfq->exponent()); i++) {
-    ff->mul[i] = (word *)m4ri_mm_calloc(__M4RI_TWOPOW(givgfq->exponent()),sizeof(word));
-    for(unsigned int j=0; j<__M4RI_TWOPOW(givgfq->exponent()); j++) {
-      int prod = givgfq->mul(prod, givgfq->pol2log(i) , givgfq->pol2log(j));
-      ff->mul[i][j] = givgfq->log2pol(prod);
-    }
+  word minpoly = givgfq->pol2log(1);
+  unsigned int degree = givgfq->exponent()
+  for(unsigned int i = 0; i<degree; i++) {
+    minpoly = givgfq->mul(minpoly, givgfq->pol2log(2) , minpoly);
   }
-  word tmp = 1;
-  for(unsigned int i = 0; i<ff->degree; i++) {
-    tmp = ff->mul[2][tmp];
-  }
-  ff->minpoly = tmp ^ (1<<(ff->degree));
-  gf2e_make_pow_gen(ff);
-  return ff;
+  minpoly = givgfq->log2pol(minpoly);
+  minpoly = minpoly ^ (1<<degree);
+  return gf2e_init(minpoly);
 }
 
 static inline int mzed_read_elem_log(const mzed_t *a, const size_t row, const size_t col, M4RIE::FiniteField *ff) {

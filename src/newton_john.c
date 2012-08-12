@@ -133,18 +133,18 @@ rci_t _mzed_gauss_submatrix_full(mzed_t *A, const rci_t r, const rci_t c, const 
       /* first we need to clear the first columns */
       for (l=0; l<j-c; l++) {
         tmp = mzed_read_elem(A, i, c+l);
-        if (tmp) mzed_add_multiple_of_row(A, i, A, r+l, ff->mul[tmp], c+l);
+        if (tmp) mzed_add_multiple_of_row(A, i, A, r+l, tmp, c+l);
       }
       /* pivot? */
       const word x = mzed_read_elem(A, i, j);
       if (x) {
-        mzed_rescale_row(A, i, j, ff->mul[gf2e_inv(ff, x)]);
+        mzed_rescale_row(A, i, j, gf2e_inv(ff, x));
         mzd_row_swap(A->x, i, start_row);
 
         /* clear above */
         for (l=r; l<start_row; l++) {
           tmp = mzed_read_elem(A, l, j);
-          if (tmp) mzed_add_multiple_of_row(A, l, A, start_row, ff->mul[tmp], j);
+          if (tmp) mzed_add_multiple_of_row(A, l, A, start_row, tmp, j);
         }
         start_row++;
         found = 1;
@@ -182,7 +182,7 @@ njt_mzed_t *mzed_make_table(njt_mzed_t *T, const mzed_t *A, const rci_t r, const
   wi_t j;
 
   for(int i=0; i<degree; i++) {
-    mzed_add_multiple_of_row(T->M, i, A, r, A->finite_field->mul[1ULL<<i], c);
+    mzed_add_multiple_of_row(T->M, i, A, r, 1ULL<<i, c);
   }
 
   mzd_set_ui(T->T->x,0);
@@ -364,13 +364,13 @@ rci_t mzed_ple_newton_john(mzed_t *A, mzp_t *P, mzp_t *Q) {
       mzed_row_swap(A, row_pos, i);
 
       if (j+1 < A->ncols) {
-        mzed_rescale_row(A, row_pos, j+1, ff->mul[gf2e_inv(ff, tmp)]);
-        mzed_make_table(T0, A, row_pos, j+1);      
+        mzed_rescale_row(A, row_pos, j+1, gf2e_inv(ff, tmp));
+        mzed_make_table(T0, A, row_pos, j+1);
         mzed_process_rows(A, row_pos+1, A->nrows, j, T0);
       }
       row_pos++;
       col_pos = j + 1;
-    } else {  
+    } else {
       break;
     }
   }
@@ -524,7 +524,7 @@ void mzed_trsm_lower_left_newton_john(const mzed_t *L, mzed_t *B) {
   njt_mzed_t *T0 = njt_mzed_init(B->finite_field, B->ncols);
 
   for(rci_t i=0; i<B->nrows; i++) {
-    mzed_rescale_row(B, i, 0, ff->mul[gf2e_inv(ff, mzed_read_elem(L, i, i))]);
+    mzed_rescale_row(B, i, 0, gf2e_inv(ff, mzed_read_elem(L, i, i)));
     mzed_make_table(T0, B, i, 0);
     for(rci_t j=i+1; j<B->nrows; j++)
       mzd_combine(B->x, j, 0, B->x, j, 0, T0->T->x, T0->L[mzed_read_elem(L, j, i)], 0);
@@ -546,7 +546,7 @@ void mzed_trsm_upper_left_newton_john(const mzed_t *U, mzed_t *B) {
   njt_mzed_t *T0 = njt_mzed_init(B->finite_field, B->ncols);
 
   for(int i=B->nrows-1; i>=0; i--) {
-    mzed_rescale_row(B, i, 0, ff->mul[gf2e_inv(ff, mzed_read_elem(U, i, i))]);
+    mzed_rescale_row(B, i, 0, gf2e_inv(ff, mzed_read_elem(U, i, i)));
     mzed_make_table(T0, B, i, 0);
     for(rci_t j=0; j<i; j++)
       mzd_combine(B->x, j, 0, B->x, j, 0, T0->T->x, T0->L[mzed_read_elem(U, j, i)], 0);
@@ -570,7 +570,7 @@ void mzd_slice_trsm_lower_left_newton_john(const mzd_slice_t *L, mzd_slice_t *B)
   njt_mzed_t *T0 = njt_mzed_init(B->finite_field, B->ncols);
 
   for(rci_t i=0; i<B->nrows; i++) {
-    mzed_rescale_row(Be, i, 0, ff->mul[gf2e_inv(ff, mzd_slice_read_elem(L, i, i))]);
+    mzed_rescale_row(Be, i, 0, gf2e_inv(ff, mzd_slice_read_elem(L, i, i)));
     mzed_make_table(T0, Be, i, 0);
     for(rci_t j=i+1; j<Be->nrows; j++)
       mzd_combine(Be->x, j, 0, Be->x, j, 0, T0->T->x, T0->L[mzd_slice_read_elem(L, j, i)], 0);
@@ -596,7 +596,7 @@ void mzd_slice_trsm_upper_left_newton_john(const mzd_slice_t *U, mzd_slice_t *B)
   njt_mzed_t *T0 = njt_mzed_init(Be->finite_field, Be->ncols);
 
   for(int i=B->nrows-1; i>=0; i--) {
-    mzed_rescale_row(Be, i, 0, ff->mul[gf2e_inv(ff, mzd_slice_read_elem(U, i, i))]);
+    mzed_rescale_row(Be, i, 0, gf2e_inv(ff, mzd_slice_read_elem(U, i, i)));
     mzed_make_table(T0, Be, i, 0);
     for(rci_t j=0; j<i; j++)
       mzd_combine(Be->x, j, 0, Be->x, j, 0, T0->T->x, T0->L[mzd_slice_read_elem(U, j, i)], 0);

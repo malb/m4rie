@@ -26,6 +26,15 @@
 
 #include "testing.h"
 
+int test_gf2e(gf2e *ff) {
+  int fail_ret = 0;
+  for(word a=1; a < __M4RI_TWOPOW(ff->degree); a++) {
+    word a_inv = ff->inv(ff, a);
+    fail_ret += ((a == ff->inv(ff, a_inv)) ^ 1);
+  }
+  return fail_ret;
+}
+
 int test_slice(gf2e *ff, int m, int n) {
   int fail_ret = 0;
 
@@ -168,6 +177,8 @@ int test_batch(gf2e *ff, int m, int n) {
   m4rie_check( test_slice(ff, n, n) == 0);  printf("."); fflush(0);
   m4rie_check( test_add(ff, n, n) == 0) ;   printf("."); fflush(0);
   m4rie_check( test_slice_known_answers(ff, n, n) == 0); printf("."); fflush(0);
+
+  m4rie_check( test_gf2e(ff) == 0); printf("."); fflush(0);
 
   if (fail_ret == 0)
     printf(" passed\n");

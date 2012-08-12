@@ -195,11 +195,11 @@ static inline mzed_t *mzed_addmul_karatsuba(mzed_t *C, const mzed_t *A, const mz
  * \ingroup RowOperations
  */
 
-static inline void mzd_slice_rescale_row(mzd_slice_t *A, rci_t r, rci_t c, word *X) {
+static inline void mzd_slice_rescale_row(mzd_slice_t *A, rci_t r, rci_t c, word x) {
   mzd_slice_t *A_w = mzd_slice_init_window(A, r, 0, r+1, A->ncols);
   mzed_t *A_we = mzed_cling(NULL, A_w);
 
-  mzed_rescale_row(A_we, r, c, X);
+  mzed_rescale_row(A_we, r, c, x);
 
   mzed_slice(A_w, A_we);
   mzed_free(A_we);
