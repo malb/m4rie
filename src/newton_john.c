@@ -160,6 +160,7 @@ rci_t _mzed_gauss_submatrix_full(mzed_t *A, const rci_t r, const rci_t c, const 
 
 
 njt_mzed_t *mzed_make_table(njt_mzed_t *T, const mzed_t *A, const rci_t r, const rci_t c) {
+  assert(m4ri_radix > A->finite_field->degree);
   if (T == NULL)
     T = njt_mzed_init(A->finite_field, A->ncols);
 
@@ -185,7 +186,6 @@ njt_mzed_t *mzed_make_table(njt_mzed_t *T, const mzed_t *A, const rci_t r, const
     mzed_add_multiple_of_row(T->M, i, A, r, 1ULL<<i, c);
   }
 
-  mzd_set_ui(T->T->x,0);
   for(rci_t i=1; i < T->T->nrows; ++i) {
     word *ti = T->T->x->rows[i] + homeblock;
     word *ti1 = T->T->x->rows[i-1] + homeblock;
@@ -195,6 +195,22 @@ njt_mzed_t *mzed_make_table(njt_mzed_t *T, const mzed_t *A, const rci_t r, const
     T->L[id] = i;
 
     word *m = T->M->x->rows[rowneeded] + homeblock;
+
+    /* there might still be stuff left over from the previous table creation,
+       here we assume that this is at most 8 * m4ri_radix bits away. */
+    switch (homeblock) {
+    case 0:
+      break;
+    default:
+    case 8: *(ti-7) = 0;
+    case 7: *(ti-6) = 0;
+    case 6: *(ti-5) = 0;
+    case 5: *(ti-4) = 0;
+    case 4: *(ti-3) = 0;
+    case 3: *(ti-2) = 0;
+    case 2: *(ti-2) = 0;
+    case 1: *(ti-1) = 0;
+    }
 
     for(j = 0; j + 8 <= wide - 1; j += 8) {
       *ti++ = *m++ ^ *ti1++;
