@@ -189,10 +189,10 @@ int test_batch(gf2e *ff, int m, int n) {
 
 int main(int argc, char **argv) {
 
-  gf2e *ff[11];
+  gf2e *ff[17];
   int fail_ret = 0;
 
-  for(int k=2; k<=10; k++) {
+  for(int k=2; k<=16; k++) {
     ff[k] = gf2e_init(irreducible_polynomials[k][1]);
   }
 
@@ -214,7 +214,7 @@ int main(int argc, char **argv) {
     fail_ret += test_batch(ff[k], 217,   2);
   }
 
-  for(int k=2; k<=10; k++) {
+  for(int k=2; k<=16; k++) {
     gf2e_free(ff[k]);
   }
 

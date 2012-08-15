@@ -25,6 +25,7 @@
 ******************************************************************************/
 
 #include "testing.h"
+#include <unistd.h>
 
 int test_addmul(gf2e *ff, rci_t m, rci_t n, rci_t l) {
   int fail_ret = 0;
@@ -177,7 +178,7 @@ int test_scalar(gf2e *ff, rci_t m, rci_t n) {
 
 int test_batch(gf2e *ff, rci_t m, rci_t l, rci_t n) {
   int fail_ret = 0;
-  printf("mul: k: %2d, minpoly: 0x%03x m: %5d, l: %5d, n: %5d ",(int)ff->degree, (unsigned int)ff->minpoly, (int)m, (int)l, (int)n);
+  printf("mul: k: %2d, minpoly: 0x%05x m: %5d, l: %5d, n: %5d ",(int)ff->degree, (unsigned int)ff->minpoly, (int)m, (int)l, (int)n);
 
   m4rie_check(test_scalar(ff, m, m) == 0); printf("."); fflush(0);
   m4rie_check(test_scalar(ff, l, l) == 0); printf("."); fflush(0);
@@ -217,14 +218,30 @@ int test_batch(gf2e *ff, rci_t m, rci_t l, rci_t n) {
 int main(int argc, char **argv) {
   srandom(17);
 
-  gf2e *ff[11];
+  int runlong = 0;
+
+  int c;
+  while ((c = getopt(argc, argv, "l")) != -1) {
+    switch (c) {
+    case 'l':
+      runlong = 1;
+      break;
+    case '?':
+      printf(" -l   run long tests.\n");
+      abort();
+    default:
+      abort();
+    }
+  }
+
+  gf2e *ff[17];
   int fail_ret = 0;
 
-  for(int k=2; k<=10; k++) {
+  for(int k=2; k<=16; k++) {
     ff[k] = gf2e_init(irreducible_polynomials[k][1]);
   }
 
-  for(int k=2; k<=10; k++) {
+  for(int k=2; k<=16; k++) {
     fail_ret += test_batch(ff[k],   1,   1,   1);
     fail_ret += test_batch(ff[k],   1,   2,   3);
     fail_ret += test_batch(ff[k],  11,  12,  13);
@@ -232,11 +249,13 @@ int main(int argc, char **argv) {
     fail_ret += test_batch(ff[k],  13,   2,  90);
     fail_ret += test_batch(ff[k],  32,  33,  34);
     fail_ret += test_batch(ff[k],  63,  64,  65);
-    fail_ret += test_batch(ff[k], 127, 128, 129);
-    fail_ret += test_batch(ff[k], 200,  20, 112);
+    if(k<=12 || runlong) {
+      fail_ret += test_batch(ff[k], 127, 128, 129);
+      fail_ret += test_batch(ff[k], 200,  20, 112);
+    }
   };
 
-  for(int k=2; k<=10; k++) {
+  for(int k=2; k<=16; k++) {
     gf2e_free(ff[k]);
   }
 

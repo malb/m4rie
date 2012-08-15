@@ -29,6 +29,22 @@
 
 static inline void _poly_add(mzd_t **c, const mzd_t **a, const mzd_t **b,const unsigned int length) {
   switch(length) {
+  case 32: mzd_add(c[31], a[31], b[31]);
+  case 31: mzd_add(c[30], a[30], b[30]);
+  case 30: mzd_add(c[29], a[29], b[29]);
+  case 29: mzd_add(c[28], a[28], b[28]);
+  case 28: mzd_add(c[27], a[27], b[27]);
+  case 27: mzd_add(c[26], a[26], b[26]);
+  case 26: mzd_add(c[25], a[25], b[25]);
+  case 25: mzd_add(c[24], a[24], b[24]);
+  case 24: mzd_add(c[23], a[23], b[23]);
+  case 23: mzd_add(c[22], a[22], b[22]);
+  case 22: mzd_add(c[21], a[21], b[21]);
+  case 21: mzd_add(c[20], a[20], b[20]);
+  case 20: mzd_add(c[19], a[19], b[19]);
+  case 19: mzd_add(c[18], a[18], b[18]);
+  case 18: mzd_add(c[17], a[17], b[17]);
+  case 17: mzd_add(c[16], a[16], b[16]);
   case 16: mzd_add(c[15], a[15], b[15]);
   case 15: mzd_add(c[14], a[14], b[14]);
   case 14: mzd_add(c[13], a[13], b[13]);

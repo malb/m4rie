@@ -31,7 +31,7 @@
 #include <m4ri/m4ri.h>
 #include <m4rie/gf2x.h>
 
-#define M4RIE_MAX_DEGREE 10
+#define M4RIE_MAX_DEGREE 16
 
 /**
  * \brief \GF2E

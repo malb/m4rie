@@ -75,7 +75,7 @@ int test_equality(gf2e *ff, rci_t m, rci_t n) {
 
 int test_batch(gf2e *ff, rci_t m, rci_t n) {
   int fail_ret = 0;
-  printf("elim: k: %2d, minpoly: 0x%03x m: %5d, n: %5d ",(int)ff->degree, (unsigned int)ff->minpoly, (int)m, (int)n);
+  printf("elim: k: %2d, minpoly: 0x%05x m: %5d, n: %5d ",(int)ff->degree, (unsigned int)ff->minpoly, (int)m, (int)n);
 
   if(m == n) {
     m4rie_check(   test_equality(ff, m, n) == 0); printf("."); fflush(0);
@@ -96,14 +96,14 @@ int test_batch(gf2e *ff, rci_t m, rci_t n) {
 int main(int argc, char **argv) {
   srandom(17);
 
-  gf2e *ff[11];
+  gf2e *ff[17];
   int fail_ret = 0;
 
-  for(int k=2; k<=10; k++) {
+  for(int k=2; k<=16; k++) {
     ff[k] = gf2e_init(irreducible_polynomials[k][1]);
   }
 
-  for(int k=2; k<=10; k++) {
+  for(int k=2; k<=16; k++) {
     fail_ret += test_batch(ff[k],   2,   5);
     fail_ret += test_batch(ff[k],   5,  10);
     fail_ret += test_batch(ff[k],   1,   1);
@@ -127,7 +127,7 @@ int main(int argc, char **argv) {
     fail_ret += test_batch(ff[k],  10, 200);
   };
 
-  for(int k=2; k<=10; k++) {
+  for(int k=2; k<=16; k++) {
     gf2e_free(ff[k]);
   }
 
