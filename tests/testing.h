@@ -1,3 +1,4 @@
+#include <unistd.h>
 #include <m4rie.h>
 
 #define m4rie_check(expr)						\
@@ -201,4 +202,23 @@ static inline mzed_t *random_mzed_t_rank(gf2e *ff, const rci_t m, const rci_t n,
   };
   mzed_set_canary(A);
   return A;
+}
+
+
+static inline int parse_parameters(int argc, char **argv) {
+  int runlong = 0;
+  int c;
+  while ((c = getopt(argc, argv, "l")) != -1) {
+    switch (c) {
+    case 'l':
+      runlong = 1;
+      break;
+    case '?':
+      printf(" -l   run long tests.\n");
+      abort();
+    default:
+      abort();
+    }
+  }
+  return runlong;
 }

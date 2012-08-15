@@ -170,7 +170,7 @@ int test_batch(gf2e *ff, const rci_t m, const rci_t n, const rci_t r) {
   assert(r <= m);
   assert(r <= n);
 
-  printf("ple: k: %2d, minpoly: 0x%03x m: %5d, n: %5d, r: %5d ",(int)ff->degree, (unsigned int)ff->minpoly, (int)m, (int)n, (int)r);
+  printf("ple: k: %2d, minpoly: 0x%05x m: %5d, n: %5d, r: %5d ",(int)ff->degree, (unsigned int)ff->minpoly, (int)m, (int)n, (int)r);
 
   int fail_ret = 0;
 
@@ -207,42 +207,44 @@ int test_batch(gf2e *ff, const rci_t m, const rci_t n, const rci_t r) {
 int main(int argc, char **argv) {
   srandom(17);
 
-  gf2e *ff[11];
+  int runlong = parse_parameters(argc, argv);
+
+  gf2e *ff;
   int fail_ret = 0;
 
-  for(int k=2; k<=10; k++) {
-    ff[k] = gf2e_init(irreducible_polynomials[k][1]);
+  for(int k=2; k<=16; k++) {
+    ff = gf2e_init(irreducible_polynomials[k][1]);
+
+    fail_ret += test_batch(ff,   1,   1,   1);
+    fail_ret += test_batch(ff,   1,   2,   1);
+    fail_ret += test_batch(ff,   2,   2,   2);
+    fail_ret += test_batch(ff,   2,   3,   2);
+    fail_ret += test_batch(ff,  11,  12,  10);
+    fail_ret += test_batch(ff,  21,  22,  21);
+    fail_ret += test_batch(ff,  13,   2,   2);
+    fail_ret += test_batch(ff,  32,  33,  31);
+    fail_ret += test_batch(ff,  63,  64,  62);
+    if(k <= 12 || runlong) {
+      fail_ret += test_batch(ff, 127, 128, 125);
+      fail_ret += test_batch(ff, 127, 128,  12);
+      fail_ret += test_batch(ff, 127, 128,  37);
+      fail_ret += test_batch(ff, 127, 128,  67);
+      fail_ret += test_batch(ff, 200,  20,  19);
+    }
+    fail_ret += test_batch(ff,   1,   1,   0);
+    fail_ret += test_batch(ff,   1,   3,   1);
+    fail_ret += test_batch(ff,  11,  13,  10);
+    fail_ret += test_batch(ff,  21,  23,  20);
+    fail_ret += test_batch(ff,  13,  90,  10);
+    fail_ret += test_batch(ff,  32,  34,  31);
+    fail_ret += test_batch(ff,  63,  65,  62);
+    if(k <= 12 || runlong) {
+      fail_ret += test_batch(ff, 127, 129, 127);
+      fail_ret += test_batch(ff, 200, 112, 111);
+    }
+    gf2e_free(ff);
   }
 
-  for(int k=2; k<=10; k++) {
-    fail_ret += test_batch(ff[k],   1,   1,   1);
-    fail_ret += test_batch(ff[k],   1,   2,   1);
-    fail_ret += test_batch(ff[k],   2,   2,   2);
-    fail_ret += test_batch(ff[k],   2,   3,   2);
-    fail_ret += test_batch(ff[k],  11,  12,  10);
-    fail_ret += test_batch(ff[k],  21,  22,  21);
-    fail_ret += test_batch(ff[k],  13,   2,   2);
-    fail_ret += test_batch(ff[k],  32,  33,  31);
-    fail_ret += test_batch(ff[k],  63,  64,  62);
-    fail_ret += test_batch(ff[k], 127, 128, 125);
-    fail_ret += test_batch(ff[k], 127, 128,  12);
-    fail_ret += test_batch(ff[k], 127, 128,  37);
-    fail_ret += test_batch(ff[k], 127, 128,  67);
-    fail_ret += test_batch(ff[k], 200,  20,  19);
-    fail_ret += test_batch(ff[k],   1,   1,   0);
-    fail_ret += test_batch(ff[k],   1,   3,   1);
-    fail_ret += test_batch(ff[k],  11,  13,  10);
-    fail_ret += test_batch(ff[k],  21,  23,  20);
-    fail_ret += test_batch(ff[k],  13,  90,  10);
-    fail_ret += test_batch(ff[k],  32,  34,  31);
-    fail_ret += test_batch(ff[k],  63,  65,  62);
-    fail_ret += test_batch(ff[k], 127, 129, 127);
-    fail_ret += test_batch(ff[k], 200, 112, 111);
-  };
-
-  for(int k=2; k<=10; k++) {
-    gf2e_free(ff[k]);
-  }
   if (fail_ret == 0)
     printf("success\n");
 

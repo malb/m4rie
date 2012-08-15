@@ -25,7 +25,6 @@
 ******************************************************************************/
 
 #include "testing.h"
-#include <unistd.h>
 
 int test_addmul(gf2e *ff, rci_t m, rci_t n, rci_t l) {
   int fail_ret = 0;
@@ -218,45 +217,27 @@ int test_batch(gf2e *ff, rci_t m, rci_t l, rci_t n) {
 int main(int argc, char **argv) {
   srandom(17);
 
-  int runlong = 0;
+  int runlong = parse_parameters(argc, argv);
 
-  int c;
-  while ((c = getopt(argc, argv, "l")) != -1) {
-    switch (c) {
-    case 'l':
-      runlong = 1;
-      break;
-    case '?':
-      printf(" -l   run long tests.\n");
-      abort();
-    default:
-      abort();
-    }
-  }
-
-  gf2e *ff[17];
+  gf2e *ff;
   int fail_ret = 0;
 
   for(int k=2; k<=16; k++) {
-    ff[k] = gf2e_init(irreducible_polynomials[k][1]);
-  }
+    ff = gf2e_init(irreducible_polynomials[k][1]);
 
-  for(int k=2; k<=16; k++) {
-    fail_ret += test_batch(ff[k],   1,   1,   1);
-    fail_ret += test_batch(ff[k],   1,   2,   3);
-    fail_ret += test_batch(ff[k],  11,  12,  13);
-    fail_ret += test_batch(ff[k],  21,  22,  23);
-    fail_ret += test_batch(ff[k],  13,   2,  90);
-    fail_ret += test_batch(ff[k],  32,  33,  34);
-    fail_ret += test_batch(ff[k],  63,  64,  65);
+    fail_ret += test_batch(ff,   1,   1,   1);
+    fail_ret += test_batch(ff,   1,   2,   3);
+    fail_ret += test_batch(ff,  11,  12,  13);
+    fail_ret += test_batch(ff,  21,  22,  23);
+    fail_ret += test_batch(ff,  13,   2,  90);
+    fail_ret += test_batch(ff,  32,  33,  34);
+    fail_ret += test_batch(ff,  63,  64,  65);
     if(k<=12 || runlong) {
-      fail_ret += test_batch(ff[k], 127, 128, 129);
-      fail_ret += test_batch(ff[k], 200,  20, 112);
+      fail_ret += test_batch(ff, 127, 128, 129);
+      fail_ret += test_batch(ff, 200,  20, 112);
     }
-  };
 
-  for(int k=2; k<=16; k++) {
-    gf2e_free(ff[k]);
+    gf2e_free(ff);
   }
 
   return fail_ret;

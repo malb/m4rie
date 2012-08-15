@@ -96,39 +96,40 @@ int test_batch(gf2e *ff, rci_t m, rci_t n) {
 int main(int argc, char **argv) {
   srandom(17);
 
-  gf2e *ff[17];
+  int runlong = parse_parameters(argc, argv);
+
+  gf2e *ff;
   int fail_ret = 0;
 
   for(int k=2; k<=16; k++) {
-    ff[k] = gf2e_init(irreducible_polynomials[k][1]);
-  }
+    ff = gf2e_init(irreducible_polynomials[k][1]);
 
-  for(int k=2; k<=16; k++) {
-    fail_ret += test_batch(ff[k],   2,   5);
-    fail_ret += test_batch(ff[k],   5,  10);
-    fail_ret += test_batch(ff[k],   1,   1);
-    fail_ret += test_batch(ff[k],   1,   2);
-    fail_ret += test_batch(ff[k],  11,  12);
-    fail_ret += test_batch(ff[k],  21,  22);
-    fail_ret += test_batch(ff[k],  13,   2);
-    fail_ret += test_batch(ff[k],  32,  33);
-    fail_ret += test_batch(ff[k],  63,  64);
-    fail_ret += test_batch(ff[k], 127, 128);
-    fail_ret += test_batch(ff[k], 200,  20);
-    fail_ret += test_batch(ff[k],   1,   1);
-    fail_ret += test_batch(ff[k],   1,   3);
-    fail_ret += test_batch(ff[k],  11,  13);
-    fail_ret += test_batch(ff[k],  21,  23);
-    fail_ret += test_batch(ff[k],  13,  90);
-    fail_ret += test_batch(ff[k],  32,  34);
-    fail_ret += test_batch(ff[k],  63,  65);
-    fail_ret += test_batch(ff[k], 127, 129);
-    fail_ret += test_batch(ff[k], 200, 112);
-    fail_ret += test_batch(ff[k],  10, 200);
-  };
-
-  for(int k=2; k<=16; k++) {
-    gf2e_free(ff[k]);
+    fail_ret += test_batch(ff,   2,   5);
+    fail_ret += test_batch(ff,   5,  10);
+    fail_ret += test_batch(ff,   1,   1);
+    fail_ret += test_batch(ff,   1,   2);
+    fail_ret += test_batch(ff,  11,  12);
+    fail_ret += test_batch(ff,  21,  22);
+    fail_ret += test_batch(ff,  13,   2);
+    fail_ret += test_batch(ff,  32,  33);
+    fail_ret += test_batch(ff,  63,  64);
+    if (k <= 12 || runlong) {
+      fail_ret += test_batch(ff, 127, 128);
+      fail_ret += test_batch(ff, 200,  20);
+    }
+    fail_ret += test_batch(ff,   1,   1);
+    fail_ret += test_batch(ff,   1,   3);
+    fail_ret += test_batch(ff,  11,  13);
+    fail_ret += test_batch(ff,  21,  23);
+    fail_ret += test_batch(ff,  13,  90);
+    fail_ret += test_batch(ff,  32,  34);
+    fail_ret += test_batch(ff,  63,  65);
+    if (k <= 12 || runlong) {
+      fail_ret += test_batch(ff, 127, 129);
+      fail_ret += test_batch(ff, 200, 112);
+      fail_ret += test_batch(ff,  10, 200);
+    }
+    gf2e_free(ff);
   }
 
   return fail_ret;

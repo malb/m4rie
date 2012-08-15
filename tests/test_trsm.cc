@@ -438,7 +438,7 @@ int test_mzd_slice_trsm_lower_left(gf2e *ff, rci_t m, rci_t n) {
 
 int test_batch(gf2e *ff, rci_t m, rci_t n) {
   int fail_ret = 0;
-  printf("trsm: k: %2d, minpoly: 0x%03x m: %5d, n: %5d ",(int)ff->degree, (unsigned int)ff->minpoly, (int)m,(int)n);
+  printf("trsm: k: %2d, minpoly: 0x%05x m: %5d, n: %5d ",(int)ff->degree, (unsigned int)ff->minpoly, (int)m,(int)n);
 
   m4rie_check(test_mzed_trsm_lower_left(ff, m, n) == 0); printf("."); fflush(0);
   m4rie_check(test_mzed_trsm_upper_left(ff, m, n) == 0); printf("."); fflush(0);
@@ -468,30 +468,30 @@ int test_batch(gf2e *ff, rci_t m, rci_t n) {
 int main(int argc, char **argv) {
   srandom(17);
 
-  gf2e *ff[11];
+  int runlong = parse_parameters(argc, argv);
+
+  gf2e *ff;
   int fail_ret = 0;
 
-  for(int k=2; k<=10; k++) {
-    ff[k] = gf2e_init(irreducible_polynomials[k][1]);
+  for(int k=2; k<=16; k++) {
+    ff = gf2e_init(irreducible_polynomials[k][1]);
+
+    fail_ret += test_batch(ff,   1,   1);
+    fail_ret += test_batch(ff,   1,   2);
+    fail_ret += test_batch(ff,  11,  12);
+    fail_ret += test_batch(ff,  21,  22);
+    fail_ret += test_batch(ff,  13,   2);
+    fail_ret += test_batch(ff,  32,  33);
+    fail_ret += test_batch(ff,  63,  64);
+    fail_ret += test_batch(ff,  65,  1);
+    fail_ret += test_batch(ff,  65,  66);
+    if(k<=12 || runlong) {
+      fail_ret += test_batch(ff, 127, 128);
+      fail_ret += test_batch(ff, 200,  20);
+    }
+    gf2e_free(ff);
   }
 
-  for(int k=2; k<=10; k++) {
-    fail_ret += test_batch(ff[k],   1,   1);
-    fail_ret += test_batch(ff[k],   1,   2);
-    fail_ret += test_batch(ff[k],  11,  12);
-    fail_ret += test_batch(ff[k],  21,  22);
-    fail_ret += test_batch(ff[k],  13,   2);
-    fail_ret += test_batch(ff[k],  32,  33);
-    fail_ret += test_batch(ff[k],  63,  64);
-    fail_ret += test_batch(ff[k],  65,  1);
-    fail_ret += test_batch(ff[k],  65,  66);
-    fail_ret += test_batch(ff[k], 127, 128);
-    fail_ret += test_batch(ff[k], 200,  20);
-  };
-
-  for(int k=2; k<=10; k++) {
-    gf2e_free(ff[k]);
-  }
   if (fail_ret == 0)
     printf("success\n");
 
