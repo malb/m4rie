@@ -35,8 +35,8 @@
 /**
  * \brief Pack a bitslice matrix into a packed represenation.
  *
- * \param A Matrix over GF(2^k) or NULL
- * \param Z Bitslice matrix over GF(2^k)
+ * \param A Matrix over \GF2E or NULL
+ * \param Z Bitslice matrix over \GF2E
  *
  * \ingroup Constructions
  */
@@ -68,22 +68,31 @@ mzd_slice_t *mzed_slice(mzd_slice_t *A, const mzed_t *Z);
 mzd_slice_t *_mzed_slice2(mzd_slice_t *A, const mzed_t *Z);
 
 /**
- * \brief Unpack the matrix Z over GF(2^e) into bitslice representation.
+ * \brief Unpack the matrix Z over \GF2E into bitslice representation.
  *
- * \param A Zero bitslice matrix over GF(2^e)
- * \param Z Matrix over GF(2^e)
+ * \param A Zero bitslice matrix over \GF2E
+ * \param Z Matrix over \GF2E
  */
 
 mzd_slice_t *_mzed_slice4(mzd_slice_t *A, const mzed_t *Z);
 
 /**
- * \brief Unpack the matrix Z over GF(2^e) into bitslice representation.
+ * \brief Unpack the matrix Z over \GF2E into bitslice representation.
  *
- * \param A Zero bitslice matrix over GF(2^e)
- * \param Z Matrix over GF(2^e)
+ * \param A Zero bitslice matrix over \GF2E
+ * \param Z Matrix over \GF2E
  */
 
 mzd_slice_t *_mzed_slice8(mzd_slice_t *A, const mzed_t *Z);
+
+/**
+ * \brief Unpack the matrix Z over \GF2E into bitslice representation.
+ *
+ * \param A Zero bitslice matrix over \GF2E
+ * \param Z Matrix over \GF2E
+ */
+
+mzd_slice_t *_mzed_slice16(mzd_slice_t *A, const mzed_t *Z);
 
 /**
  * \brief Pack a bitslice matrix into a classical represenation over GF(2^2).
@@ -100,22 +109,31 @@ mzed_t *_mzed_cling2(mzed_t *A, const mzd_slice_t *Z);
 
 
 /**
- * \brief Pack a bitslice matrix into a classical represenation over GF(2^e) for e in {3,4}.
+ * \brief Pack a bitslice matrix into a classical represenation over \GF2E for 2 < e <= 4.
  *
- * \param A Matrix over GF(2^e), must be zero
- * \param Z Bitslice matrix over GF(2^e)
+ * \param A Matrix over \GF2E, must be zero
+ * \param Z Bitslice matrix over \GF2E
  */
 
 mzed_t *_mzed_cling4(mzed_t *A, const mzd_slice_t *Z);
 
 /**
- * \brief Pack a bitslice matrix into a classical represenation over GF(2^e) for e in {5,6,7,8}.
+ * \brief Pack a bitslice matrix into a classical represenation over \GF2E for 4 < e <= 8.
  *
- * \param A Matrix over GF(2^e), must be zero
- * \param Z Bitslice matrix over GF(2^e)
+ * \param A Matrix over \GF2E, must be zero
+ * \param Z Bitslice matrix over \GF2E
  */
 
 mzed_t *_mzed_cling8(mzed_t *A, const mzd_slice_t *Z);
+
+/**
+ * \brief Pack a bitslice matrix into a classical represenation over \GF2E for 8 < e <= 16.
+ *
+ * \param A Matrix over \GF2E, must be zero
+ * \param Z Bitslice matrix over \GF2E
+ */
+
+mzed_t *_mzed_cling16(mzed_t *A, const mzd_slice_t *Z);
 
 /**
  * \brief Compute C += A*B using Karatsuba multiplication of polynomials over GF(2).

@@ -189,33 +189,29 @@ int test_batch(gf2e *ff, int m, int n) {
 
 int main(int argc, char **argv) {
 
-  gf2e *ff[17];
+  gf2e *ff;
   int fail_ret = 0;
 
   for(int k=2; k<=16; k++) {
-    ff[k] = gf2e_init(irreducible_polynomials[k][1]);
-  }
+    ff = gf2e_init(irreducible_polynomials[k][1]);
 
-  for(int k=2; k<=8; k++) {
-    fail_ret += test_batch(ff[k],   2, m4ri_radix/gf2e_degree_to_w(ff[k]));
-    fail_ret += test_batch(ff[k],   2, 2*m4ri_radix/gf2e_degree_to_w(ff[k]));
-    fail_ret += test_batch(ff[k],   2, 3*m4ri_radix/gf2e_degree_to_w(ff[k]));
-    fail_ret += test_batch(ff[k],   2, 4*m4ri_radix/gf2e_degree_to_w(ff[k]));
-    fail_ret += test_batch(ff[k],   4,   3);
-    fail_ret += test_batch(ff[k],   1,   2);
-    fail_ret += test_batch(ff[k],  10,  11);
-    fail_ret += test_batch(ff[k],  20,  19);
-    fail_ret += test_batch(ff[k],  32,  64);
-    fail_ret += test_batch(ff[k],  63,  65);
-    fail_ret += test_batch(ff[k],  64,  65);
-    fail_ret += test_batch(ff[k],  64, 128);
-    fail_ret += test_batch(ff[k],  65, 129);
-    fail_ret += test_batch(ff[k], 201, 200);
-    fail_ret += test_batch(ff[k], 217,   2);
-  }
+    fail_ret += test_batch(ff,   2,   m4ri_radix/gf2e_degree_to_w(ff));
+    fail_ret += test_batch(ff,   2, 2*m4ri_radix/gf2e_degree_to_w(ff));
+    fail_ret += test_batch(ff,   2, 3*m4ri_radix/gf2e_degree_to_w(ff));
+    fail_ret += test_batch(ff,   2, 4*m4ri_radix/gf2e_degree_to_w(ff));
+    fail_ret += test_batch(ff,   4,   3);
+    fail_ret += test_batch(ff,   1,   2);
+    fail_ret += test_batch(ff,  10,  11);
+    fail_ret += test_batch(ff,  20,  19);
+    fail_ret += test_batch(ff,  32,  64);
+    fail_ret += test_batch(ff,  63,  65);
+    fail_ret += test_batch(ff,  64,  65);
+    fail_ret += test_batch(ff,  64, 128);
+    fail_ret += test_batch(ff,  65, 129);
+    fail_ret += test_batch(ff, 201, 200);
+    fail_ret += test_batch(ff, 217,   2);
 
-  for(int k=2; k<=16; k++) {
-    gf2e_free(ff[k]);
+    gf2e_free(ff);
   }
 
   return fail_ret;

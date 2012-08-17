@@ -645,20 +645,8 @@ static inline mzd_slice_t *mzd_slice_addmul(mzd_slice_t *C, const mzd_slice_t *A
  */
 
 static inline void mzd_slice_randomize(mzd_slice_t *A) {
-  switch(A->depth) {
-  case 10: mzd_randomize(A->x[9]);
-  case  9: mzd_randomize(A->x[8]);
-  case  8: mzd_randomize(A->x[7]);
-  case  7: mzd_randomize(A->x[6]);
-  case  6: mzd_randomize(A->x[5]);
-  case  5: mzd_randomize(A->x[4]);
-  case  4: mzd_randomize(A->x[3]);
-  case  3: mzd_randomize(A->x[2]);
-  case  2: mzd_randomize(A->x[1]);
-  case  1: mzd_randomize(A->x[0]); break;
-  default:
-    m4ri_die("impossible");
-  }
+  for(int i=0; i<A->depth; i++)
+    mzd_randomize(A->x[i]);
 }
 
 /**
@@ -897,20 +885,8 @@ void mzd_slice_print(const mzd_slice_t *A);
  */
 
 static inline void _mzd_slice_compress_l(mzd_slice_t *A, const rci_t r1, const rci_t n1, const rci_t r2) {
-  switch(A->finite_field->degree) {
-  case 10: _mzd_compress_l(A->x[9], r1, n1, r2);
-  case  9: _mzd_compress_l(A->x[8], r1, n1, r2);
-  case  8: _mzd_compress_l(A->x[7], r1, n1, r2);
-  case  7: _mzd_compress_l(A->x[6], r1, n1, r2);
-  case  6: _mzd_compress_l(A->x[5], r1, n1, r2);
-  case  5: _mzd_compress_l(A->x[4], r1, n1, r2);
-  case  4: _mzd_compress_l(A->x[3], r1, n1, r2);
-  case  3: _mzd_compress_l(A->x[2], r1, n1, r2);
-  case  2: _mzd_compress_l(A->x[1], r1, n1, r2);
-  case  1: _mzd_compress_l(A->x[0], r1, n1, r2); break;
-  default:
-    m4ri_die("impossible");
-  };
+  for(int i=0; i<A->depth; i++)
+    _mzd_compress_l(A->x[i], r1, n1, r2);
 }
 
 #endif //M4RIE_MZD_SLICE
