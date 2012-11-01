@@ -39,9 +39,9 @@ namespace M4RIE {
 
 static inline gf2e *gf2e_init_givgfq(M4RIE::FiniteField *givgfq) {
   word minpoly = givgfq->pol2log(1);
-  unsigned int degree = givgfq->exponent()
+  unsigned int degree = givgfq->exponent();
   for(unsigned int i = 0; i<degree; i++) {
-    minpoly = givgfq->mul(minpoly, givgfq->pol2log(2) , minpoly);
+    minpoly = givgfq->mul((int&)minpoly, (int)givgfq->pol2log(2) , (int)minpoly);
   }
   minpoly = givgfq->log2pol(minpoly);
   minpoly = minpoly ^ (1<<degree);
