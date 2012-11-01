@@ -448,14 +448,10 @@ int test_batch(gf2e *ff, rci_t m, rci_t n) {
   m4rie_check(test_mzed_trsm_upper_left_echelonize(ff, m, n) == 0); printf("."); fflush(0);
   m4rie_check(test_mzed_trsm_upper_left_echelonize(ff, n, m) == 0); printf("."); fflush(0);
 
-  if(ff->degree <= __M4RIE_MAX_KARATSUBA_DEGREE) {
-    m4rie_check(test_mzd_slice_trsm_lower_left(ff, m, n) == 0); printf("."); fflush(0);
-    m4rie_check(test_mzd_slice_trsm_lower_left(ff, n, m) == 0); printf("."); fflush(0);
-    m4rie_check(test_mzd_slice_trsm_upper_left(ff, m, n) == 0); printf("."); fflush(0);
-    m4rie_check(test_mzd_slice_trsm_upper_left(ff, n, m) == 0); printf("."); fflush(0);
-  } else {
-    printf("    "); fflush(0);
-  }
+  m4rie_check(test_mzd_slice_trsm_lower_left(ff, m, n) == 0); printf("."); fflush(0);
+  m4rie_check(test_mzd_slice_trsm_lower_left(ff, n, m) == 0); printf("."); fflush(0);
+  m4rie_check(test_mzd_slice_trsm_upper_left(ff, m, n) == 0); printf("."); fflush(0);
+  m4rie_check(test_mzd_slice_trsm_upper_left(ff, n, m) == 0); printf("."); fflush(0);
 
   if (fail_ret == 0)
     printf(" passed\n");

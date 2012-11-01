@@ -40,25 +40,18 @@ int test_equality(gf2e *ff, rci_t m, rci_t n) {
   const rci_t r0 = mzed_echelonize_newton_john(A0,1);
   const rci_t r1 = mzed_echelonize_naive(A1,1);
   const rci_t r2 = mzed_echelonize(A2,1);
-  rci_t r3 = 0;
-  if (ff->degree <= __M4RIE_MAX_KARATSUBA_DEGREE) {
-    r3 = mzed_echelonize_ple(A3,1);
-  }
+  const rci_t r3 = mzed_echelonize_ple(A3,1);
+
   m4rie_check( r0 == r1);
   m4rie_check( mzed_cmp(A0, A1) == 0);
 
   m4rie_check( r1 == r2);
   m4rie_check( mzed_cmp(A1, A2) == 0);
 
-  if(ff->degree <=  __M4RIE_MAX_KARATSUBA_DEGREE) {
-    m4rie_check( r2 == r3);
-    m4rie_check( mzed_cmp(A2, A3) == 0);
-    m4rie_check( r3 == r0);
-    m4rie_check( mzed_cmp(A3, A0) == 0);
-  } else {
-    m4rie_check( r2 == r0);
-    m4rie_check( mzed_cmp(A2, A0) == 0);
-  }
+  m4rie_check( r2 == r3);
+  m4rie_check( mzed_cmp(A2, A3) == 0);
+  m4rie_check( r3 == r0);
+  m4rie_check( mzed_cmp(A3, A0) == 0);
 
   m4rie_check( mzed_canary_is_alive(A0) );
   m4rie_check( mzed_canary_is_alive(A1) );

@@ -358,6 +358,12 @@ rci_t _mzed_strassen_cutoff(const mzed_t *C, const mzed_t *A, const mzed_t *B) {
     break;
 
   case 10:
+  case 11:
+  case 12:
+  case 13:
+  case 14:
+  case 15:
+  case 16:
     cutoff = 4096;
     break;
 

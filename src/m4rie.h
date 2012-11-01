@@ -82,6 +82,7 @@ extern "C" {
 #include <m4rie/ple.h>
 #include <m4rie/conversion.h>
 #include <m4rie/permutation.h>
+#include <m4rie/mzd_poly.h>
 
 #ifdef __cplusplus
 }

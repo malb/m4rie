@@ -101,7 +101,7 @@ static inline mzd_poly_t *mzd_poly_add(mzd_poly_t *C, const mzd_poly_t *A, const
 
 static inline mzd_poly_t *mzd_poly_init(const deg_t d, const rci_t m, const rci_t n) {
   mzd_poly_t *A = (mzd_poly_t*)m4ri_mm_malloc(sizeof(mzd_poly_t));
-  A->x = (mzd_t**)m4ri_mm_malloc(sizeof(mzd_t*)*d);
+  A->x = (mzd_t**)m4ri_mm_malloc(sizeof(mzd_t*)*(d+1));
 
   A->nrows = m;
   A->ncols = n;
@@ -137,5 +137,60 @@ static inline mzd_poly_t *_mzd_poly_adapt_depth(mzd_poly_t *A, const deg_t new_d
   A->depth = new_depth;
   return A;
 }
+
+static inline mzd_poly_t *_mzd_poly_addmul_naive(mzd_poly_t *C, const mzd_poly_t *A, const mzd_poly_t *B) {
+  if (C == NULL)
+    C = mzd_poly_init(A->depth+B->depth-1, A->nrows, B->ncols);
+
+  for(unsigned int i=0; i<A->depth; i++) {
+    for(unsigned int j=0; j<B->depth; j++) {
+      mzd_addmul(C->x[i+j], A->x[i], B->x[j], 0);
+    }
+  }
+  return C;
+}
+
+mzd_poly_t *_mzd_poly_addmul1(mzd_poly_t *C, mzd_poly_t *A, mzd_poly_t *B);
+
+/**
+ * \brief Return -1,0,1 if if A < B, A == B or A > B respectively.
+ *
+ * \param A Matrix.
+ * \param B Matrix.
+ *
+ * \note This comparison is not well defined (except for !=0) mathematically and relatively
+ * arbitrary.
+ *
+ * \ingroup Comparison
+ */
+
+static inline int mzd_poly_cmp(mzd_poly_t *A, mzd_poly_t *B) {
+  int r = 0;
+  if ((A->depth != B->depth) ) {
+    if (A->depth < B->depth)
+      return -1;
+    else 
+      return 1;
+  }
+  for(int i=0; i<A->depth; i++)
+    r |= mzd_cmp(A->x[i],B->x[i]);
+  return r;
+}
+
+/**
+ * \brief Fill matrix A with random elements.
+ *
+ * \param A Matrix
+ *
+ * \todo Allow the user to provide a RNG callback.
+ *
+ * \ingroup Assignment
+ */
+
+static inline void mzd_poly_randomize(mzd_poly_t *A) {
+  for(int i=0; i<A->depth; i++)
+    mzd_randomize(A->x[i]);
+}
+
 
 #endif //M4RIE_MZD_POLY_H

@@ -101,8 +101,7 @@ mzed_t *mzed_addmul(mzed_t *C, const mzed_t *A, const mzed_t *B) {
 }
 
 mzed_t *_mzed_mul(mzed_t *C, const mzed_t *A, const mzed_t *B) {
-  if (A->finite_field->degree <= __M4RIE_MAX_KARATSUBA_DEGREE && \
-      A->nrows >= 512 && A->ncols >= 512 && B->ncols >= 512)
+  if (A->nrows >= 512 && A->ncols >= 512 && B->ncols >= 512)
     return _mzed_mul_karatsuba(C, A, B);
 
   const rci_t cutoff = _mzed_strassen_cutoff(C, A, B);
@@ -111,8 +110,7 @@ mzed_t *_mzed_mul(mzed_t *C, const mzed_t *A, const mzed_t *B) {
 
 mzed_t *_mzed_addmul(mzed_t *C, const mzed_t *A, const mzed_t *B) {
   assert((A->x->offset | B->x->offset | C->x->offset) == 0);
-  if (A->finite_field->degree <= __M4RIE_MAX_KARATSUBA_DEGREE && \
-      A->nrows >= 512 && A->ncols >= 512 && B->ncols >= 512)
+  if (A->nrows >= 512 && A->ncols >= 512 && B->ncols >= 512)
     return _mzed_mul_karatsuba(C, A, B);
 
   const rci_t cutoff = _mzed_strassen_cutoff(C, A, B);

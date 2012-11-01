@@ -40,13 +40,6 @@
 #include <m4rie/mzed.h>
 
 /**
- * Degree up to which Karatsuba multiplication and slicing/cling is
- * implemented.
- */
-
-#define __M4RIE_MAX_KARATSUBA_DEGREE 8
-
-/**
  * \brief Dense matrices over \GF2E represented as slices of matrices over \GF2.
  *
  * This is one of two fundamental data types of this library, the
@@ -525,10 +518,8 @@ static inline mzd_slice_t *_mzd_slice_mul_karatsuba(mzd_slice_t *C, const mzd_sl
   case  6: C = _mzd_slice_mul_karatsuba6(C, A, B); break;
   case  7: C = _mzd_slice_mul_karatsuba7(C, A, B); break;
   case  8: C = _mzd_slice_mul_karatsuba8(C, A, B); break;
-  case  9: C = _mzd_slice_mul_naive(C, A, B); break;
-  case 10: C = _mzd_slice_mul_naive(C, A, B); break;
   default:
-    m4ri_die("_mzd_slice_mul_karatsuba: only implemented for GF(2^e) with e <= 4");
+    C = _mzd_slice_mul_naive(C, A, B); break;
   }
   return C;
 }
