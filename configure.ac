@@ -1,4 +1,4 @@
-AC_INIT(m4rie,20120613)
+AC_INIT(m4rie,20121224)
 
 dnl AC_PREREQ([2.64])
 
