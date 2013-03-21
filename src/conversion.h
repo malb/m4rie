@@ -224,4 +224,24 @@ static inline void mzd_slice_rescale_row(mzd_slice_t *A, rci_t r, rci_t c, word 
   mzd_slice_free_window(A_w);
 }
 
+/*
+ * a bunch of constants to make code more readable
+ */
+
+static const word x80008000 = 0x8000800080008000ULL;
+static const word x80808080 = 0x8080808080808080ULL;
+static const word x88888888 = 0x8888888888888888ULL;
+static const word xaaaaaaaa = 0xaaaaaaaaaaaaaaaaULL;
+static const word xcccccccc = 0xccccccccccccccccULL;
+static const word xc0c0c0c0 = 0xc0c0c0c0c0c0c0c0ULL;
+static const word xf0f0f0f0 = 0xf0f0f0f0f0f0f0f0ULL;
+static const word xff00ff00 = 0xff00ff00ff00ff00ULL;
+static const word xffff0000 = 0xffff0000ffff0000ULL;
+static const word xffffffff = 0xffffffff00000000ULL;
+static const word x__left04 = 0xf000000000000000ULL;
+static const word x__left08 = 0xff00000000000000ULL;
+static const word x__left16 = 0xffff000000000000ULL;
+static const word x__left32 = 0xffffffff00000000ULL;
+
+
 #endif //M4RIE_CONVERSION_H

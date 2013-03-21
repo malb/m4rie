@@ -14,6 +14,10 @@ libm4rie_la_SOURCES = m4rie/gf2e.c \
 	m4rie/trsm.c \
 	m4rie/ple.c \
 	m4rie/conversion.c \
+	m4rie/conversion_slice8.c \
+	m4rie/conversion_slice16.c \
+	m4rie/conversion_cling8.c \
+	m4rie/conversion_cling16.c \
 	m4rie/mzd_slice_intro.inl \
 	m4rie/mzd_slice_outro.inl \
 	m4rie/mzed_intro.inl \
