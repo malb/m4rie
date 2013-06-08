@@ -880,4 +880,54 @@ static inline void _mzd_slice_compress_l(mzd_slice_t *A, const rci_t r1, const r
     _mzd_compress_l(A->x[i], r1, n1, r2);
 }
 
+/**
+ * \brief Add A to coefficient of X^t but perform modular reductions on the fly.
+ *
+ * (A + X^t % minpoly)
+ *
+ * \param ff Finite field
+ * \param A Matrix
+ * \param X Matrix list
+ * \param t Integer >= 0 (degree)
+ */
+
+static inline void mzd_add_modred(const gf2e *ff, const mzd_t *A, mzd_t **X, const int t) {
+  if (mzd_is_zero(A))
+    return;
+
+  if (t < ff->degree) {
+    mzd_add(X[t], X[t], A);
+    return;
+  }
+
+  word pow_gen = ff->pow_gen[t];
+
+  for(int i=0; i<ff->degree; i++) {
+    if (pow_gen & (1<<i))
+       mzd_add(X[i],X[i],A);
+  }
+}
+
+/**
+ * \brief Add A to n coefficients but perform modular reductions on the fly.
+ *
+ * \param ff Finite field
+ * \param A Matrix
+ * \param X Matrix list
+ * \param n Integer > 0
+ */
+
+static inline mzd_t *mzd_add_to_all_modred(const gf2e *ff, mzd_t *A, mzd_t **X, const int n, ...) {
+  va_list b_list;
+  va_start( b_list, n );
+
+  for( int i = 0 ; i < n; i++ ) {
+    int t = va_arg(b_list, int);
+    mzd_add_modred(ff, A, X, t);
+  }
+
+  va_end( b_list );
+  return A;
+}
+
 #endif //M4RIE_MZD_SLICE

@@ -20,56 +20,6 @@
 #include "mzd_slice.h"
 #include "m4ri_functions.h"
 
-/**
- * \brief Add A to coefficient of X^t but perform modular reductions on the fly.
- *
- * (A + X^t % minpoly)
- *
- * \param ff Finite field
- * \param A Matrix
- * \param X Matrix list
- * \param t Integer >= 0 (degree)
- */
-
-static inline void mzd_add_modred(const gf2e *ff, const mzd_t *A, mzd_t **X, const int t) {
-  if (mzd_is_zero(A))
-    return;
-
-  if (t < ff->degree) {
-    mzd_add(X[t], X[t], A);
-    return;
-  }
-
-  word pow_gen = ff->pow_gen[t];
-
-  for(int i=0; i<ff->degree; i++) {
-    if (pow_gen & (1<<i))
-       mzd_add(X[i],X[i],A);
-  }
-}
-
-/**
- * \brief Add A to n coefficients but perform modular reductions on the fly.
- *
- * \param ff Finite field
- * \param A Matrix
- * \param X Matrix list
- * \param n Integer > 0
- */
-
-static inline mzd_t *mzd_add_to_all_modred(const gf2e *ff, mzd_t *A, mzd_t **X, const int n, ...) {
-  va_list b_list;
-  va_start( b_list, n );
-
-  for( int i = 0 ; i < n; i++ ) {
-    int t = va_arg(b_list, int);
-    mzd_add_modred(ff, A, X, t);
-  }
-
-  va_end( b_list );
-  return A;
-}
-
 mzd_slice_t *mzd_slice_mul_scalar(mzd_slice_t *C, const word a, const mzd_slice_t *B) {
   if(C == NULL)
     C = mzd_slice_init(B->finite_field, B->nrows, B->ncols);
@@ -173,7 +123,7 @@ mzd_slice_t *_mzd_slice_mul_karatsuba3(mzd_slice_t *C, const mzd_slice_t *A, con
   if (C == NULL)
     C = mzd_slice_init(A->finite_field, A->nrows, B->ncols);
 
-  C = _mzd_slice_adapt_depth(C,4);
+  const gf2e *ff = A->finite_field;
 
   const mzd_t *a0 = A->x[0];
   const mzd_t *a1 = A->x[1];
@@ -183,56 +133,22 @@ mzd_slice_t *_mzd_slice_mul_karatsuba3(mzd_slice_t *C, const mzd_slice_t *A, con
   const mzd_t *b1 = B->x[1];
   const mzd_t *b2 = B->x[2];
 
-  mzd_t *t0 = mzd_init(a0->nrows, a0->ncols);
-  mzd_t *t1 = mzd_init(b0->nrows, b0->ncols);
+  mzd_t *t0 = mzd_init(a0->nrows, b0->ncols);
+  mzd_t *t1 = mzd_init(a0->nrows, a0->ncols);
+  mzd_t *t2 = mzd_init(b0->nrows, b0->ncols);
 
   mzd_t **X = C->x;
 
-  mzd_add(t0, a0, a1);
-  mzd_add(t1, b0, b1);
-  mzd_addmul(X[1], t0, t1, 0); /* + (a0+a1)(b0+b1)X */
-
-  mzd_add(t0, a0, a2);
-  mzd_add(t1, b0, b2);
-  mzd_addmul(X[2], t0, t1, 0); /* + (a0+a2)(b0+b2)X^2 */
-
-  mzd_add(t0, a1, a2);
-  mzd_add(t1, b1, b2);
-  mzd_addmul(X[3], t0, t1, 0); /* + (a1+a2)(b1+b2)X^3 */
+  mzd_add_to_all_modred(ff, mzd_mul(t0, mzd_add(t1, a0, a1), mzd_add(t2, b0, b1), 0), X, 1,   1); /* + (a0+a1)(b0+b1)X */
+  mzd_add_to_all_modred(ff, mzd_mul(t0, mzd_add(t1, a0, a2), mzd_add(t2, b0, b2), 0), X, 1,   2); /* + (a0+a2)(b0+b2)X^2 */
+  mzd_add_to_all_modred(ff, mzd_mul(t0, mzd_add(t1, a1, a2), mzd_add(t2, b1, b2), 0), X, 1,   3); /* + (a1+a2)(b1+b2)X^3 */
+  mzd_add_to_all_modred(ff, mzd_mul(t0, a0, b0, 0), X, 3,   0, 1, 2); /* + a0b0(1-X-X^2) */
+  mzd_add_to_all_modred(ff, mzd_mul(t0, a1, b1, 0), X, 3,   1, 2, 3); /* + a1b1(X+X^2-X^3) */
+  mzd_add_to_all_modred(ff, mzd_mul(t0, a2, b2, 0), X, 3,   2, 3, 4); /* + a2b2(-X^2-X^3+X^4) */
 
   mzd_free(t0);
   mzd_free(t1);
-
-  t0 = mzd_init(a0->nrows, b0->ncols);
-
-  mzd_mul(t0, a0, b0, 0); /* + a0b0(1-X-X^2) */
-  mzd_add(X[0], X[0], t0);
-  mzd_add(X[1], X[1], t0);
-  mzd_add(X[2], X[2], t0);
-
-  mzd_mul(t0, a1, b1, 0); /* + a1b1(X+X^2-X^3) */
-  mzd_add(X[1], X[1], t0);
-  mzd_add(X[2], X[2], t0);
-  mzd_add(X[3], X[3], t0);
-
-  mzd_mul(t0, a2, b2, 0); /* + a2b2(-X^2-X^3+X^4) */
-
-  /* modular reductions and final additions */
-
-  if( (A->finite_field->minpoly & 1<<2) == 0)
-    mzd_add(X[3], X[3], t0);
-  else
-    mzd_add(X[2], X[2], t0);
-  mzd_add(X[1], X[1], t0);
-
-  if(A->finite_field->minpoly & 1<<2) 
-    mzd_add(X[2],X[2],X[3]);
-  else  //if (A->finite_field->minpoly & 1<<1) {=
-    mzd_add(X[1],X[1],X[3]);
-  mzd_add(X[0],X[0],X[3]);
-
-  mzd_free(t0);
-  _mzd_slice_adapt_depth(C,3);
+  mzd_free(t2);
 
   return C;
 }
@@ -655,80 +571,115 @@ mzd_slice_t *_mzd_slice_mul_karatsuba7(mzd_slice_t *C, const mzd_slice_t *A, con
   return C;
 }
 
-
 mzd_slice_t *_mzd_slice_mul_karatsuba8(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B) {
-  /** 8 + 7 temporaries **/
-  /**
-   * \todo reduce memory requirements by writing formula explicitly 
-   **/
-
+  /* using three temporaries */
   if (C == NULL)
     C = mzd_slice_init(A->finite_field, A->nrows, B->ncols);
 
-  const word minpoly = A->finite_field->minpoly;
-  C = _mzd_slice_adapt_depth(C,15);
+  const gf2e *ff = A->finite_field;
 
-  const mzd_t *a0[4] = {A->x[0],A->x[1],A->x[2],A->x[3]};
-  const mzd_t *a1[4] = {A->x[4],A->x[5],A->x[6],A->x[7]};
-  const mzd_t *b0[4] = {B->x[0],B->x[1],B->x[2],B->x[3]};
-  const mzd_t *b1[4] = {B->x[4],B->x[5],B->x[6],B->x[7]};
+  const mzd_t *a0 = A->x[0];
+  const mzd_t *a1 = A->x[1];
+  const mzd_t *a2 = A->x[2];
+  const mzd_t *a3 = A->x[3];
+  const mzd_t *a4 = A->x[4];
+  const mzd_t *a5 = A->x[5];
+  const mzd_t *a6 = A->x[6];
+  const mzd_t *a7 = A->x[7];
 
-  mzd_t *X[3][7] = { {C->x[ 0],C->x[ 1],C->x[ 2],C->x[ 3],C->x[ 4],C->x[ 5],C->x[ 6]},
-                     {C->x[ 4],C->x[ 5],C->x[ 6],C->x[ 7],C->x[ 8],C->x[ 9],C->x[10]},
-                     {C->x[ 8],C->x[ 9],C->x[10],C->x[11],C->x[12],C->x[13],C->x[14]} };
+  const mzd_t *b0 = B->x[0];
+  const mzd_t *b1 = B->x[1];
+  const mzd_t *b2 = B->x[2];
+  const mzd_t *b3 = B->x[3];
+  const mzd_t *b4 = B->x[4];
+  const mzd_t *b5 = B->x[5];
+  const mzd_t *b6 = B->x[6];
+  const mzd_t *b7 = B->x[7];
 
-  mzd_t *t0[7];
-  mzd_t *t1[4];
+  mzd_t **X = C->x;
 
-  t0[0] = mzd_init(A->nrows, A->ncols);
-  t0[1] = mzd_init(A->nrows, A->ncols);
-  t0[2] = mzd_init(A->nrows, A->ncols);
-  t0[3] = mzd_init(A->nrows, A->ncols);
+  mzd_t *t0 = mzd_init(a0->nrows, b0->ncols);
+  mzd_t *t1 = mzd_init(a0->nrows, a1->ncols);
+  mzd_t *t2 = mzd_init(b0->nrows, b1->ncols);
 
-  t1[0] = mzd_init(B->nrows, B->ncols);
-  t1[1] = mzd_init(B->nrows, B->ncols);
-  t1[2] = mzd_init(B->nrows, B->ncols);
-  t1[3] = mzd_init(B->nrows, B->ncols);
+  // (b2 + b3)*(a2 + a3) * (X^3 + X^5 + X^7 + X^9)
+  mzd_add_to_all_modred(ff,  mzd_mul(t0, mzd_sum(t1, 2, b2, b3),
+                                         mzd_sum(t2, 2, a2, a3), 0), X, 4,  3, 5, 7, 9);
+  // (b4 + b5)*(a4 + a5) * (X^5 + X^7 + X^9 + X^11)
+  mzd_add_to_all_modred(ff,  mzd_mul(t0, mzd_sum(t1, 2, b4, b5),
+                                         mzd_sum(t2, 2, a4, a5), 0), X, 4,  5, 7, 9, 11);
+  // (b6 + b7)*(a6 + a7) * (X^7 + X^9 + X^11 + X^13)
+  mzd_add_to_all_modred(ff,  mzd_mul(t0, mzd_sum(t1, 2, b6, b7),
+                                         mzd_sum(t2, 2, a6, a7), 0), X, 4,  7, 9, 11, 13);
+  // (b2 + b6)*(a2 + a6) * (X^6 + X^7 + X^8 + X^9)
+  mzd_add_to_all_modred(ff,  mzd_mul(t0, mzd_sum(t1, 2, b2, b6),
+                                         mzd_sum(t2, 2, a2, a6), 0), X, 4,  6, 7, 8, 9);
+  // (b0 + b2)*(a0 + a2) * (X^2 + X^3 + X^6 + X^7)
+  mzd_add_to_all_modred(ff,  mzd_mul(t0, mzd_sum(t1, 2, b0, b2),
+                                         mzd_sum(t2, 2, a0, a2), 0), X, 4,  2, 3, 6, 7);
+  // (b0 + b1 + b2 + b3)*(a0 + a1 + a2 + a3) * (X^3 + X^7)
+  mzd_add_to_all_modred(ff,  mzd_mul(t0, mzd_sum(t1, 4, b0, b1, b2, b3),
+                                         mzd_sum(t2, 4, a0, a1, a2, a3), 0), X, 2,  3, 7);
+  // (b5 + b7)*(a5 + a7) * (X^7 + X^8 + X^11 + X^12)
+  mzd_add_to_all_modred(ff,  mzd_mul(t0, mzd_sum(t1, 2, b5, b7),
+                                         mzd_sum(t2, 2, a5, a7), 0), X, 4,  7, 8, 11, 12);
+  // (b0 + b4)*(a0 + a4) * (X^4 + X^5 + X^6 + X^7)
+  mzd_add_to_all_modred(ff,  mzd_mul(t0, mzd_sum(t1, 2, b0, b4),
+                                         mzd_sum(t2, 2, a0, a4), 0), X, 4,  4, 5, 6, 7);
+  // (b1 + b3)*(a1 + a3) * (X^3 + X^4 + X^7 + X^8)
+  mzd_add_to_all_modred(ff,  mzd_mul(t0, mzd_sum(t1, 2, b1, b3),
+                                         mzd_sum(t2, 2, a1, a3), 0), X, 4,  3, 4, 7, 8);
+  // a6*b6 * (X^6 + X^7 + X^8 + X^9 + X^10 + X^11 + X^12 + X^13) 
+  mzd_add_to_all_modred(ff, mzd_mul(t0, a6, b6, 0), X, 8,  6, 7, 8, 9, 10, 11, 12, 13);
+  // a3*b3 * (X^3 + X^4 + X^5 + X^6 + X^7 + X^8 + X^9 + X^10) 
+  mzd_add_to_all_modred(ff, mzd_mul(t0, a3, b3, 0), X, 8,  3, 4, 5, 6, 7, 8, 9, 10);
+  // (b1 + b3 + b5 + b7)*(a1 + a3 + a5 + a7) * (X^7 + X^8)
+  mzd_add_to_all_modred(ff,  mzd_mul(t0, mzd_sum(t1, 4, b1, b3, b5, b7),
+                                         mzd_sum(t2, 4, a1, a3, a5, a7), 0), X, 2,  7, 8);
+  // a4*b4 * (X^4 + X^5 + X^6 + X^7 + X^8 + X^9 + X^10 + X^11) 
+  mzd_add_to_all_modred(ff, mzd_mul(t0, a4, b4, 0), X, 8,  4, 5, 6, 7, 8, 9, 10, 11);
+  // (b0 + b1)*(a0 + a1) * (X^1 + X^3 + X^5 + X^7)
+  mzd_add_to_all_modred(ff,  mzd_mul(t0, mzd_sum(t1, 2, b0, b1),
+                                         mzd_sum(t2, 2, a0, a1), 0), X, 4,  1, 3, 5, 7);
+  // a2*b2 * (X^2 + X^3 + X^4 + X^5 + X^6 + X^7 + X^8 + X^9) 
+  mzd_add_to_all_modred(ff, mzd_mul(t0, a2, b2, 0), X, 8,  2, 3, 4, 5, 6, 7, 8, 9);
+  // (b4 + b6)*(a4 + a6) * (X^6 + X^7 + X^10 + X^11)
+  mzd_add_to_all_modred(ff,  mzd_mul(t0, mzd_sum(t1, 2, b4, b6),
+                                         mzd_sum(t2, 2, a4, a6), 0), X, 4,  6, 7, 10, 11);
+  // a0*b0 * (X^0 + X^1 + X^2 + X^3 + X^4 + X^5 + X^6 + X^7) 
+  mzd_add_to_all_modred(ff, mzd_mul(t0, a0, b0, 0), X, 8,  0, 1, 2, 3, 4, 5, 6, 7);
+  // (b1 + b5)*(a1 + a5) * (X^5 + X^6 + X^7 + X^8)
+  mzd_add_to_all_modred(ff,  mzd_mul(t0, mzd_sum(t1, 2, b1, b5),
+                                         mzd_sum(t2, 2, a1, a5), 0), X, 4,  5, 6, 7, 8);
+  // a7*b7 * (X^7 + X^8 + X^9 + X^10 + X^11 + X^12 + X^13 + X^14) 
+  mzd_add_to_all_modred(ff, mzd_mul(t0, a7, b7, 0), X, 8,  7, 8, 9, 10, 11, 12, 13, 14);
+  // a1*b1 * (X^1 + X^2 + X^3 + X^4 + X^5 + X^6 + X^7 + X^8) 
+  mzd_add_to_all_modred(ff, mzd_mul(t0, a1, b1, 0), X, 8,  1, 2, 3, 4, 5, 6, 7, 8);
+  // (b0 + b1 + b2 + b3 + b4 + b5 + b6 + b7)*(a0 + a1 + a2 + a3 + a4 + a5 + a6 + a7) * (X^7)
+  mzd_add_to_all_modred(ff,  mzd_mul(t0, mzd_sum(t1, 8, b0, b1, b2, b3, b4, b5, b6, b7),
+                                         mzd_sum(t2, 8, a0, a1, a2, a3, a4, a5, a6, a7), 0), X, 1,  7);
+  // (b0 + b2 + b4 + b6)*(a0 + a2 + a4 + a6) * (X^6 + X^7)
+  mzd_add_to_all_modred(ff,  mzd_mul(t0, mzd_sum(t1, 4, b0, b2, b4, b6),
+                                         mzd_sum(t2, 4, a0, a2, a4, a6), 0), X, 2,  6, 7);
+  // (b0 + b1 + b4 + b5)*(a0 + a1 + a4 + a5) * (X^5 + X^7)
+  mzd_add_to_all_modred(ff,  mzd_mul(t0, mzd_sum(t1, 4, b0, b1, b4, b5),
+                                         mzd_sum(t2, 4, a0, a1, a4, a5), 0), X, 2,  5, 7);
+  // (b2 + b3 + b6 + b7)*(a2 + a3 + a6 + a7) * (X^7 + X^9)
+  mzd_add_to_all_modred(ff,  mzd_mul(t0, mzd_sum(t1, 4, b2, b3, b6, b7),
+                                         mzd_sum(t2, 4, a2, a3, a6, a7), 0), X, 2,  7, 9);
+  // (b3 + b7)*(a3 + a7) * (X^7 + X^8 + X^9 + X^10)
+  mzd_add_to_all_modred(ff,  mzd_mul(t0, mzd_sum(t1, 2, b3, b7),
+                                         mzd_sum(t2, 2, a3, a7), 0), X, 4,  7, 8, 9, 10);
+  // (b4 + b5 + b6 + b7)*(a4 + a5 + a6 + a7) * (X^7 + X^11)
+  mzd_add_to_all_modred(ff,  mzd_mul(t0, mzd_sum(t1, 4, b4, b5, b6, b7),
+                                         mzd_sum(t2, 4, a4, a5, a6, a7), 0), X, 2,  7, 11);
+  // a5*b5 * (X^5 + X^6 + X^7 + X^8 + X^9 + X^10 + X^11 + X^12) 
+  mzd_add_to_all_modred(ff, mzd_mul(t0, a5, b5, 0), X, 8,  5, 6, 7, 8, 9, 10, 11, 12);
 
-  _poly_add(t0, a0, a1, 4);
-  _poly_add(t1, b0, b1, 4);
+  mzd_free(t0);
+  mzd_free(t1);
+  mzd_free(t2);
 
-  _poly_addmul4(X[1], (const mzd_t**)t0, (const mzd_t**)t1);
-
-  mzd_free(t0[0]);  mzd_free(t0[1]);  mzd_free(t0[2]);  mzd_free(t0[3]);
-  mzd_free(t1[0]);  mzd_free(t1[1]);  mzd_free(t1[2]);  mzd_free(t1[3]);
-
-  t0[0] = mzd_init(C->x[0]->nrows, B->x[0]->ncols);
-  t0[1] = mzd_init(C->x[0]->nrows, B->x[0]->ncols);
-  t0[2] = mzd_init(C->x[0]->nrows, B->x[0]->ncols);
-  t0[3] = mzd_init(C->x[0]->nrows, B->x[0]->ncols);
-  t0[4] = mzd_init(C->x[0]->nrows, B->x[0]->ncols);
-  t0[5] = mzd_init(C->x[0]->nrows, B->x[0]->ncols);
-  t0[6] = mzd_init(C->x[0]->nrows, B->x[0]->ncols);
-
-  _poly_addmul4(t0, a0, b0);
-  _poly_add(X[0], (const mzd_t**)X[0], (const mzd_t**)t0, 7);
-  _poly_add(X[1], (const mzd_t**)X[1], (const mzd_t**)t0, 7);
-
-  mzd_set_ui(t0[0], 0);
-  mzd_set_ui(t0[1], 0);
-  mzd_set_ui(t0[2], 0);
-  mzd_set_ui(t0[3], 0);
-  mzd_set_ui(t0[4], 0);
-  mzd_set_ui(t0[5], 0);
-  mzd_set_ui(t0[6], 0);
-
-  _poly_addmul4(t0, a1, b1);
-  _poly_add(X[1], (const mzd_t**)X[1], (const mzd_t**)t0, 7);
-  _poly_add(X[2], (const mzd_t**)X[2], (const mzd_t**)t0, 7);
-
-  mzd_free(t0[0]); mzd_free(t0[1]); mzd_free(t0[2]); mzd_free(t0[3]);
-  mzd_free(t0[4]); mzd_free(t0[5]); mzd_free(t0[6]);
-
-  for(unsigned int i=2*8-2; i>= 8; i--)
-    for(unsigned int j=0; j<8; j++)
-      if (minpoly & 1<<j)
-        mzd_add(C->x[i-8+j], C->x[i-8+j], C->x[i]);
-  _mzd_slice_adapt_depth(C,8);
   return C;
 }
+

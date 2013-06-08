@@ -1,7 +1,7 @@
 /**
  * \file m4ri_functions.h
  *
- * \brief Utility functions handly mzd_t
+ * \brief Utility functions for mzd_t types
  *
  * \note Some of these functions might be moved M4RI in the future.
  *
@@ -33,6 +33,10 @@
 #include <m4ri/m4ri.h>
 #include <stdarg.h>
 
+/**
+ * mzd_read_bits with assumption that all bits are in the same word
+ */
+
 static inline word __mzd_read_bits(const mzd_t *M, const rci_t x, const rci_t y, const rci_t n) {
   int const spot = (y + M->offset) % m4ri_radix;
   wi_t const block = (y + M->offset) / m4ri_radix;
@@ -41,11 +45,19 @@ static inline word __mzd_read_bits(const mzd_t *M, const rci_t x, const rci_t y,
   return temp >> (m4ri_radix - n);
 }
 
+/**
+ * mzd_xor_bits with assumption that all bits are in the same word
+ */
+
 static inline void __mzd_xor_bits(const mzd_t *M, const rci_t x, const rci_t y, const rci_t n, word values) {
   int const spot = (y + M->offset) % m4ri_radix;
   wi_t const block = (y + M->offset) / m4ri_radix;
   M->rows[x][block] ^= values << spot;
 }
+
+/**
+ * mzd_clear_bits with assumption that all bits are in the same word
+ */
 
 static inline void __mzd_clear_bits(const mzd_t *M, const rci_t x, const rci_t y, const rci_t n) {
   word values = m4ri_ffff >> (m4ri_radix - n);
@@ -62,6 +74,8 @@ static inline void __mzd_clear_bits(const mzd_t *M, const rci_t x, const rci_t y
  * \param A Matrix
  * \param n Number of elements in list
  * \param ... Matrices
+ *
+ * \ingroup Utility
  */
 
 static inline mzd_t *mzd_sum(mzd_t *A, const int n, ...) {
@@ -88,6 +102,8 @@ static inline mzd_t *mzd_sum(mzd_t *A, const int n, ...) {
  * \param A Matrix
  * \param n Number of elements in list
  * \param ... Matrices
+ *
+ * \ingroup Utility
  */
 
 static inline mzd_t *mzd_add_to_all(mzd_t *A, const int n, ...) {

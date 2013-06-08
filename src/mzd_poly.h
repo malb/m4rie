@@ -27,7 +27,7 @@
  * Internal representation
  *******************************************************************/
 
-static inline void _poly_add(mzd_t **c, const mzd_t **a, const mzd_t **b,const unsigned int length) {
+static inline void _poly_add(mzd_t **c, const mzd_t **a, const mzd_t **b, const unsigned int length) {
   switch(length) {
   case 32: mzd_add(c[31], a[31], b[31]);
   case 31: mzd_add(c[30], a[30], b[30]);
@@ -122,7 +122,6 @@ static inline void mzd_poly_free(mzd_poly_t *A) {
 #endif
 }
 
-
 static inline mzd_poly_t *_mzd_poly_adapt_depth(mzd_poly_t *A, const deg_t new_depth) {
   if (new_depth < A->depth) {
     for(int i=new_depth; i<A->depth; i++) {
@@ -150,7 +149,33 @@ static inline mzd_poly_t *_mzd_poly_addmul_naive(mzd_poly_t *C, const mzd_poly_t
   return C;
 }
 
-mzd_poly_t *_mzd_poly_addmul1(mzd_poly_t *C, mzd_poly_t *A, mzd_poly_t *B);
+static inline mzd_poly_t *_mzd_poly_addmul_balanced(mzd_poly_t *C, const mzd_poly_t *A, const mzd_poly_t *B) {
+  assert(A->depth == B->depth);
+
+  if (C == NULL)
+    C = mzd_poly_init(A->depth+B->depth-1, A->nrows, B->ncols);
+  switch(A->depth) {
+  case 0:
+    m4ri_die("depth 0: seriously?");
+  case 1:
+    mzd_addmul(C->x[0], A->x[0], B->x[0], 0); break;
+  case 2:
+    _poly_addmul2(C->x, (const mzd_t**)A->x, (const mzd_t**)B->x); break;
+  case 3:
+    _mzd_poly_addmul_naive(C, A, B); break;
+  case 4:
+    _poly_addmul4(C->x, (const mzd_t**)A->x, (const mzd_t**)B->x); break;
+  default:
+    _mzd_poly_addmul_naive(C, A, B); break;
+  }
+  return C;
+}
+
+/**
+ * \brief C += A*B using arithmetic in GF(2^log2(d)) if C has degree d.
+ */
+
+mzd_poly_t *_mzd_poly_addmul_ext1(mzd_poly_t *C, mzd_poly_t *A, mzd_poly_t *B);
 
 /**
  * \brief Return -1,0,1 if if A < B, A == B or A > B respectively.

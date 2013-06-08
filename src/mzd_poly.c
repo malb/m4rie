@@ -79,7 +79,7 @@ static inline mzd_slice_t * mzd_slice_addmul_mzd(mzd_slice_t *C, const word a, c
   return C;
 }
 
-mzd_poly_t *_mzd_poly_addmul1(mzd_poly_t *C, mzd_poly_t *A, mzd_poly_t *B) {
+mzd_poly_t *_mzd_poly_addmul_ext1(mzd_poly_t *C, mzd_poly_t *A, mzd_poly_t *B) {
   const int d = A->depth + B->depth-1;
   const int log2d = (int)ceil(log2( (double)d ));
   assert(log2d <= 16);
