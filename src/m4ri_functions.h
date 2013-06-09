@@ -94,29 +94,4 @@ static inline mzd_t *mzd_sum(mzd_t *A, const int n, ...) {
   return A;
 }
 
-/**
- * \brief Add A to n elements
- *
- * B[0] += A, ...,  B[n-1] +=  A
- *
- * \param A Matrix
- * \param n Number of elements in list
- * \param ... Matrices
- *
- * \ingroup Utility
- */
-
-static inline mzd_t *mzd_add_to_all(mzd_t *A, const int n, ...) {
-  va_list b_list;
-  va_start( b_list, n );
-
-  for( int i = 0 ; i < n; i++ ) {
-    mzd_t *B = va_arg(b_list, mzd_t *);
-    mzd_add(B, B, A);
-  }
-
-  va_end( b_list );
-  return A;
-}
-
 #endif //M4RIE_M4RI_FUNCTIONS_H

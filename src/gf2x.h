@@ -34,11 +34,13 @@
 
 #define __M4RIE_1tF(X) ~((X)-1) /**< Maps 1 to word with all ones and 0 to 0. */
 
+typedef int deg_t; /**< degree type **/
+
 /**
  * \brief a*b in \GF2X with deg(a) and deg(b) < d.
  */
 
-static inline word gf2x_mul(const word a, const word b, unsigned int d) {
+static inline word gf2x_mul(const word a, const word b, deg_t d) {
   word res = 0;
 
   switch(d) {
@@ -86,8 +88,8 @@ static inline word gf2x_mul(const word a, const word b, unsigned int d) {
  * \param a Polynomial of degree <= 64.
  */
 
-static inline int gf2x_deg(word a) {
-  int degree = 0;
+static inline deg_t gf2x_deg(word a) {
+  deg_t degree = 0;
   if( (a & 0xffffffff00000000ULL) != 0) { degree += 32; a>>=32; }
   if( (a &         0xffff0000ULL) != 0) { degree += 16; a>>=16; }
   if( (a &             0xff00ULL) != 0) { degree +=  8; a>>= 8; }
@@ -104,8 +106,8 @@ static inline int gf2x_deg(word a) {
 static inline word gf2x_div(word a, word b) {
   word res = 0;
   word mask = 0;
-  const int deg_b = gf2x_deg(b);
-  for(int deg_a=gf2x_deg(a); deg_a>=deg_b; deg_a--) {
+  const deg_t deg_b = gf2x_deg(b);
+  for(deg_t deg_a = gf2x_deg(a); deg_a >= deg_b; deg_a--) {
     mask = __M4RIE_1tF(a>>deg_a);
     res |= mask & __M4RI_TWOPOW(deg_a - deg_b);
     a ^=  mask & b<<(deg_a - deg_b);
@@ -118,8 +120,8 @@ static inline word gf2x_div(word a, word b) {
  */
 
 static inline word gf2x_mod(word a, word b) {
-  const int deg_b = gf2x_deg(b);
-  for(int deg_a=gf2x_deg(a); deg_a>=deg_b; deg_a--) {
+  const deg_t deg_b = gf2x_deg(b);
+  for(deg_t deg_a=gf2x_deg(a); deg_a>=deg_b; deg_a--) {
     a ^= __M4RIE_1tF(a>>deg_a) & b<<(deg_a - deg_b);
   }
   return a;
@@ -132,8 +134,8 @@ static inline word gf2x_mod(word a, word b) {
 static inline word gf2x_divmod(word a, word b, word *rem) {
   word res = 0;
   word mask = 0;
-  const int deg_b = gf2x_deg(b);
-  for(int deg_a=gf2x_deg(a); deg_a>=deg_b; deg_a--) {
+  const deg_t deg_b = gf2x_deg(b);
+  for(deg_t deg_a=gf2x_deg(a); deg_a>=deg_b; deg_a--) {
     mask = __M4RIE_1tF(a>>deg_a);
     res |= mask & __M4RI_TWOPOW(deg_a - deg_b);
     a ^=  mask & b<<(deg_a - deg_b);
@@ -147,7 +149,7 @@ static inline word gf2x_divmod(word a, word b, word *rem) {
  * \brief a^(-1) % b with deg(a), deg(b) <= d.
  */
 
-static inline word gf2x_invmod(word a, word b, unsigned int d) {
+static inline word gf2x_invmod(word a, word b, const deg_t d) {
   word x = 0;
   word lastx = 1;
   word y = 1;

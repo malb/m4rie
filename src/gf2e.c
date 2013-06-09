@@ -16,7 +16,7 @@ gf2e *gf2e_init(const word minpoly) {
   ff->red = (word*)m4ri_mm_calloc(order, sizeof(word));
   for(unsigned int i=1; i<order; i++) {
     word tmp = 0;
-    for(unsigned int j=0; j<ff->degree; j++)
+    for(deg_t j=0; j<ff->degree; j++)
       if (__M4RI_TWOPOW(j) & i)
         tmp ^= minpoly<<j;
     assert(ff->red[tmp>>ff->degree] == 0);
@@ -24,11 +24,11 @@ gf2e *gf2e_init(const word minpoly) {
   }
 
   /** pow_gen: X^i **/
-  unsigned int n = 2*ff->degree-1;
+  deg_t n = 2*ff->degree-1;
   ff->pow_gen = (word*)m4ri_mm_malloc( n * sizeof(word));
-  for(unsigned int i=0; i<n; i++) {
+  for(deg_t i=0; i<n; i++) {
     ff->pow_gen[i] = 1<<i;
-    for(unsigned int j=i; j>=ff->degree; j--) {
+    for(deg_t j=i; j>=ff->degree; j--) {
       if (ff->pow_gen[i] & 1<<j)
         ff->pow_gen[i] ^= ff->minpoly<<(j - ff->degree);
     }

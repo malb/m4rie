@@ -142,10 +142,10 @@ mzed_t *_mzed_cling16(mzed_t *A, const mzd_slice_t *Z);
  * \param A Input matrix A.
  * \param B Input matrix B.
  *
- * \sa _mzd_slice_mul_karatsuba
+ * \sa _mzd_slice_addmul_karatsuba
  */
 
-static inline mzed_t *_mzed_mul_karatsuba(mzed_t *C, const mzed_t *A, const mzed_t *B) {
+static inline mzed_t *_mzed_addmul_karatsuba(mzed_t *C, const mzed_t *A, const mzed_t *B) {
   mzd_slice_t *As,*Bs,*Cs;
   if(C)
     Cs = mzed_slice(NULL,C);
@@ -154,7 +154,7 @@ static inline mzed_t *_mzed_mul_karatsuba(mzed_t *C, const mzed_t *A, const mzed
   As = mzed_slice(NULL,A);
   Bs = mzed_slice(NULL,B);
 
-  Cs = _mzd_slice_mul_karatsuba(Cs, As, Bs);
+  Cs = _mzd_slice_addmul_karatsuba(Cs, As, Bs);
 
   C = mzed_cling(C, Cs);
 
@@ -182,7 +182,7 @@ static inline mzed_t *mzed_mul_karatsuba(mzed_t *C, const mzed_t *A, const mzed_
       m4ri_die("mzed_mul_karatsuba: rows and columns of returned matrix must match.\n");
     mzed_set_ui(C,0);
   }
-  return _mzed_mul_karatsuba(C, A, B);
+  return _mzed_addmul_karatsuba(C, A, B);
 }
 
 /**
@@ -199,7 +199,7 @@ static inline mzed_t *mzed_addmul_karatsuba(mzed_t *C, const mzed_t *A, const mz
     m4ri_die("mzed_addmul_karatsuba: rows, columns and fields must match.\n");
   if (C->finite_field != A->finite_field || C->nrows != A->nrows || C->ncols != B->ncols) 
     m4ri_die("mzed_addmul_karatsuba: rows and columns of returned matrix must match.\n");
-  return _mzed_mul_karatsuba(C, A, B);
+  return _mzed_addmul_karatsuba(C, A, B);
 }
 
 /**

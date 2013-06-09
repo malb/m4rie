@@ -292,7 +292,7 @@ static inline void mzd_slice_free_window(mzd_slice_t *A) {
  */
 
 static inline mzd_slice_t *_mzd_slice_add(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B) {
-  _poly_add(C->x, (const mzd_t**)A->x, (const mzd_t**)B->x, A->depth);
+  _mzd_ptr_add(C->x, (const mzd_t**)A->x, (const mzd_t**)B->x, A->depth);
   return C;
 }
 
@@ -358,23 +358,23 @@ static inline mzd_slice_t *mzd_slice_add(mzd_slice_t *C, const mzd_slice_t *A, c
  * \ingroup Multiplication
  */
 
-mzd_slice_t *_mzd_slice_mul_naive(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B);
+mzd_slice_t *_mzd_slice_addmul_naive(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B);
 
 /**
- * \brief \f$ C = A \cdot B \f$ over \GF4 using 3 multiplications over \GF2 and 2 temporary \GF2 matrices..
+ * \brief \f$ C += A \cdot B \f$ over \GF4 using 3 multiplications over \GF2 and 2 temporary \GF2 matrices..
  *
  * \param C Preallocated return matrix, may be NULL for automatic creation.
  * \param A Input matrix A.
  * \param B Input matrix B.
  *
- * \sa _mzd_slice_mul_karatsuba()
+ * \sa _mzd_slice_addmul_karatsuba()
  *
  * \ingroup Multiplication
  */
-mzd_slice_t *_mzd_slice_mul_karatsuba2(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B);
+mzd_slice_t *_mzd_slice_addmul_karatsuba2(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B);
 
 /**
- * \brief \f$ C = A \cdot B \f$ over \GF8 using 6 multiplications over \GF2 and 3 temporary \GF2 matrices..
+ * \brief \f$ C += A \cdot B \f$ over \GF8 using 6 multiplications over \GF2 and 3 temporary \GF2 matrices..
  *
  * The formula was taken from Peter L. Montgomery. "Five, Six, and
  * Seven-Term Karatsuba-Like Formulae" in IEEE TRANSACTIONS ON
@@ -384,29 +384,29 @@ mzd_slice_t *_mzd_slice_mul_karatsuba2(mzd_slice_t *C, const mzd_slice_t *A, con
  * \param A Input matrix A.
  * \param B Input matrix B.
  *
- * \sa _mzd_slice_mul_karatsuba()
+ * \sa _mzd_slice_addmul_karatsuba()
  *
  * \ingroup Multiplication
  */
 
-mzd_slice_t *_mzd_slice_mul_karatsuba3(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B);
+mzd_slice_t *_mzd_slice_addmul_karatsuba3(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B);
 
 /**
- * \brief \f$ C = A \cdot B \f$ over \GF16 using 9 multiplications over \GF2 and 3 temporary \GF2 matrices..
+ * \brief \f$ C += A \cdot B \f$ over \GF16 using 9 multiplications over \GF2 and 3 temporary \GF2 matrices..
  *
  * \param C Preallocated return matrix, may be NULL for automatic creation.
  * \param A Input matrix A.
  * \param B Input matrix B.
  *
- * \sa _mzd_slice_mul_karatsuba()
+ * \sa _mzd_slice_addmul_karatsuba()
  *
  * \ingroup Multiplication
  */
 
-mzd_slice_t *_mzd_slice_mul_karatsuba4(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B);
+mzd_slice_t *_mzd_slice_addmul_karatsuba4(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B);
 
 /**
- * \brief \f$ C = A \cdot B \f$ over \GF32 using 13 multiplications over \GF2 and 3 temporary \GF2 matrices..
+ * \brief \f$ C += A \cdot B \f$ over \GF32 using 13 multiplications over \GF2 and 3 temporary \GF2 matrices..
  *
  * The formula was taken from Peter L. Montgomery. "Five, Six, and
  * Seven-Term Karatsuba-Like Formulae" in IEEE TRANSACTIONS ON
@@ -416,15 +416,15 @@ mzd_slice_t *_mzd_slice_mul_karatsuba4(mzd_slice_t *C, const mzd_slice_t *A, con
  * \param A Input matrix A.
  * \param B Input matrix B.
  *
- * \sa _mzd_slice_mul_karatsuba()
+ * \sa _mzd_slice_addmul_karatsuba()
  *
  * \ingroup Multiplication
  */
 
-mzd_slice_t *_mzd_slice_mul_karatsuba5(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B);
+mzd_slice_t *_mzd_slice_addmul_karatsuba5(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B);
 
 /**
- * \brief \f$ C = A \cdot B \f$ over \GF64 using 17 multiplications over \GF2 and 3 temporary \GF2 matrices.
+ * \brief \f$ C += A \cdot B \f$ over \GF64 using 17 multiplications over \GF2 and 3 temporary \GF2 matrices.
  *
  * The formula was taken from Peter L. Montgomery. "Five, Six, and
  * Seven-Term Karatsuba-Like Formulae" in IEEE TRANSACTIONS ON
@@ -434,15 +434,15 @@ mzd_slice_t *_mzd_slice_mul_karatsuba5(mzd_slice_t *C, const mzd_slice_t *A, con
  * \param A Input matrix A.
  * \param B Input matrix B.
  *
- * \sa _mzd_slice_mul_karatsuba()
+ * \sa _mzd_slice_addmul_karatsuba()
  *
  * \ingroup Multiplication
  */
 
-mzd_slice_t *_mzd_slice_mul_karatsuba6(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B);
+mzd_slice_t *_mzd_slice_addmul_karatsuba6(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B);
 
 /**
- * \brief \f$ C = A \cdot B \f$ over \GF128 using 22 multiplications over \GF2 and 3 temporary \GF2 matrices.
+ * \brief \f$ C += A \cdot B \f$ over \GF128 using 22 multiplications over \GF2 and 3 temporary \GF2 matrices.
  *
  * The formula was taken from Peter L. Montgomery. "Five, Six, and
  * Seven-Term Karatsuba-Like Formulae" in IEEE TRANSACTIONS ON
@@ -452,26 +452,26 @@ mzd_slice_t *_mzd_slice_mul_karatsuba6(mzd_slice_t *C, const mzd_slice_t *A, con
  * \param A Input matrix A.
  * \param B Input matrix B.
  *
- * \sa _mzd_slice_mul_karatsuba()
+ * \sa _mzd_slice_addmul_karatsuba()
  *
  * \ingroup Multiplication
  */
 
-mzd_slice_t *_mzd_slice_mul_karatsuba7(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B);
+mzd_slice_t *_mzd_slice_addmul_karatsuba7(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B);
 
 /**
- * \brief \f$ C = A \cdot B \f$ over \GF256 using 27 multiplications over \GF2 and 15 temporary \GF2 matrices.
+ * \brief \f$ C += A \cdot B \f$ over \GF256 using 27 multiplications over \GF2 and 15 temporary \GF2 matrices.
  *
  * \param C Preallocated return matrix, may be NULL for automatic creation.
  * \param A Input matrix A.
  * \param B Input matrix B.
  *
- * \sa _mzd_slice_mul_karatsuba()
+ * \sa _mzd_slice_addmul_karatsuba()
  *
  * \ingroup Multiplication
  */
 
-mzd_slice_t *_mzd_slice_mul_karatsuba8(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B);
+mzd_slice_t *_mzd_slice_addmul_karatsuba8(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B);
 
 /**
  * \brief \f$ C = C + A \cdot B \f$ using Karatsuba multiplication of polynomials over matrices over \GF2.
@@ -504,22 +504,22 @@ mzd_slice_t *_mzd_slice_mul_karatsuba8(mzd_slice_t *C, const mzd_slice_t *A, con
  * \param A Input matrix A.
  * \param B Input matrix B.
  *
- * \sa mzed_mul() mzd_slice_mul() mzd_slice_mul_karatsuba()
+ * \sa mzed_mul() mzd_slice_mul() mzd_slice_addmul_karatsuba()
  *
  * \ingroup Multiplication
  */
 
-static inline mzd_slice_t *_mzd_slice_mul_karatsuba(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B) {
+static inline mzd_slice_t *_mzd_slice_addmul_karatsuba(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B) {
   switch(A->finite_field->degree) {
-  case  2: C = _mzd_slice_mul_karatsuba2(C, A, B); break;
-  case  3: C = _mzd_slice_mul_karatsuba3(C, A, B); break;
-  case  4: C = _mzd_slice_mul_karatsuba4(C, A, B); break;
-  case  5: C = _mzd_slice_mul_karatsuba5(C, A, B); break;
-  case  6: C = _mzd_slice_mul_karatsuba6(C, A, B); break;
-  case  7: C = _mzd_slice_mul_karatsuba7(C, A, B); break;
-  case  8: C = _mzd_slice_mul_karatsuba8(C, A, B); break;
+  case  2: C = _mzd_slice_addmul_karatsuba2(C, A, B); break;
+  case  3: C = _mzd_slice_addmul_karatsuba3(C, A, B); break;
+  case  4: C = _mzd_slice_addmul_karatsuba4(C, A, B); break;
+  case  5: C = _mzd_slice_addmul_karatsuba5(C, A, B); break;
+  case  6: C = _mzd_slice_addmul_karatsuba6(C, A, B); break;
+  case  7: C = _mzd_slice_addmul_karatsuba7(C, A, B); break;
+  case  8: C = _mzd_slice_addmul_karatsuba8(C, A, B); break;
   default:
-    C = _mzd_slice_mul_naive(C, A, B); break;
+    C = _mzd_slice_addmul_naive(C, A, B); break;
   }
   return C;
 }
@@ -531,7 +531,7 @@ static inline mzd_slice_t *_mzd_slice_mul_karatsuba(mzd_slice_t *C, const mzd_sl
  * \param A Input matrix A.
  * \param B Input matrix B.
  *
- * \sa _mzd_slice_mul_karatsuba()
+ * \sa _mzd_slice_addmul_karatsuba()
  *
  * \ingroup Multiplication
  */
@@ -544,7 +544,7 @@ static inline mzd_slice_t *mzd_slice_mul_karatsuba(mzd_slice_t *C, const mzd_sli
       m4ri_die("mzd_slice_mul_karatsuba: rows and columns of returned matrix must match.\n");
     mzd_slice_set_ui(C,0);
   }
-  return _mzd_slice_mul_karatsuba(C, A, B);
+  return _mzd_slice_addmul_karatsuba(C, A, B);
 }
 
 /**
@@ -554,7 +554,7 @@ static inline mzd_slice_t *mzd_slice_mul_karatsuba(mzd_slice_t *C, const mzd_sli
  * \param A Input matrix A.
  * \param B Input matrix B.
  *
- * \sa _mzd_slice_mul_karatsuba()
+ * \sa _mzd_slice_addmul_karatsuba()
  *
  * \ingroup Multiplication
  */
@@ -565,7 +565,7 @@ static inline mzd_slice_t *mzd_slice_addmul_karatsuba(mzd_slice_t *C, const mzd_
     m4ri_die("mzd_slice_addmul_karatsuba: rows, columns and fields must match.\n");
   if (C->finite_field != A->finite_field || C->nrows != A->nrows || C->ncols != B->ncols)
     m4ri_die("mzd_slice_addmul_karatsuba: rows and columns of returned matrix must match.\n");
-  return _mzd_slice_mul_karatsuba(C, A, B);
+  return _mzd_slice_addmul_karatsuba(C, A, B);
 }
 
 /**
@@ -600,7 +600,7 @@ mzd_slice_t *mzd_slice_addmul_scalar(mzd_slice_t *C, const word a, const mzd_sli
  * \param A Input matrix A.
  * \param B Input matrix B.
  *
- * \sa _mzd_slice_mul_karatsuba()
+ * \sa _mzd_slice_addmul_karatsuba()
  *
  * \ingroup Multiplication
  */
@@ -616,7 +616,7 @@ static inline mzd_slice_t *mzd_slice_mul(mzd_slice_t *C, const mzd_slice_t *A, c
  * \param A Input matrix A.
  * \param B Input matrix B.
  *
- * \sa _mzd_slice_mul_karatsuba()
+ * \sa _mzd_slice_addmul_karatsuba(n)
  *
  * \ingroup Multiplication
  */
@@ -878,56 +878,6 @@ void mzd_slice_print(const mzd_slice_t *A);
 static inline void _mzd_slice_compress_l(mzd_slice_t *A, const rci_t r1, const rci_t n1, const rci_t r2) {
   for(int i=0; i<A->depth; i++)
     _mzd_compress_l(A->x[i], r1, n1, r2);
-}
-
-/**
- * \brief Add A to coefficient of X^t but perform modular reductions on the fly.
- *
- * (A + X^t % minpoly)
- *
- * \param ff Finite field
- * \param A Matrix
- * \param X Matrix list
- * \param t Integer >= 0 (degree)
- */
-
-static inline void mzd_add_modred(const gf2e *ff, const mzd_t *A, mzd_t **X, const int t) {
-  if (mzd_is_zero(A))
-    return;
-
-  if (t < ff->degree) {
-    mzd_add(X[t], X[t], A);
-    return;
-  }
-
-  word pow_gen = ff->pow_gen[t];
-
-  for(int i=0; i<ff->degree; i++) {
-    if (pow_gen & (1<<i))
-       mzd_add(X[i],X[i],A);
-  }
-}
-
-/**
- * \brief Add A to n coefficients but perform modular reductions on the fly.
- *
- * \param ff Finite field
- * \param A Matrix
- * \param X Matrix list
- * \param n Integer > 0
- */
-
-static inline mzd_t *mzd_add_to_all_modred(const gf2e *ff, mzd_t *A, mzd_t **X, const int n, ...) {
-  va_list b_list;
-  va_start( b_list, n );
-
-  for( int i = 0 ; i < n; i++ ) {
-    int t = va_arg(b_list, int);
-    mzd_add_modred(ff, A, X, t);
-  }
-
-  va_end( b_list );
-  return A;
 }
 
 #endif //M4RIE_MZD_SLICE

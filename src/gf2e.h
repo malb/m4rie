@@ -40,7 +40,7 @@
 typedef struct gf2e_struct gf2e;
 
 struct gf2e_struct {
-  unsigned int degree; /**< The degree \e. */
+  deg_t degree;    /**< The degree \e. */
   word minpoly;   /**<  Irreducible polynomial of degree \e. */
 
   word *pow_gen; /**< pow_gen[i] holds \f$a^i / <f>\f$ for \f$a\f$ a generator of this field.  */
@@ -146,7 +146,7 @@ static inline size_t gf2e_degree_to_w(const gf2e *ff) {
 static inline word *gf2e_t16_init(const gf2e *ff, const word a) {
   word *mul = (word*)m4ri_mm_calloc(1<<16, sizeof(word));
 
-  const unsigned int w = gf2e_degree_to_w(ff);
+  const deg_t w = gf2e_degree_to_w(ff);
   const word mask_w = (1<<w)-1;
 
   /**
