@@ -87,7 +87,6 @@ mzed_t *_mzed_mul_init(mzed_t *C, const mzed_t *A, const mzed_t *B, int clear) {
   return C;
 }
 
-
 mzed_t *mzed_mul(mzed_t *C, const mzed_t *A, const mzed_t *B) {
   C = _mzed_mul_init(C,A,B, TRUE);
   _mzed_mul(C, A, B);

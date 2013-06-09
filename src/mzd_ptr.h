@@ -121,7 +121,63 @@ static inline void _mzd_ptr_add(mzd_t **c, const mzd_t **a, const mzd_t **b, con
   }
 }
 
-void _mzd_ptr_addmul2(mzd_t **X, const mzd_t **a, const mzd_t **b);
-void _mzd_ptr_addmul4(mzd_t **X, const mzd_t **a, const mzd_t **b);
+/**
+ * \brief \f$ X += A \cdot B \f$ over \GF4 using 3 multiplications over \GF2 and 2 temporary \GF2 matrices.
+ *
+ * If no finite field is given, polynomial arithmetic with polynomials of degree 1 is performed. In
+ * this case, X is expected to have at least length 3. If a finite field is given, then C is
+ * expected to have at least length 2.
+ *
+ * The formula was taken from Peter L. Montgomery. "Five, Six, and
+ * Seven-Term Karatsuba-Like Formulae" in IEEE TRANSACTIONS ON
+ * COMPUTERS, VOL. 54, NO. 3, MARCH 2005/
+ * 
+ * \param ff Finite Field, may be NULL for polynomial arithmetic.
+ * \param C Preallocated return matrix, of length >= 2 (ff != NULL) or >=3 (ff == NULL)
+ * \param A Input matrix A, preallocated of length >= 2.
+ * \param B Input matrix B, preallocated of length >= 2.
+ *
+ * \sa _mzd_ptr_addmul_karatsuba()
+ *
+ * \ingroup Multiplication
+ */
+
+void _mzd_ptr_addmul_karatsuba2(const gf2e *ff, mzd_t **X, const mzd_t **A, const mzd_t **B);
+
+/**
+ * \brief \f$ X += A \cdot B \f$ over \GF8 using 6 multiplications over \GF2 and 3 temporary \GF2 matrices..
+ */
+
+void _mzd_ptr_addmul_karatsuba3(const gf2e *ff, mzd_t **X, const mzd_t **A, const mzd_t **B);
+
+/**
+ * \brief \f$ X += A \cdot B \f$ over \GF16 using 9 multiplications over \GF2 and 3 temporary \GF2 matrices.
+ */
+
+void _mzd_ptr_addmul_karatsuba4(const gf2e *ff, mzd_t **X, const mzd_t **A, const mzd_t **B);
+
+/**
+ * \brief \f$ C += A \cdot B \f$ over \GF32 using 13 multiplications over \GF2 and 3 temporary \GF2 matrices..
+ */
+
+void _mzd_ptr_addmul_karatsuba5(const gf2e *ff, mzd_t **X, const mzd_t **A, const mzd_t **B);
+
+/**
+ * \brief \f$ C += A \cdot B \f$ over \GF64 using 17 multiplications over \GF2 and 3 temporary \GF2 matrices.
+ */
+
+void _mzd_ptr_addmul_karatsuba6(const gf2e *ff, mzd_t **X, const mzd_t **A, const mzd_t **B);
+
+/**
+ * \brief \f$ X += A \cdot B \f$ over \GF128 using 22 multiplications over \GF2 and 3 temporary \GF2 matrices.
+ */
+
+void _mzd_ptr_addmul_karatsuba7(const gf2e *ff, mzd_t **X, const mzd_t **A, const mzd_t **B);
+
+/**
+ * \brief \f$ X += A \cdot B \f$ over \GF256 using 27 multiplications over \GF2 and 15 temporary \GF2 matrices.
+ */
+
+void _mzd_ptr_addmul_karatsuba8(const gf2e *ff, mzd_t **X, const mzd_t **A, const mzd_t **B);
 
 #endif //M4RIE_POLY_ARITH_H

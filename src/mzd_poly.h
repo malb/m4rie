@@ -106,14 +106,14 @@ static inline mzd_poly_t *_mzd_poly_addmul_balanced(mzd_poly_t *C, const mzd_pol
   switch(A->depth) {
   case 0:
     m4ri_die("depth 0: seriously?");
-  case 1:
-    mzd_addmul(C->x[0], A->x[0], B->x[0], 0); break;
-  case 2:
-    _mzd_ptr_addmul2(C->x, (const mzd_t**)A->x, (const mzd_t**)B->x); break;
-  case 3:
-    _mzd_poly_addmul_naive(C, A, B); break;
-  case 4:
-    _mzd_ptr_addmul4(C->x, (const mzd_t**)A->x, (const mzd_t**)B->x); break;
+  case 1: mzd_addmul(C->x[0], A->x[0], B->x[0], 0); break;
+  case 2: _mzd_ptr_addmul_karatsuba2(NULL, C->x, (const mzd_t**)A->x, (const mzd_t**)B->x); break;
+  case 3: _mzd_ptr_addmul_karatsuba3(NULL, C->x, (const mzd_t**)A->x, (const mzd_t**)B->x); break;
+  case 4: _mzd_ptr_addmul_karatsuba4(NULL, C->x, (const mzd_t**)A->x, (const mzd_t**)B->x); break;
+  case 5: _mzd_ptr_addmul_karatsuba5(NULL, C->x, (const mzd_t**)A->x, (const mzd_t**)B->x); break;
+  case 6: _mzd_ptr_addmul_karatsuba6(NULL, C->x, (const mzd_t**)A->x, (const mzd_t**)B->x); break;
+  case 7: _mzd_ptr_addmul_karatsuba7(NULL, C->x, (const mzd_t**)A->x, (const mzd_t**)B->x); break;
+  case 8: _mzd_ptr_addmul_karatsuba8(NULL, C->x, (const mzd_t**)A->x, (const mzd_t**)B->x); break;
   default:
     _mzd_poly_addmul_naive(C, A, B); break;
   }

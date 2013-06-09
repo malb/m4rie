@@ -361,119 +361,6 @@ static inline mzd_slice_t *mzd_slice_add(mzd_slice_t *C, const mzd_slice_t *A, c
 mzd_slice_t *_mzd_slice_addmul_naive(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B);
 
 /**
- * \brief \f$ C += A \cdot B \f$ over \GF4 using 3 multiplications over \GF2 and 2 temporary \GF2 matrices..
- *
- * \param C Preallocated return matrix, may be NULL for automatic creation.
- * \param A Input matrix A.
- * \param B Input matrix B.
- *
- * \sa _mzd_slice_addmul_karatsuba()
- *
- * \ingroup Multiplication
- */
-mzd_slice_t *_mzd_slice_addmul_karatsuba2(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B);
-
-/**
- * \brief \f$ C += A \cdot B \f$ over \GF8 using 6 multiplications over \GF2 and 3 temporary \GF2 matrices..
- *
- * The formula was taken from Peter L. Montgomery. "Five, Six, and
- * Seven-Term Karatsuba-Like Formulae" in IEEE TRANSACTIONS ON
- * COMPUTERS, VOL. 54, NO. 3, MARCH 2005/
- *
- * \param C Preallocated return matrix, may be NULL for automatic creation.
- * \param A Input matrix A.
- * \param B Input matrix B.
- *
- * \sa _mzd_slice_addmul_karatsuba()
- *
- * \ingroup Multiplication
- */
-
-mzd_slice_t *_mzd_slice_addmul_karatsuba3(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B);
-
-/**
- * \brief \f$ C += A \cdot B \f$ over \GF16 using 9 multiplications over \GF2 and 3 temporary \GF2 matrices..
- *
- * \param C Preallocated return matrix, may be NULL for automatic creation.
- * \param A Input matrix A.
- * \param B Input matrix B.
- *
- * \sa _mzd_slice_addmul_karatsuba()
- *
- * \ingroup Multiplication
- */
-
-mzd_slice_t *_mzd_slice_addmul_karatsuba4(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B);
-
-/**
- * \brief \f$ C += A \cdot B \f$ over \GF32 using 13 multiplications over \GF2 and 3 temporary \GF2 matrices..
- *
- * The formula was taken from Peter L. Montgomery. "Five, Six, and
- * Seven-Term Karatsuba-Like Formulae" in IEEE TRANSACTIONS ON
- * COMPUTERS, VOL. 54, NO. 3, MARCH 2005/
- *
- * \param C Preallocated return matrix, may be NULL for automatic creation.
- * \param A Input matrix A.
- * \param B Input matrix B.
- *
- * \sa _mzd_slice_addmul_karatsuba()
- *
- * \ingroup Multiplication
- */
-
-mzd_slice_t *_mzd_slice_addmul_karatsuba5(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B);
-
-/**
- * \brief \f$ C += A \cdot B \f$ over \GF64 using 17 multiplications over \GF2 and 3 temporary \GF2 matrices.
- *
- * The formula was taken from Peter L. Montgomery. "Five, Six, and
- * Seven-Term Karatsuba-Like Formulae" in IEEE TRANSACTIONS ON
- * COMPUTERS, VOL. 54, NO. 3, MARCH 2005/
- *
- * \param C Preallocated return matrix, may be NULL for automatic creation.
- * \param A Input matrix A.
- * \param B Input matrix B.
- *
- * \sa _mzd_slice_addmul_karatsuba()
- *
- * \ingroup Multiplication
- */
-
-mzd_slice_t *_mzd_slice_addmul_karatsuba6(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B);
-
-/**
- * \brief \f$ C += A \cdot B \f$ over \GF128 using 22 multiplications over \GF2 and 3 temporary \GF2 matrices.
- *
- * The formula was taken from Peter L. Montgomery. "Five, Six, and
- * Seven-Term Karatsuba-Like Formulae" in IEEE TRANSACTIONS ON
- * COMPUTERS, VOL. 54, NO. 3, MARCH 2005/
- *
- * \param C Preallocated return matrix, may be NULL for automatic creation.
- * \param A Input matrix A.
- * \param B Input matrix B.
- *
- * \sa _mzd_slice_addmul_karatsuba()
- *
- * \ingroup Multiplication
- */
-
-mzd_slice_t *_mzd_slice_addmul_karatsuba7(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B);
-
-/**
- * \brief \f$ C += A \cdot B \f$ over \GF256 using 27 multiplications over \GF2 and 15 temporary \GF2 matrices.
- *
- * \param C Preallocated return matrix, may be NULL for automatic creation.
- * \param A Input matrix A.
- * \param B Input matrix B.
- *
- * \sa _mzd_slice_addmul_karatsuba()
- *
- * \ingroup Multiplication
- */
-
-mzd_slice_t *_mzd_slice_addmul_karatsuba8(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B);
-
-/**
  * \brief \f$ C = C + A \cdot B \f$ using Karatsuba multiplication of polynomials over matrices over \GF2.
  *
  * This function reduces matrix multiplication over \GF2E to matrix
@@ -510,14 +397,16 @@ mzd_slice_t *_mzd_slice_addmul_karatsuba8(mzd_slice_t *C, const mzd_slice_t *A, 
  */
 
 static inline mzd_slice_t *_mzd_slice_addmul_karatsuba(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B) {
+  if (C == NULL)
+    C = mzd_slice_init(A->finite_field, A->nrows, B->ncols);
   switch(A->finite_field->degree) {
-  case  2: C = _mzd_slice_addmul_karatsuba2(C, A, B); break;
-  case  3: C = _mzd_slice_addmul_karatsuba3(C, A, B); break;
-  case  4: C = _mzd_slice_addmul_karatsuba4(C, A, B); break;
-  case  5: C = _mzd_slice_addmul_karatsuba5(C, A, B); break;
-  case  6: C = _mzd_slice_addmul_karatsuba6(C, A, B); break;
-  case  7: C = _mzd_slice_addmul_karatsuba7(C, A, B); break;
-  case  8: C = _mzd_slice_addmul_karatsuba8(C, A, B); break;
+  case  2: _mzd_ptr_addmul_karatsuba2(A->finite_field, C->x, (const mzd_t**)A->x, (const mzd_t**)B->x); break;
+  case  3: _mzd_ptr_addmul_karatsuba3(A->finite_field, C->x, (const mzd_t**)A->x, (const mzd_t**)B->x); break;
+  case  4: _mzd_ptr_addmul_karatsuba4(A->finite_field, C->x, (const mzd_t**)A->x, (const mzd_t**)B->x); break;
+  case  5: _mzd_ptr_addmul_karatsuba5(A->finite_field, C->x, (const mzd_t**)A->x, (const mzd_t**)B->x); break;
+  case  6: _mzd_ptr_addmul_karatsuba6(A->finite_field, C->x, (const mzd_t**)A->x, (const mzd_t**)B->x); break;
+  case  7: _mzd_ptr_addmul_karatsuba7(A->finite_field, C->x, (const mzd_t**)A->x, (const mzd_t**)B->x); break;
+  case  8: _mzd_ptr_addmul_karatsuba8(A->finite_field, C->x, (const mzd_t**)A->x, (const mzd_t**)B->x); break;
   default:
     C = _mzd_slice_addmul_naive(C, A, B); break;
   }
