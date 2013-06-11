@@ -24,15 +24,14 @@
 #include "mzd_ptr.h"
 #include "gf2x.h"
 
-/*********************************************************************
- * mzd_poly_t will be the data type for matrices over GF(2)[x] in the
- * future
+/**
+ * \brief will be the data type for matrices over \GF2[x] in the future
  *
- * @warning DO NOT USE YET.
- *********************************************************************/
+ * @warning Do not use yet.
+ */
 
 typedef struct {
-  mzd_t **x;
+  mzd_t **x;   /**< Coefficients. */
   rci_t nrows; /**< Number of rows. */
   rci_t ncols; /**< Number of columns. */
   deg_t depth;   /**< Degree +1      */

@@ -43,12 +43,12 @@ struct gf2e_struct {
   deg_t degree;    /**< The degree \e. */
   word minpoly;   /**<  Irreducible polynomial of degree \e. */
 
-  word *pow_gen; /**< pow_gen[i] holds \f$a^i / <f>\f$ for \f$a\f$ a generator of this field.  */
-  word *red;     /**< red[i] holds precomputed reductors for the minpoly. \f$\f$. */
-  word **_mul;   /**< mul[a][b] holds \f$ a \cdot b\f for small fields$. */
+  word *pow_gen; /**< pow_gen[i] holds \f$a^i / \langle f\rangle\f$ for \f$a\f$ a generator of this field.*/
+  word *red;     /**< red[i] holds precomputed reductors for the minpoly.*/
+  word **_mul;   /**< mul[a][b] holds \f$ a \cdot b\f$ for small fields.*/
 
-  word (*inv)(const gf2e *ff, const word a); /**< implements a^(-1) for a in \GF2E */
-  word (*mul)(const gf2e *ff, const word a, const word b); /**< implements a*b for a in \GF2E */
+  word (*inv)(const gf2e *ff, const word a); /**< implements \f$a^{-1}\f$ for a in \GF2E*/
+  word (*mul)(const gf2e *ff, const word a, const word b); /**< implements \f$a \cdot b\f$ for a in \GF2E.*/
 };
 
 /**

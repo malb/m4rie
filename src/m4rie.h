@@ -43,7 +43,7 @@
  * \defgroup Echelon            Echelon forms
  * \defgroup Triangular         Triangular matrices
  *
- * \example tests/test_elimination.cc tests/test_multiplication.cc
+ * \example tests/test_multiplication.cc
  */
 
 #ifndef M4RIE_H
