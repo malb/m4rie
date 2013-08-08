@@ -55,10 +55,8 @@ static inline word word_cling_64_04(word a) {
 
 mzd_slice_t *mzed_slice(mzd_slice_t *A, const mzed_t *Z) {
   if (A == NULL) {
-    assert(Z->x->offset == 0);
     A = mzd_slice_init(Z->finite_field, Z->nrows, Z->ncols);
   } else {
-    assert((Z->x->offset | A->x[0]->offset) == 0);
     mzd_slice_set_ui(A, 0);
   }
 
@@ -89,11 +87,9 @@ mzd_slice_t *mzed_slice(mzd_slice_t *A, const mzed_t *Z) {
 
 mzed_t *mzed_cling(mzed_t *A, const mzd_slice_t *Z) {
   if (A == NULL) {
-    assert(Z->x[0]->offset == 0);
     A = mzed_init(Z->finite_field, Z->nrows, Z->ncols);
   }
   else {
-    assert((A->x->offset | Z->x[0]->offset) == 0);
     mzed_set_ui(A, 0);
   }
 
@@ -126,7 +122,7 @@ mzd_slice_t *_mzed_slice2(mzd_slice_t *T, const mzed_t *F) {
   assert(T && (T->depth >= 2));
   size_t j, j2 = 0;
 
-  const word bitmask_end = __M4RI_LEFT_BITMASK((T->x[0]->offset + T->ncols) % m4ri_radix);
+  const word bitmask_end = T->x[0]->high_bitmask;
   register word r0,r1,r2,r3;
 
   if (mzed_is_zero(F))
@@ -186,7 +182,7 @@ mzed_t *_mzed_cling2(mzed_t *T, const mzd_slice_t *F) {
   size_t j,j2 = 0;
   register word tmp;
 
-  const word bitmask_end = __M4RI_LEFT_BITMASK((T->x->offset + T->x->ncols) % m4ri_radix);
+  const word bitmask_end = T->x->high_bitmask;
 
   if (mzd_slice_is_zero(F))
     return T;
@@ -216,11 +212,11 @@ mzed_t *_mzed_cling2(mzed_t *T, const mzd_slice_t *F) {
 }
 
 mzd_slice_t *_mzed_slice4(mzd_slice_t *T, const mzed_t *F) {
-  assert(T && (T->depth == 3 || T->depth == 4) && T->x[0]->offset == 0);
+  assert(T && (T->depth == 3 || T->depth == 4));
   size_t j, j2 = 0;
   register word r0,r1,r2,r3 = 0;
 
-  const word bitmask_end = __M4RI_LEFT_BITMASK((T->x[0]->offset + T->ncols) % m4ri_radix);
+  const word bitmask_end = T->x[0]->high_bitmask;
 
   if (mzed_is_zero(F))
     return T;
@@ -324,7 +320,7 @@ mzd_slice_t *_mzed_slice4(mzd_slice_t *T, const mzed_t *F) {
 mzed_t *_mzed_cling4(mzed_t *T, const mzd_slice_t *F) {
   size_t j,j2 = 0;
 
-  const word bitmask_end = __M4RI_LEFT_BITMASK((T->x->offset + T->x->ncols) % m4ri_radix);
+  const word bitmask_end = T->x->high_bitmask;
 
   if (mzd_slice_is_zero(F))
     return T;

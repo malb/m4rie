@@ -57,8 +57,6 @@ void njt_mzed_free(njt_mzed_t *T) {
  * \param r2 Row index
  * \param T3 Matrix
  * \param r3 Row index
- *
- * \wordoffset
  */
 
 static inline void mzed_combine4(mzed_t *C, rci_t rc, 
@@ -89,8 +87,6 @@ static inline void mzed_combine4(mzed_t *C, rci_t rc,
  * \param r6 Row index
  * \param T7 Matrix
  * \param r7 Row index
- *
- * \wordoffset
  */
 
 static inline void mzed_combine8(mzed_t *C, rci_t rc, 
@@ -177,9 +173,9 @@ njt_mzed_t *mzed_make_table(njt_mzed_t *T, const mzed_t *A, const rci_t r, const
   }
 #else  
   const int degree = A->finite_field->degree;
-  const wi_t homeblock = (A->w*c + A->x->offset) / m4ri_radix;
+  const wi_t homeblock = A->w*c / m4ri_radix;
   const wi_t wide = T->M->x->width - homeblock;
-  const word bitmask_end = __M4RI_LEFT_BITMASK((T->M->x->offset + T->M->x->ncols) % m4ri_radix);
+  const word bitmask_end = T->M->x->high_bitmask;
   wi_t j;
 
   for(int i=0; i<degree; i++) {
@@ -554,7 +550,7 @@ void mzed_trsm_upper_left_newton_john(const mzed_t *U, mzed_t *B) {
   assert(B->nrows == U->ncols);
 
   const gf2e *ff = U->finite_field;
-  if ( (__M4RI_TWOPOW(ff->degree) >= U->nrows) || B->x->offset ) {
+  if ( (__M4RI_TWOPOW(ff->degree) >= U->nrows) ) {
     mzed_trsm_upper_left_naive(U, B);
     return;
   }
@@ -571,7 +567,6 @@ void mzed_trsm_upper_left_newton_john(const mzed_t *U, mzed_t *B) {
 }
 
 void mzd_slice_trsm_lower_left_newton_john(const mzd_slice_t *L, mzd_slice_t *B) {
-  assert(B->x[0]->offset == 0);
   assert(L->finite_field == B->finite_field);
   assert(L->nrows == L->ncols);
   assert(B->nrows == L->ncols);
@@ -597,7 +592,6 @@ void mzd_slice_trsm_lower_left_newton_john(const mzd_slice_t *L, mzd_slice_t *B)
 }
 
 void mzd_slice_trsm_upper_left_newton_john(const mzd_slice_t *U, mzd_slice_t *B) {
-  assert(B->x[0]->offset == 0);
   assert(U->finite_field == B->finite_field);
   assert(U->nrows == U->ncols);
   assert(B->nrows == U->ncols);

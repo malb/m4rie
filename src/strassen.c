@@ -41,10 +41,6 @@ mzed_t *mzed_addmul_strassen(mzed_t *C, const mzed_t *A, const mzed_t *B, int cu
 }
 
 mzed_t *_mzed_mul_strassen(mzed_t *C, const mzed_t *A, const mzed_t *B, int cutoff) {
-  assert(C->x->offset == 0);
-  assert(A->x->offset == 0);
-  assert(B->x->offset == 0);
-
   if((C->nrows| C->ncols) == 0)
     return C;
 
@@ -189,10 +185,6 @@ mzed_t *_mzed_mul_strassen(mzed_t *C, const mzed_t *A, const mzed_t *B, int cuto
 }
 
 mzed_t *_mzed_addmul_strassen(mzed_t *C, const mzed_t *A, const mzed_t *B, int cutoff) {
-  assert(C->x->offset == 0);
-  assert(A->x->offset == 0);
-  assert(B->x->offset == 0);
-
   if((C->nrows| C->ncols) == 0)
     return C;
 

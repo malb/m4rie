@@ -36,15 +36,12 @@ void mzd_slice_trsm_upper_left_naive(const mzd_slice_t *U, mzd_slice_t *B) {
   assert(B->nrows == U->ncols);
 
   const mzed_t *Ue = mzed_cling(NULL, U);
-  mzed_t *BB = mzed_init(B->finite_field, B->nrows, B->ncols + B->x[0]->offset);
-  mzed_t *Be = mzed_init_window(BB, 0, B->x[0]->offset, B->nrows, B->ncols+ B->x[0]->offset);
-  mzed_cling(Be, B);
+  mzed_t *Be       = mzed_cling(NULL, B);
   mzed_trsm_upper_left_naive(Ue, Be);
 
   mzed_slice(B, Be);
   mzed_free((mzed_t*)Ue);
-  mzed_free(BB);
-  mzed_free_window(Be);
+  mzed_free(Be);
 }
 
 void mzd_slice_trsm_lower_left_naive(const mzd_slice_t *L, mzd_slice_t *B) {

@@ -29,7 +29,7 @@ static inline word word_cling_64_08(word a) {
 mzed_t *_mzed_cling8(mzed_t *T, const mzd_slice_t *F) {
   size_t j,j2 = 0;
 
-  const word bitmask_end = __M4RI_LEFT_BITMASK((T->x->offset + T->x->ncols) % m4ri_radix);
+  const word bitmask_end = T->x->high_bitmask;
 
   if (mzd_slice_is_zero(F))
     return T;

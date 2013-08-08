@@ -108,7 +108,6 @@ mzed_t *_mzed_mul(mzed_t *C, const mzed_t *A, const mzed_t *B) {
 }
 
 mzed_t *_mzed_addmul(mzed_t *C, const mzed_t *A, const mzed_t *B) {
-  assert((A->x->offset | B->x->offset | C->x->offset) == 0);
   if (A->nrows >= 512 && A->ncols >= 512 && B->ncols >= 512)
     return _mzed_addmul_karatsuba(C, A, B);
 
@@ -272,7 +271,6 @@ void mzed_print(const mzed_t *A) {
 
 void mzed_add_multiple_of_row(mzed_t *A, rci_t ar, const mzed_t *B, rci_t br, word x, rci_t start_col) {
   assert(A->ncols == B->ncols && A->finite_field == B->finite_field);
-  assert(A->x->offset == B->x->offset);
   assert(start_col < A->ncols);
 
   const gf2e *ff = A->finite_field;
@@ -284,9 +282,9 @@ void mzed_add_multiple_of_row(mzed_t *A, rci_t ar, const mzed_t *B, rci_t br, wo
     return;
   }
 
-  const rci_t start = A->x->offset + A->w*start_col;
+  const rci_t start = A->w*start_col;
   const wi_t startblock = start/m4ri_radix;
-  const word bitmask_end = __M4RI_LEFT_BITMASK((A->x->offset + A->x->ncols) % m4ri_radix);
+  const word bitmask_end = A->x->high_bitmask;
 
   mzd_t *from_x = B->x;
   mzd_t *to_x = A->x;
@@ -379,7 +377,7 @@ void mzed_add_multiple_of_row(mzed_t *A, rci_t ar, const mzed_t *B, rci_t br, wo
       _t[j] = __t;
     }
 
-    switch((to_x->offset + to_x->ncols) % m4ri_radix) {
+    switch(to_x->ncols % m4ri_radix) {
     case  0: _t[j] ^= ff->mul(ff, x, (_f[j] & 0xC000000000000000ULL)>>62)<<62;
     case 62: _t[j] ^= ff->mul(ff, x, (_f[j] & 0x3000000000000000ULL)>>60)<<60;
     case 60: _t[j] ^= ff->mul(ff, x, (_f[j] & 0x0C00000000000000ULL)>>58)<<58;
@@ -464,7 +462,7 @@ void mzed_add_multiple_of_row(mzed_t *A, rci_t ar, const mzed_t *B, rci_t br, wo
       _t[j] = __t;
     }
 
-    switch((to_x->offset + to_x->ncols) % m4ri_radix) {
+    switch(to_x->ncols % m4ri_radix) {
     case  0: _t[j] ^= ff->mul(ff, x, (_f[j] & 0xF000000000000000ULL)>>60)<<60;
     case 60: _t[j] ^= ff->mul(ff, x, (_f[j] & 0x0F00000000000000ULL)>>56)<<56;
     case 56: _t[j] ^= ff->mul(ff, x, (_f[j] & 0x00F0000000000000ULL)>>52)<<52;
@@ -543,7 +541,7 @@ void mzed_add_multiple_of_row(mzed_t *A, rci_t ar, const mzed_t *B, rci_t br, wo
       _t[j] = __t0;
     }
 
-    switch((to_x->offset + to_x->ncols) % m4ri_radix) {
+    switch(to_x->ncols % m4ri_radix) {
     case  0: _t[j] ^= ff->mul(ff, x, (_f[j] & 0xFF00000000000000ULL)>>56)<<56;
     case 56: _t[j] ^= ff->mul(ff, x, (_f[j] & 0x00FF000000000000ULL)>>48)<<48;
     case 48: _t[j] ^= ff->mul(ff, x, (_f[j] & 0x0000FF0000000000ULL)>>40)<<40;
@@ -617,7 +615,7 @@ void mzed_add_multiple_of_row(mzed_t *A, rci_t ar, const mzed_t *B, rci_t br, wo
       _t[j] = __t;
     }
 
-    switch((to_x->offset + to_x->ncols) % m4ri_radix) {
+    switch(to_x->ncols % m4ri_radix) {
     case  0: _t[j] ^= ff->mul(ff, x, (_f[j] & 0xFFFF000000000000ULL)>>48)<<48;
     case 48: _t[j] ^= ff->mul(ff, x, (_f[j] & 0x0000FFFF00000000ULL)>>32)<<32;
     case 32: _t[j] ^= ff->mul(ff, x, (_f[j] & 0x00000000FFFF0000ULL)>>16)<<16;

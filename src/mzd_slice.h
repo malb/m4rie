@@ -665,8 +665,7 @@ static inline void mzd_slice_row_swap(mzd_slice_t *A, const rci_t rowa, const rc
 /**
  * \brief copy row j from A to row i from B.
  *
- * The offsets of A and B must match and the number of columns of A
- * must be less than or equal to the number of columns of B.
+ * The number of columns of A must be less than or equal to the number of columns of B.
  *
  * \param B Target matrix.
  * \param i Target row index.
@@ -728,21 +727,6 @@ static inline void mzd_slice_col_swap_in_rows(mzd_slice_t *A, const rci_t cola, 
 static inline void mzd_slice_row_add(mzd_slice_t *A, const rci_t sourcerow, const rci_t destrow) {
   for(int i=0; i<A->depth; i++)
     mzd_row_add(A->x[i], sourcerow, destrow);
-}
-
-/**
- * \brief Clear the given row, but only begins at the column coloffset.
- *
- * \param A Matrix
- * \param row Index of row
- * \param coloffset Column offset
- *
- * \ingroup RowOperations
- */
-
-static inline void mzd_slice_row_clear_offset(mzd_slice_t *A, const rci_t row, const rci_t coloffset) {
-  for(int i=0; i<A->depth; i++)
-    mzd_row_clear_offset(A->x[i], row, coloffset);
 }
 
 /**

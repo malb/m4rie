@@ -514,13 +514,12 @@ void mzed_add_multiple_of_row(mzed_t *A, rci_t ar, const mzed_t *B, rci_t br, wo
 
 static inline void mzed_add_row(mzed_t *A, rci_t ar, const mzed_t *B, rci_t br, rci_t start_col) {
   assert(A->ncols == B->ncols && A->finite_field == B->finite_field);
-  assert(A->x->offset == B->x->offset);
   assert(start_col < A->ncols);
 
-  const rci_t start = A->x->offset + A->w*start_col;
+  const rci_t start = A->w*start_col;
   const wi_t startblock = start/m4ri_radix;
   const word bitmask_begin = __M4RI_RIGHT_BITMASK(m4ri_radix - (start%m4ri_radix));
-  const word bitmask_end = __M4RI_LEFT_BITMASK((A->x->offset + A->x->ncols) % m4ri_radix);
+  const word bitmask_end = A->x->high_bitmask;
 
   word *_a = A->x->rows[ar];
   const word *_b = B->x->rows[br];
@@ -551,11 +550,11 @@ static inline void mzed_rescale_row(mzed_t *A, rci_t r, rci_t start_col, const w
   assert(start_col < A->ncols);
 
   const gf2e *ff = A->finite_field;
-  const rci_t start = A->x->offset + A->w*start_col;
+  const rci_t start = A->w*start_col;
   const wi_t startblock = start/m4ri_radix;
   word *_a = A->x->rows[r];
   const word bitmask_begin = __M4RI_RIGHT_BITMASK(m4ri_radix - (start%m4ri_radix));
-  const word bitmask_end = __M4RI_LEFT_BITMASK((A->x->offset + A->x->ncols) % m4ri_radix);
+  const word bitmask_end   = A->x->high_bitmask;
   register word __a = _a[startblock]>>(start%m4ri_radix);
   register word __t = 0;
   int j;
@@ -643,7 +642,7 @@ static inline void mzed_rescale_row(mzed_t *A, rci_t r, rci_t start_col, const w
     }
 
     __t = _a[j] & ~bitmask_end;
-    switch((A->x->offset+A->x->ncols) % m4ri_radix) {
+    switch(A->x->ncols % m4ri_radix) {
     case  0: __t ^= ff->mul(ff, x, (_a[j] & 0xC000000000000000ULL)>>62)<<62;
     case 62: __t ^= ff->mul(ff, x, (_a[j] & 0x3000000000000000ULL)>>60)<<60;
     case 60: __t ^= ff->mul(ff, x, (_a[j] & 0x0C00000000000000ULL)>>58)<<58;
@@ -730,7 +729,7 @@ static inline void mzed_rescale_row(mzed_t *A, rci_t r, rci_t start_col, const w
     }
 
     __t = _a[j] & ~bitmask_end;
-    switch( (A->x->offset + A->x->ncols) % m4ri_radix) {
+    switch(A->x->ncols % m4ri_radix) {
     case  0: __t ^= ff->mul(ff, x, (_a[j] & 0xF000000000000000ULL)>>60)<<60;
     case 60: __t ^= ff->mul(ff, x, (_a[j] & 0x0F00000000000000ULL)>>56)<<56;
     case 56: __t ^= ff->mul(ff, x, (_a[j] & 0x00F0000000000000ULL)>>52)<<52;
@@ -814,7 +813,7 @@ static inline void mzed_rescale_row(mzed_t *A, rci_t r, rci_t start_col, const w
     }
 
     __t = _a[j] & ~bitmask_end;
-    switch( (A->x->offset + A->x->ncols) % m4ri_radix ) {
+    switch(A->x->ncols % m4ri_radix ) {
     case  0: __t ^= ff->mul(ff, x, (_a[j] & 0xFF00000000000000ULL)>>56)<<56;
     case 56: __t ^= ff->mul(ff, x, (_a[j] & 0x00FF000000000000ULL)>>48)<<48;
     case 48: __t ^= ff->mul(ff, x, (_a[j] & 0x0000FF0000000000ULL)>>40)<<40;
@@ -882,7 +881,7 @@ static inline void mzed_rescale_row(mzed_t *A, rci_t r, rci_t start_col, const w
     }
 
     __t = _a[j] & ~bitmask_end;
-    switch( (A->x->offset + A->x->ncols) % m4ri_radix) {
+    switch(A->x->ncols % m4ri_radix) {
     case  0: __t ^= ff->mul(ff, x, (_a[j] & 0xFFFF000000000000ULL)>>48)<<48;
     case 48: __t ^= ff->mul(ff, x, (_a[j] & 0x0000FFFF00000000ULL)>>32)<<32;
     case 32: __t ^= ff->mul(ff, x, (_a[j] & 0x00000000FFFF0000ULL)>>16)<<16;
@@ -914,8 +913,7 @@ static inline void mzed_row_swap(mzed_t *M, const rci_t rowa, const rci_t rowb) 
 /**
  * \brief copy row j from A to row i from B.
  *
- * The offsets of A and B must match and the number of columns of A
- * must be less than or equal to the number of columns of B.
+ * The the number of columns of A must be less than or equal to the number of columns of B.
  *
  * \param B Target matrix.
  * \param i Target row index.
@@ -993,20 +991,6 @@ static inline rci_t mzed_first_zero_row(mzed_t *A) {
   return mzd_first_zero_row(A->x);
 }
 
-
-/**
- * \brief Clear the given row, but only begins at the column coloffset.
- *
- * \param M Matrix
- * \param row Index of row
- * \param coloffset Column offset
- *
- * \ingroup RowOperations
- */
-
-static inline void mzed_row_clear_offset(mzed_t *M, const rci_t row, const rci_t coloffset) {
-  mzd_row_clear_offset(M->x, row, coloffset*M->w);
-}
 
 /**
  * \brief Gaussian elimination.

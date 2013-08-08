@@ -48,11 +48,11 @@ static inline word word_slice_64_16(word a) {
   r7 |= word_slice_64_16(F[Fi]<< 8 & x80008000)>> shift;
 
 mzd_slice_t *_mzed_slice16(mzd_slice_t *T, const mzed_t *F) {
-  assert(T && (8 < T->depth && T->depth <= 16) && T->x[0]->offset == 0);
+  assert(T && (8 < T->depth && T->depth <= 16));
   size_t j, j2 = 0;
   register word r0,r1,r2,r3,r4,r5,r6,r7 = 0;
 
-  const word bitmask_end = __M4RI_LEFT_BITMASK((T->x[0]->offset + T->ncols) % m4ri_radix);
+  const word bitmask_end = T->x[0]->high_bitmask;
 
   if (mzed_is_zero(F))
     return T;

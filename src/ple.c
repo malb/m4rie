@@ -87,8 +87,6 @@ rci_t _mzed_ple(mzed_t *A, mzp_t *P, mzp_t *Q, rci_t cutoff) {
 }
 
 rci_t _mzd_slice_ple(mzd_slice_t *A, mzp_t *P, mzp_t *Q, rci_t cutoff) {
-  assert(A->x[0]->offset == 0);
-
   const rci_t ncols = A->ncols;
   const rci_t nrows = A->nrows;
 
