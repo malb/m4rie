@@ -1,8 +1,8 @@
 CPUCYCLES_DIR=./cpucycles-20060326
 
-BENCHCXXFLAGS = $(AM_CFLAGS)  -I.. -I${CPUCYCLES_DIR} @CXXFLAGS@ -DNDEBUG
+BENCHCXXFLAGS = $(AM_CFLAGS)  -I.. -I${CPUCYCLES_DIR} @CXXFLAGS@ -DNDEBUG ${M4RIE_M4RI_CFLAGS}
 BENCHLIBADD = -lm4ri cpucycles.o
-BENCHLDFLAGS = -Wl,-rpath,../.libs/ ../.libs/libm4rie.so -L${CPUCYCLES_DIR} -Wl,-rpath,${M4RIE_M4RI_PREFIX}/lib
+BENCHLDFLAGS = -Wl,-rpath,../.libs/ ../.libs/libm4rie.so -L${CPUCYCLES_DIR} ${M4RIE_M4RI_LDFLAGS} -Wl,-rpath,${M4RIE_M4RI_PREFIX}/lib
 
 EXTRA_PROGRAMS = bench_multiplication bench_elimination bench_smallops bench_trsm bench_ple
 
