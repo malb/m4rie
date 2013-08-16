@@ -49,9 +49,9 @@ libm4rie_la_LIBADD = -lm4ri
 
 #testing
 TESTCXXFLAGS = ${AM_CFLAGS} @CXXFLAGS@ ${M4RIE_M4RI_CFLAGS} ${M4RI_CFLAGS} -I./tests
-TESTLIBADD = -lm4ri -lm4rie
-TESTLDADD =
-TESTLDFLAGS =
+TESTLIBADD = -lm4ri -lm4rie 
+TESTLDADD = 
+TESTLDFLAGS = ${M4RIE_M4RI_LDFLAGS}
 
 check_PROGRAMS = test_trsm test_elimination test_multiplication test_smallops test_ple
 test_elimination_SOURCES = tests/test_elimination.cc tests/testing.h
