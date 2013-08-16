@@ -175,9 +175,33 @@ void _mzd_ptr_addmul_karatsuba6(const gf2e *ff, mzd_t **X, const mzd_t **A, cons
 void _mzd_ptr_addmul_karatsuba7(const gf2e *ff, mzd_t **X, const mzd_t **A, const mzd_t **B);
 
 /**
- * \brief \f$ X += A \cdot B \f$ over \GF256 using 27 multiplications over \GF2 and 15 temporary \GF2 matrices.
+ * \brief \f$ X += A \cdot B \f$ over \GF256 using 27 multiplications over \GF2 and 3 temporary \GF2 matrices.
  */
 
 void _mzd_ptr_addmul_karatsuba8(const gf2e *ff, mzd_t **X, const mzd_t **A, const mzd_t **B);
+
+/**
+ * \brief \f$ X += A \cdot B \f$ over \GF512 using 31 multiplications over \GF2 and 3 temporary \GF2 matrices.
+ */
+
+void _mzd_ptr_addmul_karatsuba9(const gf2e *ff, mzd_t **X, const mzd_t **A, const mzd_t **B);
+
+/**
+ * \brief \f$ X += A \cdot B \f$ over \GF1024 using 36 multiplications over \GF2 and 3 temporary \GF2 matrices.
+ */
+
+void _mzd_ptr_addmul_karatsuba10(const gf2e *ff, mzd_t **X, const mzd_t **A, const mzd_t **B);
+
+/**
+ * \brief \f$ X += A \cdot B \f$ over \GF2048 using 40 multiplications over \GF2 and 3 temporary \GF2 matrices.
+ */
+
+void _mzd_ptr_addmul_karatsuba11(const gf2e *ff, mzd_t **X, const mzd_t **A, const mzd_t **B);
+
+/**
+ * \brief \f$ X += A \cdot B \f$ over \GF4096 using 45 multiplications over \GF2 and 3 temporary \GF2 matrices.
+ */
+
+void _mzd_ptr_addmul_karatsuba12(const gf2e *ff, mzd_t **X, const mzd_t **A, const mzd_t **B);
 
 #endif //M4RIE_POLY_ARITH_H

@@ -400,13 +400,17 @@ static inline mzd_slice_t *_mzd_slice_addmul_karatsuba(mzd_slice_t *C, const mzd
   if (C == NULL)
     C = mzd_slice_init(A->finite_field, A->nrows, B->ncols);
   switch(A->finite_field->degree) {
-  case  2: _mzd_ptr_addmul_karatsuba2(A->finite_field, C->x, (const mzd_t**)A->x, (const mzd_t**)B->x); break;
-  case  3: _mzd_ptr_addmul_karatsuba3(A->finite_field, C->x, (const mzd_t**)A->x, (const mzd_t**)B->x); break;
-  case  4: _mzd_ptr_addmul_karatsuba4(A->finite_field, C->x, (const mzd_t**)A->x, (const mzd_t**)B->x); break;
-  case  5: _mzd_ptr_addmul_karatsuba5(A->finite_field, C->x, (const mzd_t**)A->x, (const mzd_t**)B->x); break;
-  case  6: _mzd_ptr_addmul_karatsuba6(A->finite_field, C->x, (const mzd_t**)A->x, (const mzd_t**)B->x); break;
-  case  7: _mzd_ptr_addmul_karatsuba7(A->finite_field, C->x, (const mzd_t**)A->x, (const mzd_t**)B->x); break;
-  case  8: _mzd_ptr_addmul_karatsuba8(A->finite_field, C->x, (const mzd_t**)A->x, (const mzd_t**)B->x); break;
+  case  2:  _mzd_ptr_addmul_karatsuba2(A->finite_field, C->x, (const mzd_t**)A->x, (const mzd_t**)B->x); break;
+  case  3:  _mzd_ptr_addmul_karatsuba3(A->finite_field, C->x, (const mzd_t**)A->x, (const mzd_t**)B->x); break;
+  case  4:  _mzd_ptr_addmul_karatsuba4(A->finite_field, C->x, (const mzd_t**)A->x, (const mzd_t**)B->x); break;
+  case  5:  _mzd_ptr_addmul_karatsuba5(A->finite_field, C->x, (const mzd_t**)A->x, (const mzd_t**)B->x); break;
+  case  6:  _mzd_ptr_addmul_karatsuba6(A->finite_field, C->x, (const mzd_t**)A->x, (const mzd_t**)B->x); break;
+  case  7:  _mzd_ptr_addmul_karatsuba7(A->finite_field, C->x, (const mzd_t**)A->x, (const mzd_t**)B->x); break;
+  case  8:  _mzd_ptr_addmul_karatsuba8(A->finite_field, C->x, (const mzd_t**)A->x, (const mzd_t**)B->x); break;
+  case  9:  _mzd_ptr_addmul_karatsuba9(A->finite_field, C->x, (const mzd_t**)A->x, (const mzd_t**)B->x); break;
+  case 10: _mzd_ptr_addmul_karatsuba10(A->finite_field, C->x, (const mzd_t**)A->x, (const mzd_t**)B->x); break;
+  case 11: _mzd_ptr_addmul_karatsuba11(A->finite_field, C->x, (const mzd_t**)A->x, (const mzd_t**)B->x); break;
+  case 12: _mzd_ptr_addmul_karatsuba12(A->finite_field, C->x, (const mzd_t**)A->x, (const mzd_t**)B->x); break;
   default:
     C = _mzd_slice_addmul_naive(C, A, B); break;
   }
