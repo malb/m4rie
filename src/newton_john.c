@@ -61,9 +61,8 @@ void njt_mzed_free(njt_mzed_t *T) {
 
 static inline void mzed_combine4(mzed_t *C, rci_t rc, 
                                  mzed_t *T0, rci_t r0, mzed_t *T1, rci_t r1, mzed_t *T2, rci_t r2, mzed_t *T3, rci_t r3) {
-  _mzd_combine4(C->x->rows[rc], 
-                T0->x->rows[r0], T1->x->rows[r1], T2->x->rows[r2], T3->x->rows[r3], 
-                C->x->width);
+  const word *t[4] = {T0->x->rows[r0], T1->x->rows[r1], T2->x->rows[r2], T3->x->rows[r3]};
+  _mzd_combine_4(C->x->rows[rc], t, C->x->width);
 }
 
 /**
@@ -92,10 +91,9 @@ static inline void mzed_combine4(mzed_t *C, rci_t rc,
 static inline void mzed_combine8(mzed_t *C, rci_t rc, 
                                  mzed_t *T0, rci_t r0, mzed_t *T1, rci_t r1, mzed_t *T2, rci_t r2, mzed_t *T3, rci_t r3,
                                  mzed_t *T4, rci_t r4, mzed_t *T5, rci_t r5, mzed_t *T6, rci_t r6, mzed_t *T7, rci_t r7) {
-  _mzd_combine8(C->x->rows[rc], 
-                T0->x->rows[r0], T1->x->rows[r1], T2->x->rows[r2], T3->x->rows[r3], 
-                T4->x->rows[r4], T5->x->rows[r5], T6->x->rows[r6], T7->x->rows[r7], 
-                C->x->width);
+  const word *t[8] = {T0->x->rows[r0], T1->x->rows[r1], T2->x->rows[r2], T3->x->rows[r3], 
+                      T4->x->rows[r4], T5->x->rows[r5], T6->x->rows[r6], T7->x->rows[r7]};
+  _mzd_combine_8(C->x->rows[rc], t, C->x->width);
 }
 
 
