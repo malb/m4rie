@@ -117,6 +117,10 @@ static inline mzd_poly_t *_mzd_poly_addmul_balanced(mzd_poly_t *C, const mzd_pol
   case 10: _mzd_ptr_addmul_karatsuba10(NULL, C->x, (const mzd_t**)A->x, (const mzd_t**)B->x); break;
   case 11: _mzd_ptr_addmul_karatsuba11(NULL, C->x, (const mzd_t**)A->x, (const mzd_t**)B->x); break;
   case 12: _mzd_ptr_addmul_karatsuba12(NULL, C->x, (const mzd_t**)A->x, (const mzd_t**)B->x); break;
+  case 13: _mzd_ptr_addmul_karatsuba13(NULL, C->x, (const mzd_t**)A->x, (const mzd_t**)B->x); break;
+  case 14: _mzd_ptr_addmul_karatsuba14(NULL, C->x, (const mzd_t**)A->x, (const mzd_t**)B->x); break;
+  case 15: _mzd_ptr_addmul_karatsuba15(NULL, C->x, (const mzd_t**)A->x, (const mzd_t**)B->x); break;
+  case 16: _mzd_ptr_addmul_karatsuba16(NULL, C->x, (const mzd_t**)A->x, (const mzd_t**)B->x); break;
   default:
     _mzd_poly_addmul_naive(C, A, B); break;
   }
