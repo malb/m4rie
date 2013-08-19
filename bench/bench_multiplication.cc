@@ -97,7 +97,7 @@ void print_help() {
   printf("               newton-john -- Newton-John tables (mzed_t) \n");
   printf("               strassen -- Strassen+Newton-John (mzed_t)\n");
   printf("               karatsuba -- Karatsuba (mzed_t)\n");
-  printf(" type -- mzed_t or mzd_slice_t (default: mzed_t)\n");
+  printf(" type -- mzed_t or mzd_slice_t (default: mzd_slice_t)\n");
   printf("\n");
   bench_print_global_options(stdout);
 }
@@ -128,7 +128,7 @@ int main(int argc, char **argv) {
     else
       m4ri_die("unknown type '%s'\n",argv[5]);
   } else {
-    params.type = 0;
+    params.type = 1;
   }
 
 
@@ -139,9 +139,11 @@ int main(int argc, char **argv) {
   else
     run_bench(run_mzd_slice, (void*)&params, data, 2);
 
-  double cc_per_op = ((double)data[1])/ ( (double)params.m * powl((double)params.n,1.807) );
+  double cc_per_op = ((double)data[1])/ ( (double)params.m * powl((double)params.n,1.807) * (double)params.k * log2((double)2*params.k));
 
-  printf("e: %2d, m: %5d, n: %5d, type: %d, algo: %10s, cpu cycles: %10llu, cc/(mn^1.807): %.5lf, wall time: %lf\n", params.k, params.m, params.n, params.type, params.algorithm, data[1], cc_per_op, data[0] / 1000000.0);
+  const char *complexity = (params.m == params.n) ? "n^2.807·d·log(2d)" : "mn^1.807·d·log(2d)";
+
+  printf("e: %2d, m: %5d, n: %5d, type: %d, algo: %10s, cpu cycles: %12llu, cc/(%s): %.5lf, wall time: %8.5lf\n", params.k, params.m, params.n, params.type, params.algorithm, data[1], complexity, cc_per_op, data[0] / 1000000.0);
 }
 
 
