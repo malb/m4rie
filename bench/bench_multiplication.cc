@@ -139,9 +139,9 @@ int main(int argc, char **argv) {
   else
     run_bench(run_mzd_slice, (void*)&params, data, 2);
 
-  double cc_per_op = ((double)data[1])/ ( (double)params.m * powl((double)params.n,1.807) * (double)params.k * log2((double)2*params.k));
+  double cc_per_op = ((double)data[1])/ ( (double)params.m * powl((double)params.n,1.807) * (double)params.k * log2((double)params.k));
 
-  const char *complexity = (params.m == params.n) ? "n^2.807·d·log(2d)" : "mn^1.807·d·log(2d)";
+  const char *complexity = (params.m == params.n) ? "n^2.807·d·log(d)" : "mn^1.807·d·log(d)";
 
   printf("e: %2d, m: %5d, n: %5d, type: %d, algo: %10s, cpu cycles: %12llu, cc/(%s): %.5lf, wall time: %8.5lf\n", params.k, params.m, params.n, params.type, params.algorithm, data[1], complexity, cc_per_op, data[0] / 1000000.0);
 }
