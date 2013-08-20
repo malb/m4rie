@@ -28,3 +28,4 @@ libtool
 src/config.h
 src/stamp-h1
 doc
+test-driver
