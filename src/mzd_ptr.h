@@ -223,7 +223,7 @@ void _mzd_ptr_addmul_karatsuba14(const gf2e *ff, mzd_t **X, const mzd_t **A, con
 void _mzd_ptr_addmul_karatsuba15(const gf2e *ff, mzd_t **X, const mzd_t **A, const mzd_t **B);
 
 /**
- * \brief \f$ X += A \cdot B \f$ over \GF65536 using 66 multiplications over \GF2 and 3 temporary \GF2 matrices.
+ * \brief \f$ X += A \cdot B \f$ over \GF65536 using 64 multiplications over \GF2 and 3 temporary \GF2 matrices.
  */
 
 void _mzd_ptr_addmul_karatsuba16(const gf2e *ff, mzd_t **X, const mzd_t **A, const mzd_t **B);

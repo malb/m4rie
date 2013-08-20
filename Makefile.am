@@ -12,6 +12,7 @@ libm4rie_la_SOURCES = m4rie/gf2e.c \
 	m4rie/mzd_slice.c \
 	m4rie/mzd_poly.c \
 	m4rie/mzd_ptr.c \
+	m4rie/karatsuba.c \
 	m4rie/trsm.c \
 	m4rie/ple.c \
 	m4rie/conversion.c \
