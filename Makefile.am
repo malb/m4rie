@@ -13,6 +13,7 @@ libm4rie_la_SOURCES = m4rie/gf2e.c \
 	m4rie/mzd_poly.c \
 	m4rie/mzd_ptr.c \
 	m4rie/karatsuba.c \
+	m4rie/blm.c \
 	m4rie/trsm.c \
 	m4rie/ple.c \
 	m4rie/conversion.c \
@@ -39,6 +40,7 @@ pkgincludesub_HEADERS = m4rie/gf2x.h \
 	m4rie/mzd_slice.h \
 	m4rie/mzd_poly.h \
 	m4rie/mzd_ptr.h \
+	m4rie/blm.h \
 	m4rie/trsm.h \
 	m4rie/ple.h \
 	m4rie/permutation.h \

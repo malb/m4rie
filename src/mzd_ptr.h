@@ -1,5 +1,5 @@
-#ifndef M4RIE_POLY_ARITH_H
-#define M4RIE_POLY_ARITH_H
+#ifndef M4RIE_MZD_PTR_H
+#define M4RIE_MZD_PTR_H
 
 /******************************************************************************
 *
@@ -121,6 +121,8 @@ static inline void _mzd_ptr_add(mzd_t **c, const mzd_t **a, const mzd_t **b, con
   }
 }
 
+/** karatsuba.c **/
+
 /**
  * \brief \f$ X += A \cdot B \f$ over \GF4 using 3 multiplications over \GF2 and 2 temporary \GF2 matrices.
  *
@@ -229,4 +231,4 @@ void _mzd_ptr_addmul_karatsuba15(const gf2e *ff, mzd_t **X, const mzd_t **A, con
 void _mzd_ptr_addmul_karatsuba16(const gf2e *ff, mzd_t **X, const mzd_t **A, const mzd_t **B);
 
 
-#endif //M4RIE_POLY_ARITH_H
+#endif //M4RIE_MZD_PTR_H

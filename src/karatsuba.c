@@ -160,8 +160,6 @@ void _mzd_ptr_addmul_karatsuba5(const gf2e *ff, mzd_t **X, const mzd_t **A, cons
 }
 
 void _mzd_ptr_addmul_karatsuba6(const gf2e *ff, mzd_t **X, const mzd_t **A, const mzd_t **B) {
-  /* using 22 multiplications and three temporaries */
-
   const mzd_t *a0 = A[0];
   const mzd_t *a1 = A[1];
   const mzd_t *a2 = A[2];
