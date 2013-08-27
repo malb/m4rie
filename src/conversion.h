@@ -203,6 +203,74 @@ static inline mzed_t *mzed_addmul_karatsuba(mzed_t *C, const mzed_t *A, const mz
 }
 
 /**
+ * \brief Compute C += A*B using Bilinear Maps over GF(2).
+ *
+ * \param C Preallocated return matrix, may be NULL for automatic creation.
+ * \param A Input matrix A.
+ * \param B Input matrix B.
+ *
+ * \sa _mzd_slice_addmul_blm
+ */
+
+static inline mzed_t *_mzed_addmul_blm(mzed_t *C, const mzed_t *A, const mzed_t *B) {
+  mzd_slice_t *As,*Bs,*Cs;
+  if(C)
+    Cs = mzed_slice(NULL,C);
+  else
+    Cs = NULL;
+  As = mzed_slice(NULL,A);
+  Bs = mzed_slice(NULL,B);
+
+  Cs = _mzd_slice_addmul_blm(Cs, As, Bs, NULL);
+
+  C = mzed_cling(C, Cs);
+
+  mzd_slice_free(As);
+  mzd_slice_free(Bs);
+  mzd_slice_free(Cs);
+  return C;
+}
+
+/**
+ * \brief Compute C = A*B.
+ *
+ * \param C Preallocated return matrix, may be NULL for automatic creation.
+ * \param A Input matrix A.
+ * \param B Input matrix B.
+ *
+ * \sa _mzd_slice_mul_blm
+ */
+
+static inline mzed_t *mzed_mul_blm(mzed_t *C, const mzed_t *A, const mzed_t *B) {
+  if (A->ncols != B->nrows || A->finite_field != B->finite_field) 
+    m4ri_die("mzed_mul_blm: rows, columns and fields must match.\n");
+  if (C != NULL) {
+    if (C->finite_field != A->finite_field || C->nrows != A->nrows || C->ncols != B->ncols) 
+      m4ri_die("mzed_mul_blm: rows and columns of returned matrix must match.\n");
+    mzed_set_ui(C,0);
+  }
+  return _mzed_addmul_blm(C, A, B);
+}
+
+/**
+ * \brief Compute C += A*B.
+ *
+ * \param C Preallocated return matrix.
+ * \param A Input matrix A.
+ * \param B Input matrix B.
+ */
+
+static inline mzed_t *mzed_addmul_blm(mzed_t *C, const mzed_t *A, const mzed_t *B) {
+  assert(C != NULL);
+  if (A->ncols != B->nrows || A->finite_field != B->finite_field) 
+    m4ri_die("mzed_addmul_blm: rows, columns and fields must match.\n");
+  if (C->finite_field != A->finite_field || C->nrows != A->nrows || C->ncols != B->ncols) 
+    m4ri_die("mzed_addmul_blm: rows and columns of returned matrix must match.\n");
+  return _mzed_addmul_blm(C, A, B);
+}
+
+
+/**
  * \brief Recale the row r in A by X starting c.
  *
  * \param A Matrix

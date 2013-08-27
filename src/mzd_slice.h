@@ -38,6 +38,7 @@
 #include <m4ri/m4ri.h>
 #include <m4rie/mzd_poly.h>
 #include <m4rie/mzed.h>
+#include <m4rie/blm.h>
 
 /**
  * \brief Dense matrices over \GF2E represented as slices of matrices over \GF2.
@@ -149,6 +150,221 @@ static inline void mzd_slice_free(mzd_slice_t *A) {
 #else
   free(A);
 #endif
+}
+
+static inline mzd_slice_t *mzd_slice_copy(mzd_slice_t *B, const mzd_slice_t *A) {
+  if(B == NULL)
+    B = mzd_slice_init(A->finite_field, A->nrows, A->ncols);
+
+  for(int i=0; i<A->depth; i++) {
+    mzd_copy(B->x[i],A->x[i]);
+  }
+  return B;
+}
+
+/**
+ * \brief Get the element at position (row,col) from the matrix A.
+ *
+ * \param A Source matrix.
+ * \param row Starting row.
+ * \param col Starting column.
+ *
+ * \todo This function is considerably slower than it needs to be.
+ *
+ * \ingroup Assignment
+ */ 
+
+static inline word mzd_slice_read_elem(const mzd_slice_t *A, const rci_t row, const rci_t col) {
+  word ret = 0;
+  for(int i=0; i<A->depth; i++) {
+    ret |= mzd_read_bit(A->x[i], row, col)<<i;
+  }
+  return ret;
+}
+
+/**
+ * \brief At the element elem to the element at position (row,col) in the matrix A.
+ *
+ * \param A Target matrix.
+ * \param row Starting row.
+ * \param col Starting column.
+ * \param elem finite field element.
+ *
+ * \todo This function is considerably slower than it needs to be.
+ *
+ * \ingroup Assignment
+ */
+
+static inline void mzd_slice_add_elem(mzd_slice_t *A, const rci_t row, const rci_t col, word elem) {
+  for(int i=0; i<A->depth; i++) {
+    __mzd_xor_bits(A->x[i], row, col, 1, elem&1);
+    elem=elem>>1;
+  }
+}
+
+/**
+ * \brief Write the element elem to the position (row,col) in the matrix A.
+ *
+ * \param A Target matrix.
+ * \param row Starting row.
+ * \param col Starting column.
+ * \param elem finite field element.
+ *
+ * \todo This function is considerably slower than it needs to be.
+ *
+ * \ingroup Assignment
+ */
+
+static inline void mzd_slice_write_elem(mzd_slice_t *A, const rci_t row, const rci_t col, word elem) {
+  for(int i=0; i<A->depth; i++) {
+    mzd_write_bit(A->x[i], row, col, elem&1);
+    elem=elem>>1;
+  }
+}
+
+/**
+ * \brief Return -1,0,1 if if A < B, A == B or A > B respectively.
+ *
+ * \param A Matrix.
+ * \param B Matrix.
+ *
+ * \note This comparison is not well defined (except for !=0)
+ * mathematically and relatively arbitrary since elements of GF(2^k)
+ * don't have an ordering.
+ *
+ * \ingroup Comparison
+ */
+
+static inline int mzd_slice_cmp(mzd_slice_t *A, mzd_slice_t *B) {
+  int r = 0;
+  if ((A->finite_field != B->finite_field) | (A->depth != B->depth) )
+    return -1;
+  for(int i=0; i<A->depth; i++)
+    r |= mzd_cmp(A->x[i],B->x[i]);
+  return r;
+}
+
+/**
+ * \brief Zero test for matrix.
+ *
+ * \param A Input matrix.
+ *
+ * \ingroup Comparison
+ */
+
+static inline int mzd_slice_is_zero(const mzd_slice_t *A) {
+  for(int i=0; i<A->depth; i++) {
+    if (!mzd_is_zero(A->x[i]))
+      return 0;
+  }
+  return 1;
+}
+
+/**
+ * \brief Swap the two rows rowa and rowb.
+ *
+ * \param A Matrix
+ * \param rowa Row index.
+ * \param rowb Row index.
+ *
+ * \ingroup RowOperations
+ */
+
+static inline void mzd_slice_row_swap(mzd_slice_t *A, const rci_t rowa, const rci_t rowb) {
+  for(int i=0; i<A->depth; i++) {
+    mzd_row_swap(A->x[i], rowa, rowb);
+  }
+}
+
+/**
+ * \brief copy row j from A to row i from B.
+ *
+ * The number of columns of A must be less than or equal to the number of columns of B.
+ *
+ * \param B Target matrix.
+ * \param i Target row index.
+ * \param A Source matrix.
+ * \param j Source row index.
+ *
+ * \ingroup RowOperations
+ */
+
+static inline void mzd_slice_copy_row(mzd_slice_t* B, size_t i, const mzd_slice_t* A, size_t j) {
+  for(int ii=0; ii<A->depth; ii++)
+    mzd_copy_row(B->x[ii], i, A->x[ii], j);
+}
+
+/**
+ * \brief Swap the two columns cola and colb.
+ *
+ * \param A Matrix.
+ * \param cola Column index.
+ * \param colb Column index.
+ *
+ * \ingroup RowOperations
+ */
+
+static inline void mzd_slice_col_swap(mzd_slice_t *A, const rci_t cola, const rci_t colb) {
+  for(int i=0; i<A->depth; i++)
+    mzd_col_swap(A->x[i], cola, colb);
+}
+
+/**
+ * \brief Swap the two columns cola and colb but only between start_row and stop_row.
+ *
+ * \param A Matrix.
+ * \param cola Column index.
+ * \param colb Column index.
+ * \param start_row Row index.
+ * \param stop_row Row index (exclusive).
+ */
+
+static inline void mzd_slice_col_swap_in_rows(mzd_slice_t *A, const rci_t cola, const rci_t colb, const rci_t start_row, rci_t stop_row) {
+  for(unsigned int e=0; e < A->finite_field->degree; e++) {
+    mzd_col_swap_in_rows(A->x[e], cola, colb, start_row, stop_row);
+  };
+}
+
+/**
+ * \brief Add the rows sourcerow and destrow and stores the total in
+ * the row destrow.
+ *
+ * \param A Matrix
+ * \param sourcerow Index of source row
+ * \param destrow Index of target row
+ *
+ * \note this can be done much faster with mzd_combine.
+ *
+ * \ingroup RowOperations
+ */
+
+static inline void mzd_slice_row_add(mzd_slice_t *A, const rci_t sourcerow, const rci_t destrow) {
+  for(int i=0; i<A->depth; i++)
+    mzd_row_add(A->x[i], sourcerow, destrow);
+}
+
+/**
+ * \brief Print a matrix to stdout.
+ *
+ * \param A Matrix
+ *
+ * \ingroup StringConversions
+ */
+
+void mzd_slice_print(const mzd_slice_t *A);
+
+/**
+ * \brief Move the submatrix L of rank r2 starting at column n1 to the left to column r1.
+ *
+ * \param A Matrix
+ * \param r1 Integer < n1
+ * \param n1 Integer > r1
+ * \param r2 Integer <= A->ncols - n1
+ */
+
+static inline void _mzd_slice_compress_l(mzd_slice_t *A, const rci_t r1, const rci_t n1, const rci_t r2) {
+  for(int i=0; i<A->depth; i++)
+    _mzd_compress_l(A->x[i], r1, n1, r2);
 }
 
 /**
@@ -466,6 +682,91 @@ static inline mzd_slice_t *mzd_slice_addmul_karatsuba(mzd_slice_t *C, const mzd_
 }
 
 /**
+ * \brief \f$ C = C + A \cdot B \f$ using bilinear maps over matrices over \GF2.
+ *
+ * \param C Preallocated return matrix, may be NULL for automatic creation.
+ * \param A Input matrix A.
+ * \param B Input matrix B.
+ * \param f Blinear map such that C == C + H*((F*A) x (G*B)), if NULL it will be created and destroyed
+ *
+ * \ingroup Multiplication
+ *
+ * \note Calling _mzd_slice_addmul_karatsuba will be more efficient
+ */
+
+static inline mzd_slice_t *_mzd_slice_addmul_blm(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B, blm_t *f) {
+  if (C == NULL)
+    C = mzd_slice_init(A->finite_field, A->nrows, B->ncols);
+
+  int free_f = 0;
+
+  if (f == NULL) {
+    const deg_t d = C->finite_field->degree;
+    if (d > 16) 
+      m4ri_die("degrees > 16 unsupported.\n");
+    int *primes = (int *)m4ri_mm_calloc(d+1, sizeof(int));
+    primes[d] = 1;
+    free_f = 1;
+    f = blm_init_multimod(d, d, d+1, primes);
+    m4ri_mm_free(primes);
+  }
+
+  _mzd_ptr_apply_blm(C->finite_field, C->x, (const mzd_t**)A->x, (const mzd_t**)B->x, f);
+
+  if (free_f)
+    blm_free(f);
+  
+  return C;
+}
+
+/**
+ * \brief \f$ C = A \cdot B \f$ using bilinear maps over matrices over \GF2.
+ *
+ * \param C Preallocated return matrix, may be NULL for automatic creation.
+ * \param A Input matrix A.
+ * \param B Input matrix B.
+ * \param f Blinear map such that C == H*((F*A) x (G*B)), if NULL it will be created and destroyed
+ *
+ * \ingroup Multiplication
+ *
+ * \note Calling mzd_slice_mul_karatsuba will be more efficient
+ */
+
+static inline mzd_slice_t *mzd_slice_mul_blm(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B, blm_t *f) {
+  if (A->ncols != B->nrows || A->finite_field != B->finite_field)
+    m4ri_die("mzd_slice_mul_karatsuba: rows, columns and fields must match.\n");
+  if (C != NULL) {
+    if (C->finite_field != A->finite_field || C->nrows != A->nrows || C->ncols != B->ncols)
+      m4ri_die("mzd_slice_mul_karatsuba: rows and columns of returned matrix must match.\n");
+    mzd_slice_set_ui(C,0);
+  }
+  return _mzd_slice_addmul_blm(C, A, B, f);
+}
+
+/**
+ * \brief \f$ C = C + A \cdot B \f$ using bilinear maps over matrices over \GF2.
+ *
+ * \param C Preallocated return matrix, may be NULL for automatic creation.
+ * \param A Input matrix A.
+ * \param B Input matrix B.
+ * \param f Blinear map such that C == C + H*((F*A) x (G*B)), if NULL it will be created and destroyed
+ *
+ * \ingroup Multiplication
+ *
+ * \note Calling mzd_slice_addmul_karatsuba will be more efficient
+ */
+
+static inline mzd_slice_t *mzd_slice_addmul_blm(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B, blm_t *f) {
+  assert(C != NULL);
+  if (A->ncols != B->nrows || A->finite_field != B->finite_field)
+    m4ri_die("mzd_slice_addmul_karatsuba: rows, columns and fields must match.\n");
+  if (C->finite_field != A->finite_field || C->nrows != A->nrows || C->ncols != B->ncols)
+    m4ri_die("mzd_slice_addmul_karatsuba: rows and columns of returned matrix must match.\n");
+  return _mzd_slice_addmul_blm(C, A, B, f);
+}
+
+
+/**
  * \brief \f$ C = a \cdot B \f$.
  *
  * \param C Preallocated product matrix or NULL.
@@ -546,219 +847,5 @@ static inline void mzd_slice_randomize(mzd_slice_t *A) {
  * \ingroup Assignment
  */
 
-static inline mzd_slice_t *mzd_slice_copy(mzd_slice_t *B, const mzd_slice_t *A) {
-  if(B == NULL)
-    B = mzd_slice_init(A->finite_field, A->nrows, A->ncols);
-
-  for(int i=0; i<A->depth; i++) {
-    mzd_copy(B->x[i],A->x[i]);
-  }
-  return B;
-}
-
-/**
- * \brief Get the element at position (row,col) from the matrix A.
- *
- * \param A Source matrix.
- * \param row Starting row.
- * \param col Starting column.
- *
- * \todo This function is considerably slower than it needs to be.
- *
- * \ingroup Assignment
- */ 
-
-static inline word mzd_slice_read_elem(const mzd_slice_t *A, const rci_t row, const rci_t col) {
-  word ret = 0;
-  for(int i=0; i<A->depth; i++) {
-    ret |= mzd_read_bit(A->x[i], row, col)<<i;
-  }
-  return ret;
-}
-
-/**
- * \brief At the element elem to the element at position (row,col) in the matrix A.
- *
- * \param A Target matrix.
- * \param row Starting row.
- * \param col Starting column.
- * \param elem finite field element.
- *
- * \todo This function is considerably slower than it needs to be.
- *
- * \ingroup Assignment
- */
-
-static inline void mzd_slice_add_elem(mzd_slice_t *A, const rci_t row, const rci_t col, word elem) {
-  for(int i=0; i<A->depth; i++) {
-    __mzd_xor_bits(A->x[i], row, col, 1, elem&1);
-    elem=elem>>1;
-  }
-}
-
-/**
- * \brief Write the element elem to the position (row,col) in the matrix A.
- *
- * \param A Target matrix.
- * \param row Starting row.
- * \param col Starting column.
- * \param elem finite field element.
- *
- * \todo This function is considerably slower than it needs to be.
- *
- * \ingroup Assignment
- */
-
-static inline void mzd_slice_write_elem(mzd_slice_t *A, const rci_t row, const rci_t col, word elem) {
-  for(int i=0; i<A->depth; i++) {
-    mzd_write_bit(A->x[i], row, col, elem&1);
-    elem=elem>>1;
-  }
-}
-
-/**
- * \brief Return -1,0,1 if if A < B, A == B or A > B respectively.
- *
- * \param A Matrix.
- * \param B Matrix.
- *
- * \note This comparison is not well defined (except for !=0)
- * mathematically and relatively arbitrary since elements of GF(2^k)
- * don't have an ordering.
- *
- * \ingroup Comparison
- */
-
-static inline int mzd_slice_cmp(mzd_slice_t *A, mzd_slice_t *B) {
-  int r = 0;
-  if ((A->finite_field != B->finite_field) | (A->depth != B->depth) )
-    return -1;
-  for(int i=0; i<A->depth; i++)
-    r |= mzd_cmp(A->x[i],B->x[i]);
-  return r;
-}
-
-/**
- * \brief Zero test for matrix.
- *
- * \param A Input matrix.
- *
- * \ingroup Comparison
- */
-
-static inline int mzd_slice_is_zero(const mzd_slice_t *A) {
-  for(int i=0; i<A->depth; i++) {
-    if (!mzd_is_zero(A->x[i]))
-      return 0;
-  }
-  return 1;
-}
-
-/**
- * \brief Swap the two rows rowa and rowb.
- *
- * \param A Matrix
- * \param rowa Row index.
- * \param rowb Row index.
- *
- * \ingroup RowOperations
- */
-
-static inline void mzd_slice_row_swap(mzd_slice_t *A, const rci_t rowa, const rci_t rowb) {
-  for(int i=0; i<A->depth; i++) {
-    mzd_row_swap(A->x[i], rowa, rowb);
-  }
-}
-
-/**
- * \brief copy row j from A to row i from B.
- *
- * The number of columns of A must be less than or equal to the number of columns of B.
- *
- * \param B Target matrix.
- * \param i Target row index.
- * \param A Source matrix.
- * \param j Source row index.
- *
- * \ingroup RowOperations
- */
-
-static inline void mzd_slice_copy_row(mzd_slice_t* B, size_t i, const mzd_slice_t* A, size_t j) {
-  for(int ii=0; ii<A->depth; ii++)
-    mzd_copy_row(B->x[ii], i, A->x[ii], j);
-}
-
-/**
- * \brief Swap the two columns cola and colb.
- *
- * \param A Matrix.
- * \param cola Column index.
- * \param colb Column index.
- *
- * \ingroup RowOperations
- */
-
-static inline void mzd_slice_col_swap(mzd_slice_t *A, const rci_t cola, const rci_t colb) {
-  for(int i=0; i<A->depth; i++)
-    mzd_col_swap(A->x[i], cola, colb);
-}
-
-/**
- * \brief Swap the two columns cola and colb but only between start_row and stop_row.
- *
- * \param A Matrix.
- * \param cola Column index.
- * \param colb Column index.
- * \param start_row Row index.
- * \param stop_row Row index (exclusive).
- */
-
-static inline void mzd_slice_col_swap_in_rows(mzd_slice_t *A, const rci_t cola, const rci_t colb, const rci_t start_row, rci_t stop_row) {
-  for(unsigned int e=0; e < A->finite_field->degree; e++) {
-    mzd_col_swap_in_rows(A->x[e], cola, colb, start_row, stop_row);
-  };
-}
-
-/**
- * \brief Add the rows sourcerow and destrow and stores the total in
- * the row destrow.
- *
- * \param A Matrix
- * \param sourcerow Index of source row
- * \param destrow Index of target row
- *
- * \note this can be done much faster with mzd_combine.
- *
- * \ingroup RowOperations
- */
-
-static inline void mzd_slice_row_add(mzd_slice_t *A, const rci_t sourcerow, const rci_t destrow) {
-  for(int i=0; i<A->depth; i++)
-    mzd_row_add(A->x[i], sourcerow, destrow);
-}
-
-/**
- * \brief Print a matrix to stdout.
- *
- * \param A Matrix
- *
- * \ingroup StringConversions
- */
-
-void mzd_slice_print(const mzd_slice_t *A);
-
-/**
- * \brief Move the submatrix L of rank r2 starting at column n1 to the left to column r1.
- *
- * \param A Matrix
- * \param r1 Integer < n1
- * \param n1 Integer > r1
- * \param r2 Integer <= A->ncols - n1
- */
-
-static inline void _mzd_slice_compress_l(mzd_slice_t *A, const rci_t r1, const rci_t n1, const rci_t r2) {
-  for(int i=0; i<A->depth; i++)
-    _mzd_compress_l(A->x[i], r1, n1, r2);
-}
 
 #endif //M4RIE_MZD_SLICE

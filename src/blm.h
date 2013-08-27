@@ -71,10 +71,16 @@ void _mzd_ptr_apply_blm(const gf2e *ff, mzd_t **X, const mzd_t **A, const mzd_t 
 blm_t *blm_init_multimod(const deg_t f_ncols, const deg_t g_ncols, const deg_t deg, const int *primes);
 
 /**
- * Compute H 
+ * Given F and G compute H.
+ *
+ * \param f Bilinear Map with F and G already computed.
  */
 
 blm_t *_blm_finish_polymult(blm_t *f);
+
+/**
+ * Free bilinear map f.
+ */
 
 void blm_free(blm_t *f);
 
