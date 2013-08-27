@@ -10,18 +10,25 @@ void _mzd_ptr_apply_blm(const gf2e *ff, mzd_t **X, const mzd_t **A, const mzd_t 
   mzd_t *t1 = mzd_init(A[0]->nrows, A[0]->ncols);
   mzd_t *t2 = mzd_init(B[0]->nrows, B[0]->ncols);
 
-  for(rci_t i=0; i<f->F->nrows; i++) {
-    for(rci_t j=0; j<f->F->ncols; j++)
-      if(mzd_read_bit(f->F, i, j)) 
-        mzd_add(t1, t0, A[j]);
+  for(rci_t i=0; i < f->F->nrows; i++) {
+    mzd_set_ui(t1, 0);
+    for(rci_t j=0; j < f->F->ncols; j++) {
+      if(mzd_read_bit(f->F, i, j)) {
+        mzd_add(t1, t1, A[j]);
+      }
+    }
 
-    for(rci_t j=0; j<f->G->ncols; j++)
-      if(mzd_read_bit(f->G, i, j)) 
-        mzd_add(t2, t0, B[j]);
+    mzd_set_ui(t2, 0);
+    for(rci_t j=0; j < f->G->ncols; j++) {
+      if(mzd_read_bit(f->G, i, j)) {
+        mzd_add(t2, t2, B[j]);
+      }
+    }
+
 
     mzd_mul(t0, t1, t2, 0);
 
-    for(rci_t j=0; j<-f->H->nrows; j++)
+    for(rci_t j=0; j < f->H->nrows; j++)
       if(mzd_read_bit(f->H, j, i))
         _mzd_ptr_add_modred(ff, t0, X, j);
   }
@@ -110,13 +117,106 @@ mzd_t *_blm_smallmul_F(const deg_t degree) {
     A->rows[32][0] = 0x313;     A->rows[33][0] = 0x135;     A->rows[34][0] = 0x09a;     A->rows[35][0] = 0x2bc;
     return A;
   case 11:
+    A = mzd_init(40, 11);
+    A->rows[ 0][0] = 0x001;     A->rows[ 1][0] = 0x36d;     A->rows[ 2][0] = 0x5b6;     A->rows[ 3][0] = 0x6db;
+    A->rows[ 4][0] = 0x555;     A->rows[ 5][0] = 0x2aa;     A->rows[ 6][0] = 0x7ff;     A->rows[ 7][0] = 0x400;
+    A->rows[ 8][0] = 0x200;     A->rows[ 9][0] = 0x600;     A->rows[10][0] = 0x4e9;     A->rows[11][0] = 0x53a;
+    A->rows[12][0] = 0x274;     A->rows[13][0] = 0x1d3;     A->rows[14][0] = 0x69d;     A->rows[15][0] = 0x74e;
+    A->rows[16][0] = 0x4b9;     A->rows[17][0] = 0x172;     A->rows[18][0] = 0x65c;     A->rows[19][0] = 0x5cb;
+    A->rows[20][0] = 0x2e5;     A->rows[21][0] = 0x72e;     A->rows[22][0] = 0x591;     A->rows[23][0] = 0x6b2;
+    A->rows[24][0] = 0x564;     A->rows[25][0] = 0x2c8;     A->rows[26][0] = 0x48f;     A->rows[27][0] = 0x323;
+    A->rows[28][0] = 0x0f5;     A->rows[29][0] = 0x47a;     A->rows[30][0] = 0x7ac;     A->rows[31][0] = 0x2f1;
+    A->rows[32][0] = 0x5e2;     A->rows[33][0] = 0x3c4;     A->rows[34][0] = 0x578;     A->rows[35][0] = 0x1af;
+    A->rows[36][0] = 0x713;     A->rows[37][0] = 0x135;     A->rows[38][0] = 0x09a;     A->rows[39][0] = 0x6bc;
+    return A;
   case 12:
+    A = mzd_init(45, 12);
+    A->rows[ 0][0] = 0xb6d;     A->rows[ 1][0] = 0xdb6;     A->rows[ 2][0] = 0x6db;     A->rows[ 3][0] = 0x001;
+    A->rows[ 4][0] = 0x002;     A->rows[ 5][0] = 0x003;     A->rows[ 6][0] = 0x555;     A->rows[ 7][0] = 0xaaa;
+    A->rows[ 8][0] = 0xfff;     A->rows[ 9][0] = 0x800;     A->rows[10][0] = 0x400;     A->rows[11][0] = 0xc00;
+    A->rows[12][0] = 0x4e9;     A->rows[13][0] = 0xd3a;     A->rows[14][0] = 0xa74;     A->rows[15][0] = 0x9d3;
+    A->rows[16][0] = 0xe9d;     A->rows[17][0] = 0x74e;     A->rows[18][0] = 0x591;     A->rows[19][0] = 0xeb2;
+    A->rows[20][0] = 0xd64;     A->rows[21][0] = 0xac8;     A->rows[22][0] = 0xc8f;     A->rows[23][0] = 0xb23;
+    A->rows[24][0] = 0x8f5;     A->rows[25][0] = 0x47a;     A->rows[26][0] = 0x7ac;     A->rows[27][0] = 0xaf1;
+    A->rows[28][0] = 0x5e2;     A->rows[29][0] = 0xbc4;     A->rows[30][0] = 0xd78;     A->rows[31][0] = 0x9af;
+    A->rows[32][0] = 0xf13;     A->rows[33][0] = 0x135;     A->rows[34][0] = 0x89a;     A->rows[35][0] = 0x6bc;
+    A->rows[36][0] = 0x631;     A->rows[37][0] = 0xa52;     A->rows[38][0] = 0x294;     A->rows[39][0] = 0x318;
+    A->rows[40][0] = 0xdef;     A->rows[41][0] = 0xc63;     A->rows[42][0] = 0x4a5;     A->rows[43][0] = 0x94a;
+    A->rows[44][0] = 0x18c;
+    return A;
   case 13:
+    A = mzd_init(49, 13);
+    A->rows[ 0][0] = 0x0001;     A->rows[ 1][0] = 0x1b6d;     A->rows[ 2][0] = 0x0db6;     A->rows[ 3][0] = 0x16db;
+    A->rows[ 4][0] = 0x1555;     A->rows[ 5][0] = 0x0aaa;     A->rows[ 6][0] = 0x1fff;     A->rows[ 7][0] = 0x1000;
+    A->rows[ 8][0] = 0x0800;     A->rows[ 9][0] = 0x1800;     A->rows[10][0] = 0x14e9;     A->rows[11][0] = 0x1d3a;
+    A->rows[12][0] = 0x1a74;     A->rows[13][0] = 0x09d3;     A->rows[14][0] = 0x0e9d;     A->rows[15][0] = 0x074e;
+    A->rows[16][0] = 0x1cb9;     A->rows[17][0] = 0x1972;     A->rows[18][0] = 0x0e5c;     A->rows[19][0] = 0x05cb;
+    A->rows[20][0] = 0x12e5;     A->rows[21][0] = 0x172e;     A->rows[22][0] = 0x1591;     A->rows[23][0] = 0x1eb2;
+    A->rows[24][0] = 0x1d64;     A->rows[25][0] = 0x1ac8;     A->rows[26][0] = 0x0c8f;     A->rows[27][0] = 0x0b23;
+    A->rows[28][0] = 0x08f5;     A->rows[29][0] = 0x047a;     A->rows[30][0] = 0x07ac;     A->rows[31][0] = 0x1af1;
+    A->rows[32][0] = 0x15e2;     A->rows[33][0] = 0x0bc4;     A->rows[34][0] = 0x0d78;     A->rows[35][0] = 0x09af;
+    A->rows[36][0] = 0x0f13;     A->rows[37][0] = 0x1135;     A->rows[38][0] = 0x189a;     A->rows[39][0] = 0x06bc;
+    A->rows[40][0] = 0x0631;     A->rows[41][0] = 0x0a52;     A->rows[42][0] = 0x1294;     A->rows[43][0] = 0x0318;
+    A->rows[44][0] = 0x1def;     A->rows[45][0] = 0x0c63;     A->rows[46][0] = 0x14a5;     A->rows[47][0] = 0x094a;
+    A->rows[48][0] = 0x118c;
+    return A;
   case 14:
+    A = mzd_init(55, 14);
+    A->rows[ 0][0] = 0x0001;     A->rows[ 1][0] = 0x1b6d;     A->rows[ 2][0] = 0x2db6;     A->rows[ 3][0] = 0x36db;
+    A->rows[ 4][0] = 0x1555;     A->rows[ 5][0] = 0x2aaa;     A->rows[ 6][0] = 0x3fff;     A->rows[ 7][0] = 0x34e9;
+    A->rows[ 8][0] = 0x1d3a;     A->rows[ 9][0] = 0x3a74;     A->rows[10][0] = 0x29d3;     A->rows[11][0] = 0x0e9d;
+    A->rows[12][0] = 0x274e;     A->rows[13][0] = 0x1cb9;     A->rows[14][0] = 0x3972;     A->rows[15][0] = 0x2e5c;
+    A->rows[16][0] = 0x25cb;     A->rows[17][0] = 0x32e5;     A->rows[18][0] = 0x172e;     A->rows[19][0] = 0x3591;
+    A->rows[20][0] = 0x1eb2;     A->rows[21][0] = 0x3d64;     A->rows[22][0] = 0x3ac8;     A->rows[23][0] = 0x2c8f;
+    A->rows[24][0] = 0x2b23;     A->rows[25][0] = 0x08f5;     A->rows[26][0] = 0x247a;     A->rows[27][0] = 0x07ac;
+    A->rows[28][0] = 0x1af1;     A->rows[29][0] = 0x35e2;     A->rows[30][0] = 0x2bc4;     A->rows[31][0] = 0x0d78;
+    A->rows[32][0] = 0x09af;     A->rows[33][0] = 0x2f13;     A->rows[34][0] = 0x3135;     A->rows[35][0] = 0x389a;
+    A->rows[36][0] = 0x26bc;     A->rows[37][0] = 0x0631;     A->rows[38][0] = 0x0a52;     A->rows[39][0] = 0x1294;
+    A->rows[40][0] = 0x2318;     A->rows[41][0] = 0x3def;     A->rows[42][0] = 0x0c63;     A->rows[43][0] = 0x14a5;
+    A->rows[44][0] = 0x294a;     A->rows[45][0] = 0x318c;     A->rows[46][0] = 0x2000;     A->rows[47][0] = 0x1000;
+    A->rows[48][0] = 0x0800;     A->rows[49][0] = 0x0400;     A->rows[50][0] = 0x3c00;     A->rows[51][0] = 0x3000;
+    A->rows[52][0] = 0x2800;     A->rows[53][0] = 0x1400;     A->rows[54][0] = 0x0c00;
+    return A;
   case 15:
+    A = mzd_init(60, 15);
+    A->rows[ 0][0] = 0x0001;     A->rows[ 1][0] = 0x7fff;     A->rows[ 2][0] = 0x5b6d;     A->rows[ 3][0] = 0x6db6;
+    A->rows[ 4][0] = 0x36db;     A->rows[ 5][0] = 0x4000;     A->rows[ 6][0] = 0x2000;     A->rows[ 7][0] = 0x6000;
+    A->rows[ 8][0] = 0x74e9;     A->rows[ 9][0] = 0x1d3a;     A->rows[10][0] = 0x3a74;     A->rows[11][0] = 0x69d3;
+    A->rows[12][0] = 0x4e9d;     A->rows[13][0] = 0x274e;     A->rows[14][0] = 0x5cb9;     A->rows[15][0] = 0x3972;
+    A->rows[16][0] = 0x2e5c;     A->rows[17][0] = 0x65cb;     A->rows[18][0] = 0x72e5;     A->rows[19][0] = 0x172e;
+    A->rows[20][0] = 0x7591;     A->rows[21][0] = 0x1eb2;     A->rows[22][0] = 0x3d64;     A->rows[23][0] = 0x7ac8;
+    A->rows[24][0] = 0x2c8f;     A->rows[25][0] = 0x6b23;     A->rows[26][0] = 0x48f5;     A->rows[27][0] = 0x647a;
+    A->rows[28][0] = 0x47ac;     A->rows[29][0] = 0x1af1;     A->rows[30][0] = 0x35e2;     A->rows[31][0] = 0x6bc4;
+    A->rows[32][0] = 0x4d78;     A->rows[33][0] = 0x09af;     A->rows[34][0] = 0x2f13;     A->rows[35][0] = 0x7135;
+    A->rows[36][0] = 0x789a;     A->rows[37][0] = 0x26bc;     A->rows[38][0] = 0x4631;     A->rows[39][0] = 0x4a52;
+    A->rows[40][0] = 0x5294;     A->rows[41][0] = 0x6318;     A->rows[42][0] = 0x3def;     A->rows[43][0] = 0x0c63;
+    A->rows[44][0] = 0x14a5;     A->rows[45][0] = 0x294a;     A->rows[46][0] = 0x318c;     A->rows[47][0] = 0x4d21;
+    A->rows[48][0] = 0x1a42;     A->rows[49][0] = 0x7348;     A->rows[50][0] = 0x6690;     A->rows[51][0] = 0x2bb1;
+    A->rows[52][0] = 0x5763;     A->rows[53][0] = 0x15d8;     A->rows[54][0] = 0x0576;     A->rows[55][0] = 0x47cd;
+    A->rows[56][0] = 0x42bb;     A->rows[57][0] = 0x4857;     A->rows[58][0] = 0x215d;     A->rows[59][0] = 0x3b1f;
+    return A;
   case 16:
+    A = mzd_init(64, 16);
+    A->rows[ 0][0] = 0xdb6d;     A->rows[ 1][0] = 0x6db6;     A->rows[ 2][0] = 0xb6db;     A->rows[ 3][0] = 0x0001;
+    A->rows[ 4][0] = 0x0002;     A->rows[ 5][0] = 0x0003;     A->rows[ 6][0] = 0x5555;     A->rows[ 7][0] = 0xaaaa;
+    A->rows[ 8][0] = 0xffff;     A->rows[ 9][0] = 0x8000;     A->rows[10][0] = 0x4000;     A->rows[11][0] = 0xc000;
+    A->rows[12][0] = 0x74e9;     A->rows[13][0] = 0x9d3a;     A->rows[14][0] = 0x3a74;     A->rows[15][0] = 0xe9d3;
+    A->rows[16][0] = 0x4e9d;     A->rows[17][0] = 0xa74e;     A->rows[18][0] = 0x5cb9;     A->rows[19][0] = 0xb972;
+    A->rows[20][0] = 0x2e5c;     A->rows[21][0] = 0xe5cb;     A->rows[22][0] = 0x72e5;     A->rows[23][0] = 0x972e;
+    A->rows[24][0] = 0xf591;     A->rows[25][0] = 0x1eb2;     A->rows[26][0] = 0x3d64;     A->rows[27][0] = 0x7ac8;
+    A->rows[28][0] = 0xac8f;     A->rows[29][0] = 0xeb23;     A->rows[30][0] = 0xc8f5;     A->rows[31][0] = 0x647a;
+    A->rows[32][0] = 0x47ac;     A->rows[33][0] = 0x9af1;     A->rows[34][0] = 0x35e2;     A->rows[35][0] = 0x6bc4;
+    A->rows[36][0] = 0x4d78;     A->rows[37][0] = 0x89af;     A->rows[38][0] = 0xaf13;     A->rows[39][0] = 0xf135;
+    A->rows[40][0] = 0x789a;     A->rows[41][0] = 0x26bc;     A->rows[42][0] = 0xc631;     A->rows[43][0] = 0x4a52;
+    A->rows[44][0] = 0x5294;     A->rows[45][0] = 0x6318;     A->rows[46][0] = 0xbdef;     A->rows[47][0] = 0x8c63;
+    A->rows[48][0] = 0x94a5;     A->rows[49][0] = 0x294a;     A->rows[50][0] = 0x318c;     A->rows[51][0] = 0xcd21;
+    A->rows[52][0] = 0x9a42;     A->rows[53][0] = 0xf348;     A->rows[54][0] = 0xe690;     A->rows[55][0] = 0x2bb1;
+    A->rows[56][0] = 0x5763;     A->rows[57][0] = 0x15d8;     A->rows[58][0] = 0x8576;     A->rows[59][0] = 0xc7cd;
+    A->rows[60][0] = 0x42bb;     A->rows[61][0] = 0x4857;     A->rows[62][0] = 0x215d;     A->rows[63][0] = 0xbb1f;
+    return A;
+
   default:
-    m4ri_die("not implemented\n");
+    m4ri_die("degree %d not implemented\n", degree);
   }
   return NULL;
 }
@@ -290,6 +390,8 @@ blm_t *blm_init_multimod(const deg_t f_ncols, const deg_t g_ncols, const deg_t d
    */
 
   for(deg_t d=1; d<deg; d++) {
+    if (primes[d] == 0)
+      continue;
     mzd_t *N  = _blm_smallmul_F(d);
 
     for(int i=0; i<primes[d]; i++) {
