@@ -216,7 +216,7 @@ mzd_t *_blm_smallmul_F(const deg_t degree) {
     return A;
 
   default:
-    m4ri_die("degree %d not implemented\n", degree);
+    m4ri_die("only degrees up to 16 are implemented but got degree %d\n", degree);
   }
   return NULL;
 }
@@ -409,15 +409,22 @@ blm_t *blm_init_multimod(const deg_t f_ncols, const deg_t g_ncols, const deg_t d
         primes_it[d/4]++;
         prime = gf2x_mul(prime, prime, d/4+1);
         prime = gf2x_mul(prime, prime, d/2+1);
+      } else if (d/8 && primes_it[d/8] < irreducible_polynomials[d/8][0]) {
+        /** the minimal polynomial is an eigth power */
+        prime = irreducible_polynomials[d/8][primes_it[d/8]+ 1];
+        primes_it[d/8]++;
+        prime = gf2x_mul(prime, prime, d/8+1);
+        prime = gf2x_mul(prime, prime, d/4+1);
+        prime = gf2x_mul(prime, prime, d/2+1);
       } else if (!infinity_done){
         /** we assume we want to evaluate at infinity **/
-        if ((d == 1) | (d == 2) | (d == 4) ) 
+        if ((d == 1) | (d == 2) | (d == 4) | (d == 8) ) 
           prime = 0;
          else 
-          m4ri_die("not imlemented\n");
+	   m4ri_die("Considering (x+infinity)^%d  is not implemented\n", d);
         infinity_done = 1;
       } else {
-        m4ri_die("not imlemented\n");
+        m4ri_die("Degree %d is not implemented\n", d);
       }
       M = _blm_modred_mat(f_ncols, prime, d);
       T = mzd_init_window(f->F, r, 0, r + costs[d], f_ncols); 
