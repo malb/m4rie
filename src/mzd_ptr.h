@@ -38,7 +38,7 @@ static inline void _mzd_ptr_add_modred(const gf2e *ff, const mzd_t *A, mzd_t **X
   if (mzd_is_zero(A))
     return;
 
-  if (t < ff->degree) {
+  if ((ff==NULL) || (t < ff->degree)) {
     mzd_add(X[t], X[t], A);
     return;
   }
