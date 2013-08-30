@@ -38,7 +38,56 @@ void _mzd_ptr_apply_blm(const gf2e *ff, mzd_t **X, const mzd_t **A, const mzd_t 
   mzd_free(t2);
 }
 
-mzd_t *_blm_smallmul_F(const deg_t degree) {
+int *crt_init(const deg_t f_len, const deg_t g_len) {
+  int *p_best = (int*)m4ri_mm_calloc(M4RIE_CRT_LEN, sizeof(int));
+  int  c_best = f_len * g_len;
+
+  int *p = (int*)m4ri_mm_calloc(M4RIE_CRT_LEN, sizeof(int));
+
+  for(deg_t omega=0; omega<8; omega++) {
+
+    deg_t deg_need = f_len+g_len-1-omega;
+    deg_t deg_have = 0;
+    deg_t deg_poly = 1;
+
+    p[0] = omega;
+    for(deg_t d=1; d<M4RIE_CRT_LEN; d++)
+      p[d] = 0;
+
+    while (deg_have < deg_need) {
+      p[deg_poly] = irreducible_polynomials[deg_poly][0];
+      if (deg_have + deg_poly * p[deg_poly] < deg_need) {
+        deg_have += deg_poly * p[deg_poly];
+      } else {
+        deg_t deg_diff = deg_need - deg_have;
+        p[deg_poly] = ceil(deg_diff/(double)deg_poly);
+        deg_have += deg_poly * p[deg_poly];
+      }
+      deg_poly ++;
+    }
+
+    deg_t deg_diff = deg_have - deg_need;
+    if (deg_diff && p[deg_diff] > 0) {
+      p[deg_diff]--;
+      deg_have -= deg_diff;
+    }
+
+    int c = costs[p[0]];
+    for(deg_t d=1; d<M4RIE_CRT_LEN; d++)
+      c += costs[d] * p[d];
+
+    if (c < c_best) {
+      for(deg_t d=0; d<M4RIE_CRT_LEN; d++)
+        p_best[d] = p[d];
+      c_best = c;
+    }
+  }  
+  m4ri_mm_free(p);
+  return p_best;
+}
+
+
+mzd_t *_small_multiplication_map(const deg_t degree) {
   mzd_t *A;
   switch(degree) {
   case 1:
@@ -223,15 +272,15 @@ mzd_t *_blm_smallmul_F(const deg_t degree) {
 
 /**
  * \param length The length of the polynomial we want to reduce
- * \param mp A polynomial
- * \param d The degree of mp
+ * \param poly A polynomial
+ * \param d The degree of poly
  */
 
-mzd_t *_blm_modred_mat(const deg_t length, const word mp, const deg_t d) {
+mzd_t *_crt_modred_mat(const deg_t length, const word poly, const deg_t d) {
   mzd_t *A = mzd_init(d, length);
 
-  /* infinity */
-  if (mp == 0) {
+  /* (x-infinity)^d */
+  if (poly == 0) {
     for(deg_t i=0; i<d; i++) 
       mzd_write_bit(A, i, length-i-1, 1);
     return A;
@@ -245,9 +294,9 @@ mzd_t *_blm_modred_mat(const deg_t length, const word mp, const deg_t d) {
     f->rows[0][i/m4ri_radix] = __M4RI_TWOPOW(i%m4ri_radix);
     word ii = i;
     while(ii >= d) {
-      /* f ^= gf2x_mul((1ULL<<(ii-d)), mp, length); */
+      /* f ^= gf2x_mul((1ULL<<(ii-d)), poly, length); */
       mzd_set_ui(t, 0);
-      mzd_xor_bits(t, 0, ii-d, d+1, mp);
+      mzd_xor_bits(t, 0, ii-d, d+1, poly);
 
       mzd_add(f, f, t);
 
@@ -331,7 +380,8 @@ blm_t *_blm_finish_polymult(blm_t *f) {
       C->rows[r][j] = F_T->rows[v][j] & G_T->rows[w][j];
   }
 
-  mzd_t *D = mzd_inv_m4ri(NULL, C, 0); // This should be replaced by TRSM calls
+  // This should be replaced by TRSM calls
+  mzd_t *D = mzd_inv_m4ri(NULL, C, 0); 
   mzd_free(C);
   mzd_t *DT = mzd_transpose(NULL, D);
   mzd_free(D);
@@ -362,77 +412,97 @@ blm_t *_blm_finish_polymult(blm_t *f) {
 
 const int costs[17] = {0, 1, 3, 6, 9, 13, 17, 22, 27, 31, 36, 40, 45, 49, 55, 60, 64};
 
-blm_t *blm_init_multimod(const deg_t f_ncols, const deg_t g_ncols, const deg_t deg, const int *primes) {
+blm_t *blm_init_crt(const deg_t f_ncols, const deg_t g_ncols, const int *p) {
   blm_t *f = m4ri_mm_malloc(sizeof(blm_t));
 
-  // iterator over co-primes
-  int *primes_it = (int*)m4ri_mm_calloc(sizeof(int), deg); 
+  // iterator over irreducible polynomials
+  int *p_it = (int*)m4ri_mm_calloc(sizeof(int), M4RIE_CRT_LEN); 
 
   mzd_t *M, *T;
 
-  word prime = 0;
-  int infinity_done = 0;
+  word poly = 0;
 
-  rci_t m = 0;
-  for(int d=0; d<deg; d++)
-    m += costs[d] * primes[d];
+  rci_t m = costs[p[0]];
+  for(int d=1; d<M4RIE_CRT_LEN; d++)
+    m += costs[d] * p[d];
 
   f->F = mzd_init(m, f_ncols);
   f->G = mzd_init(m, g_ncols);
 
   rci_t r = 0;
 
-  assert(primes[0] == 0);
 
   /**
-   * 1) We construct matrices F,G which combine modular reduction and the linear map required for
-   * multiplying modulo a polynomial of degree d.
+   * 1) We construct maps F,G which combine modular reduction to degree d and the linear map
+   *    required for multiplying modulo a polynomial of degree d.
    */
 
-  for(deg_t d=1; d<deg; d++) {
-    if (primes[d] == 0)
-      continue;
-    mzd_t *N  = _blm_smallmul_F(d);
+  /**
+   * 1.1) We deal with (x+infinity)^omega first
+   */
 
-    for(int i=0; i<primes[d]; i++) {
-      if (primes_it[d] < irreducible_polynomials[d][0]) {
-        prime = irreducible_polynomials[d][ primes_it[d]+ 1 ];
-        primes_it[d]++;
-      } else if (d/2 && primes_it[d/2] < irreducible_polynomials[d/2][0]) {
+  if(p[0] != 0) {
+    deg_t d = p[0];
+    mzd_t *N  = _small_multiplication_map(d);
+    M = _crt_modred_mat(f_ncols, poly, d);
+    T = mzd_init_window(f->F, r, 0, r + costs[d], f_ncols); 
+    mzd_mul(T, N, M, 0);
+    mzd_free(T);
+    mzd_free(M);
+
+    M = _crt_modred_mat(g_ncols, poly, d);
+    T = mzd_init_window(f->G, r, 0, r + costs[d], g_ncols); 
+    mzd_mul(T, N, M, 0);
+    mzd_free(T);
+    mzd_free(M);
+    
+    mzd_free(N);
+
+    r += costs[d];
+  }
+
+  /**
+   * 1.2) We deal with regular polynomial which are co-prime
+   */
+
+  for(deg_t d=1; d<M4RIE_CRT_LEN; d++) {
+    if (p[d] == 0)
+      continue;
+
+    mzd_t *N  = _small_multiplication_map(d);
+
+    for(int i=0; i<p[d]; i++) {
+      if (p_it[d] < irreducible_polynomials[d][0]) {
+        poly = irreducible_polynomials[d][ 1 + p_it[d] ];
+        p_it[d]++;
+      } else if (d/2 && p_it[d/2] < irreducible_polynomials[d/2][0]) {
         /** the minimal polynomial is a square */
-        prime = irreducible_polynomials[d/2][primes_it[d/2]+ 1];
-        primes_it[d/2]++;
-        prime = gf2x_mul(prime, prime, d/2+1);
-      } else if (d/4 && primes_it[d/4] < irreducible_polynomials[d/4][0]) {
+        poly = irreducible_polynomials[d/2][ 1 + p_it[d/2]];
+        p_it[d/2]++;
+        poly = gf2x_mul(poly, poly, d/2+1);
+      } else if (d/4 && p_it[d/4] < irreducible_polynomials[d/4][0]) {
         /** the minimal polynomial is a fourth power */
-        prime = irreducible_polynomials[d/4][primes_it[d/4]+ 1];
-        primes_it[d/4]++;
-        prime = gf2x_mul(prime, prime, d/4+1);
-        prime = gf2x_mul(prime, prime, d/2+1);
-      } else if (d/8 && primes_it[d/8] < irreducible_polynomials[d/8][0]) {
+        poly = irreducible_polynomials[d/4][1 + p_it[d/4]];
+        p_it[d/4]++;
+        poly = gf2x_mul(poly, poly, d/4+1);
+        poly = gf2x_mul(poly, poly, d/2+1);
+      } else if (d/8 && p_it[d/8] < irreducible_polynomials[d/8][0]) {
         /** the minimal polynomial is an eigth power */
-        prime = irreducible_polynomials[d/8][primes_it[d/8]+ 1];
-        primes_it[d/8]++;
-        prime = gf2x_mul(prime, prime, d/8+1);
-        prime = gf2x_mul(prime, prime, d/4+1);
-        prime = gf2x_mul(prime, prime, d/2+1);
-      } else if (!infinity_done){
-        /** we assume we want to evaluate at infinity **/
-        if ((d == 1) | (d == 2) | (d == 4) | (d == 8) ) 
-          prime = 0;
-         else 
-	   m4ri_die("Considering (x+infinity)^%d  is not implemented\n", d);
-        infinity_done = 1;
+        poly = irreducible_polynomials[d/8][p_it[d/8]+ 1];
+        p_it[d/8]++;
+        poly = gf2x_mul(poly, poly, d/8+1);
+        poly = gf2x_mul(poly, poly, d/4+1);
+        poly = gf2x_mul(poly, poly, d/2+1);
       } else {
         m4ri_die("Degree %d is not implemented\n", d);
       }
-      M = _blm_modred_mat(f_ncols, prime, d);
+      M = _crt_modred_mat(f_ncols, poly, d);
       T = mzd_init_window(f->F, r, 0, r + costs[d], f_ncols); 
       mzd_mul(T, N, M, 0);
       mzd_free(T);
       mzd_free(M);
 
-      M = _blm_modred_mat(g_ncols, prime, d);
+      M = _crt_modred_mat(g_ncols, poly, d);
       T = mzd_init_window(f->G, r, 0, r + costs[d], g_ncols); 
       mzd_mul(T, N, M, 0);
       mzd_free(T);
@@ -440,10 +510,11 @@ blm_t *blm_init_multimod(const deg_t f_ncols, const deg_t g_ncols, const deg_t d
 
       r += costs[d];
     }
+
     mzd_free(N);
   }
 
-  m4ri_mm_free(primes_it);
+  m4ri_mm_free(p_it);
 
   /**
    * 2) We solve for H as we know poly(c) and (F*vec(a) x G*vec(b)). We pick points poly(a) = x^v,

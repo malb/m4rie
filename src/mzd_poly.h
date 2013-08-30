@@ -1,3 +1,11 @@
+/**
+ * \file mzd_poly.h
+ *
+ * \brief Matrices over \GF2[x]
+ *
+ * @warning This code is experimental.
+ */
+
 #ifndef M4RIE_MZD_POLY_H
 #define M4RIE_MZD_POLY_H
 
@@ -23,11 +31,10 @@
 #include <m4ri/m4ri.h>
 #include "mzd_ptr.h"
 #include "gf2x.h"
+#include "blm.h"
 
 /**
  * \brief will be the data type for matrices over \GF2[x] in the future
- *
- * @warning Do not use yet.
  */
 
 typedef struct {
@@ -63,11 +70,7 @@ static inline mzd_poly_t *mzd_poly_init(const deg_t d, const rci_t m, const rci_
 static inline void mzd_poly_free(mzd_poly_t *A) {
   for(int i=0; i<A->depth; i++)
    mzd_free(A->x[i]);
-#if __M4RI_USE_MM_MALLOC
-  _mm_free(A);
-#else
-  free(A);
-#endif
+  m4ri_mm_free(A);
 }
 
 static inline mzd_poly_t *_mzd_poly_adapt_depth(mzd_poly_t *A, const deg_t new_depth) {
@@ -97,7 +100,7 @@ static inline mzd_poly_t *_mzd_poly_addmul_naive(mzd_poly_t *C, const mzd_poly_t
   return C;
 }
 
-static inline mzd_poly_t *_mzd_poly_addmul_balanced(mzd_poly_t *C, const mzd_poly_t *A, const mzd_poly_t *B) {
+static inline mzd_poly_t *_mzd_poly_addmul_karatsubs_balanced(mzd_poly_t *C, const mzd_poly_t *A, const mzd_poly_t *B) {
   assert(A->depth == B->depth);
 
   if (C == NULL)
@@ -122,8 +125,37 @@ static inline mzd_poly_t *_mzd_poly_addmul_balanced(mzd_poly_t *C, const mzd_pol
   case 15: _mzd_ptr_addmul_karatsuba15(NULL, C->x, (const mzd_t**)A->x, (const mzd_t**)B->x); break;
   case 16: _mzd_ptr_addmul_karatsuba16(NULL, C->x, (const mzd_t**)A->x, (const mzd_t**)B->x); break;
   default:
-    _mzd_poly_addmul_naive(C, A, B); break;
+    m4ri_die("Not implemented\n");
   }
+  return C;
+}
+
+/**
+ * \brief C += A*B by applying the bilinear maps f, i.e. f->H*((f->F*A) x (f->G*B)).
+ */
+
+static inline mzd_poly_t *_mzd_poly_addmul_blm(mzd_poly_t *C, mzd_poly_t *A, mzd_poly_t *B, const blm_t *f) {
+  assert(f!=NULL);
+  assert(f->F->ncols == A->depth && f->G->ncols == B->depth);
+
+  if (C == NULL)
+    C = mzd_poly_init(A->depth+B->depth-1, A->nrows, B->ncols);
+
+  _mzd_ptr_apply_blm(NULL, C->x, (const mzd_t**)A->x, (const mzd_t**)B->x, f);
+  return C;
+}
+
+
+/**
+ * \brief C += A*B using the Chinese Remainder Theorem.
+ */
+
+static inline mzd_poly_t *_mzd_poly_addmul_crt(mzd_poly_t *C, mzd_poly_t *A, mzd_poly_t *B) {
+  int *p = crt_init(A->depth, B->depth);
+  blm_t *f = blm_init_crt(A->depth, B->depth, p);
+  _mzd_poly_addmul_blm(C, A, B, f);
+  blm_free(f);
+  m4ri_mm_free(p);
   return C;
 }
 

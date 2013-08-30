@@ -34,6 +34,12 @@
 #include "m4rie/gf2e.h"
 
 /**
+ * \brief We consider at most polynomials of degree M4RIE_MAX_DEGREE in CRT.
+ */
+
+#define M4RIE_CRT_LEN (M4RIE_MAX_DEGREE + 1)
+
+/**
  * \brief Bilinear Maps on Matrices over GF(2).
  *
  * Encodes the bilinear map H*((F*A) x (G*B)) where A,B are vectors of mzd_t, "*" is matrix-vector
@@ -60,6 +66,26 @@ extern const int costs[17];
 void _mzd_ptr_apply_blm(const gf2e *ff, mzd_t **X, const mzd_t **A, const mzd_t **B, const blm_t *f);
 
 /**
+ * Return the multiplication cost of the multiplication scheme p
+ */
+
+static inline int blm_cost_crt(const int p[M4RIE_CRT_LEN]) {
+  int cost = costs[p[0]];
+  for(deg_t d=1; d<M4RIE_CRT_LEN; d++)
+    cost += costs[d] * p[d];
+  return cost;
+}
+
+/**
+ * Find a list of co-prime polynomials p_i such that deg(prod(p_i)) >= f_len*g_len-1.
+ *
+ * We store the number of polynomials of degree d in p[d]. We store the degree w of (x-infinity)^w
+ *  in p[0].
+ */
+
+int *crt_init(const deg_t f_len, const deg_t g_len);
+
+/**
  * Compute H, F, G such that vec(c) = H*(F*vec(a) x G*vec(b))
  * with poly(c) = poly(a)*poly(b), 
  * deg(poly(a)) = a_ncols -1, deg(poly(b)) = b_ncols -1 and "x" being pointwise multiplication
@@ -68,7 +94,7 @@ void _mzd_ptr_apply_blm(const gf2e *ff, mzd_t **X, const mzd_t **A, const mzd_t 
  * be irreducible polynomials, but merely co-prime).
  */
 
-blm_t *blm_init_multimod(const deg_t f_ncols, const deg_t g_ncols, const deg_t deg, const int *primes);
+blm_t *blm_init_crt(const deg_t f_ncols, const deg_t g_ncols, const int *p);
 
 /**
  * Given F and G compute H.

@@ -704,11 +704,11 @@ static inline mzd_slice_t *_mzd_slice_addmul_blm(mzd_slice_t *C, const mzd_slice
     const deg_t d = C->finite_field->degree;
     if (d > 16) 
       m4ri_die("degrees > 16 unsupported.\n");
-    int *primes = (int *)m4ri_mm_calloc(d+1, sizeof(int));
-    primes[d] = 1;
+    int *p = (int *)m4ri_mm_calloc(M4RIE_MAX_DEGREE+1, sizeof(int));
+    p[d] = 1;
     free_f = 1;
-    f = blm_init_multimod(d, d, d+1, primes);
-    m4ri_mm_free(primes);
+    f = blm_init_crt(d, d, p);
+    m4ri_mm_free(p);
   }
 
   _mzd_ptr_apply_blm(C->finite_field, C->x, (const mzd_t**)A->x, (const mzd_t**)B->x, f);
