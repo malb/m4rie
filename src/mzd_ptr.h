@@ -21,7 +21,8 @@
 ******************************************************************************/
 
 #include <stdarg.h>
-#include "gf2e.h"
+#include <m4rie/gf2e.h>
+#include <m4ri/djb.h>
 
 /**
  * \brief Add A to coefficient of X^t but perform modular reductions on the fly.
@@ -230,5 +231,17 @@ void _mzd_ptr_addmul_karatsuba15(const gf2e *ff, mzd_t **X, const mzd_t **A, con
 
 void _mzd_ptr_addmul_karatsuba16(const gf2e *ff, mzd_t **X, const mzd_t **A, const mzd_t **B);
 
+
+/**
+ * W = m*V
+ *
+ * Apply the linear map m to V (considered as a vector) and write the result in W.
+ *
+ * \param m Linear map
+ * \param W Output vector of matrices mod 2.
+ * \oaram V Input vector of matrices mod 2.
+ */
+
+void djb_apply_mzd_ptr(djb_t *m, mzd_t **W, const mzd_t **V);
 
 #endif //M4RIE_MZD_PTR_H

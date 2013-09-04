@@ -1,5 +1,6 @@
-#include "m4rie/blm.h"
-#include "mzd_ptr.h"
+#include <m4ri/djb.h>
+#include <m4rie/blm.h>
+#include <m4rie/mzd_ptr.h>
 
 void _mzd_ptr_apply_blm(const gf2e *ff, mzd_t **X, const mzd_t **A, const mzd_t **B, const blm_t *f) {
   assert((f->H!=NULL) & (f->F!=NULL) & (f->G!=NULL) &   \
@@ -37,6 +38,48 @@ void _mzd_ptr_apply_blm(const gf2e *ff, mzd_t **X, const mzd_t **A, const mzd_t 
   mzd_free(t1);
   mzd_free(t2);
 }
+
+void _mzd_ptr_apply_blm_djb(const gf2e *ff, mzd_t **X, const mzd_t **A, const mzd_t **B, const blm_t *f) {
+  assert(ff == NULL);
+  assert((f->H!=NULL) & (f->F!=NULL) & (f->G!=NULL) &   \
+         (f->H->ncols == f->F->nrows) &                 \
+         (f->F->nrows == f->G->nrows));
+
+ 
+  mzd_t **t0 = (mzd_t**)m4ri_mm_malloc(sizeof(mzd_t*)*f->F->nrows);
+  mzd_t **t1 = (mzd_t**)m4ri_mm_malloc(sizeof(mzd_t*)*f->F->nrows);
+  mzd_t **t2 = (mzd_t**)m4ri_mm_malloc(sizeof(mzd_t*)*f->F->nrows);
+
+  for(rci_t i=0; i<f->F->nrows; i++) {
+    t0[i] = mzd_init(A[0]->nrows, B[0]->ncols);
+    t1[i] = mzd_init(A[0]->nrows, A[0]->ncols);
+    t2[i] = mzd_init(B[0]->nrows, B[0]->ncols);
+  }
+
+  djb_t *fd = djb_compile(f->F);
+  djb_t *gd = djb_compile(f->G);
+  djb_t *hd = djb_compile(f->H);
+
+  djb_apply_mzd_ptr(fd, t1, A);
+  djb_apply_mzd_ptr(gd, t2, B);
+
+  for(rci_t i=0; i<f->F->nrows; i++) {
+    mzd_mul(t0[i], t1[i], t2[i], 0);
+  }
+
+  djb_apply_mzd_ptr(hd, X, (const mzd_t**)t0);
+
+  for(rci_t i=0; i<f->F->nrows; i++) {
+    mzd_free(t0[i]);
+    mzd_free(t1[i]);
+    mzd_free(t2[i]);
+  }
+
+  m4ri_mm_free(t0);
+  m4ri_mm_free(t1);
+  m4ri_mm_free(t2);
+}
+
 
 int *crt_init(const deg_t f_len, const deg_t g_len) {
   int *p_best = (int*)m4ri_mm_calloc(M4RIE_CRT_LEN, sizeof(int));

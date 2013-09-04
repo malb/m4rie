@@ -111,4 +111,6 @@ blm_t *_blm_finish_polymult(blm_t *f);
 void blm_free(blm_t *f);
 
 
+void _mzd_ptr_apply_blm_djb(const gf2e *ff, mzd_t **X, const mzd_t **A, const mzd_t **B, const blm_t *f);
+
 #endif //M4RIE_BLM_H
