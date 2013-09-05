@@ -707,11 +707,11 @@ static inline mzd_slice_t *_mzd_slice_addmul_blm(mzd_slice_t *C, const mzd_slice
     int *p = (int *)m4ri_mm_calloc(M4RIE_MAX_DEGREE+1, sizeof(int));
     p[d] = 1;
     free_f = 1;
-    f = blm_init_crt(d, d, p);
+    f = blm_init_crt(C->finite_field, d, d, p, 1);
     m4ri_mm_free(p);
   }
 
-  _mzd_ptr_apply_blm(C->finite_field, C->x, (const mzd_t**)A->x, (const mzd_t**)B->x, f);
+  _mzd_ptr_apply_blm(C->x, (const mzd_t**)A->x, (const mzd_t**)B->x, f);
 
   if (free_f)
     blm_free(f);

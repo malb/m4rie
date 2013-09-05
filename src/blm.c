@@ -2,9 +2,10 @@
 #include <m4rie/blm.h>
 #include <m4rie/mzd_ptr.h>
 
-void _mzd_ptr_apply_blm(const gf2e *ff, mzd_t **X, const mzd_t **A, const mzd_t **B, const blm_t *f) {
-  assert((f->H!=NULL) & (f->F!=NULL) & (f->G!=NULL) &   \
-         (f->H->ncols == f->F->nrows) &                 \
+
+void _mzd_ptr_apply_blm_mzd(mzd_t **X, const mzd_t **A, const mzd_t **B, const blm_t *f) {
+  assert((f->H!=NULL) & (f->F!=NULL) & (f->G!=NULL) &
+         (f->H->ncols == f->F->nrows) &   
          (f->F->nrows == f->G->nrows));
 
   mzd_t *t0 = mzd_init(A[0]->nrows, B[0]->ncols);
@@ -31,7 +32,7 @@ void _mzd_ptr_apply_blm(const gf2e *ff, mzd_t **X, const mzd_t **A, const mzd_t 
 
     for(rci_t j=0; j < f->H->nrows; j++)
       if(mzd_read_bit(f->H, j, i))
-        _mzd_ptr_add_modred(ff, t0, X, j);
+        _mzd_ptr_add_modred(NULL, t0, X, j);
   }
 
   mzd_free(t0);
@@ -39,8 +40,29 @@ void _mzd_ptr_apply_blm(const gf2e *ff, mzd_t **X, const mzd_t **A, const mzd_t 
   mzd_free(t2);
 }
 
-void _mzd_ptr_apply_blm_djb(const gf2e *ff, mzd_t **X, const mzd_t **A, const mzd_t **B, const blm_t *f) {
-  assert(ff == NULL);
+blm_t *_blm_djb_compile(blm_t *f) {
+  assert((f->f == NULL) && (f->g == NULL) && (f->h == NULL));
+  assert((f->F != NULL) && (f->G != NULL) && (f->H != NULL));
+
+
+  mzd_t *F = mzd_copy(NULL, f->F);
+  f->f = djb_compile(F);
+  mzd_free(F);
+  if(mzd_equal(f->F, f->G))
+    f->g = f->f;
+  else {
+    mzd_t *G = mzd_copy(NULL, f->G);
+    f->g = djb_compile(G);
+    mzd_free(G);
+  }
+  mzd_t *H = mzd_copy(NULL, f->H);
+  f->h = djb_compile(H);
+  mzd_free(H);
+
+  return f;
+}
+
+void _mzd_ptr_apply_blm_djb(mzd_t **X, const mzd_t **A, const mzd_t **B, const blm_t *f) {
   assert((f->H!=NULL) & (f->F!=NULL) & (f->G!=NULL) &   \
          (f->H->ncols == f->F->nrows) &                 \
          (f->F->nrows == f->G->nrows));
@@ -51,28 +73,24 @@ void _mzd_ptr_apply_blm_djb(const gf2e *ff, mzd_t **X, const mzd_t **A, const mz
   mzd_t **t2 = (mzd_t**)m4ri_mm_malloc(sizeof(mzd_t*)*f->F->nrows);
 
   for(rci_t i=0; i<f->F->nrows; i++) {
-    t0[i] = mzd_init(A[0]->nrows, B[0]->ncols);
     t1[i] = mzd_init(A[0]->nrows, A[0]->ncols);
     t2[i] = mzd_init(B[0]->nrows, B[0]->ncols);
   }
 
-  djb_t *fd = djb_compile(f->F);
-  djb_t *gd = djb_compile(f->G);
-  djb_t *hd = djb_compile(f->H);
-
-  djb_apply_mzd_ptr(fd, t1, A);
-  djb_apply_mzd_ptr(gd, t2, B);
+  djb_apply_mzd_ptr(f->f, t1, A);
+  djb_apply_mzd_ptr(f->g, t2, B);
 
   for(rci_t i=0; i<f->F->nrows; i++) {
+    t0[i] = mzd_init(A[0]->nrows, B[0]->ncols);
     mzd_mul(t0[i], t1[i], t2[i], 0);
+    mzd_free(t1[i]);
+    mzd_free(t2[i]);
   }
 
-  djb_apply_mzd_ptr(hd, X, (const mzd_t**)t0);
+  djb_apply_mzd_ptr(f->h, X, (const mzd_t**)t0);
 
   for(rci_t i=0; i<f->F->nrows; i++) {
     mzd_free(t0[i]);
-    mzd_free(t1[i]);
-    mzd_free(t2[i]);
   }
 
   m4ri_mm_free(t0);
@@ -128,7 +146,6 @@ int *crt_init(const deg_t f_len, const deg_t g_len) {
   m4ri_mm_free(p);
   return p_best;
 }
-
 
 mzd_t *_small_multiplication_map(const deg_t degree) {
   mzd_t *A;
@@ -358,13 +375,13 @@ mzd_t *_crt_modred_mat(const deg_t length, const word poly, const deg_t d) {
   return A;
 }
 
-blm_t *_blm_finish_polymult(blm_t *f) {
+blm_t *_blm_finish_polymult(const gf2e *ff, blm_t *f) {
   assert( (f != NULL) & (f->F != NULL) & (f->G != NULL) );
 
   const rci_t m = f->F->nrows;
   const rci_t c_nrows = f->F->ncols + f->G->ncols - 1;
 
-  f->H = mzd_init(c_nrows, m);
+  mzd_t *H = mzd_init(c_nrows, m);
 
   mzd_t *F_T = mzd_transpose(NULL, f->F);
   mzd_t *G_T = mzd_transpose(NULL, f->G);
@@ -430,9 +447,9 @@ blm_t *_blm_finish_polymult(blm_t *f) {
   mzd_free(D);
 
   mzd_t *a = mzd_init(1, m);
-  mzd_t *b = mzd_init(1, f->H->ncols);
+  mzd_t *b = mzd_init(1, H->ncols);
 
-  for(rci_t i=0; i<f->H->nrows; i++) {
+  for(rci_t i=0; i<H->nrows; i++) {
     mzd_set_ui(a, 0);
     for(rci_t j=0; j<m; j++) {
       v = pivots->rows[j][0];
@@ -443,19 +460,27 @@ blm_t *_blm_finish_polymult(blm_t *f) {
     mzd_mul(b, a, DT, 0);
 
     /* copy result to H */
-    for(rci_t j=0; j<f->H->ncols; j++)
-      mzd_write_bit(f->H, i, j, mzd_read_bit(b, 0, j ));
+    for(rci_t j=0; j<H->ncols; j++)
+      mzd_write_bit(H, i, j, mzd_read_bit(b, 0, j ));
   }
   mzd_free(a);
   mzd_free(b);
   mzd_free(pivots);
 
+  if (ff == NULL) {
+    f->H = H;
+  } else { 
+    mzd_t *N = _crt_modred_mat(H->nrows, ff->minpoly, ff->degree);
+    f->H = mzd_mul(NULL, N, H, 0);
+    mzd_free(N);
+    mzd_free(H);
+  }
   return f;
 }
 
 const int costs[17] = {0, 1, 3, 6, 9, 13, 17, 22, 27, 31, 36, 40, 45, 49, 55, 60, 64};
 
-blm_t *blm_init_crt(const deg_t f_ncols, const deg_t g_ncols, const int *p) {
+blm_t *blm_init_crt(const gf2e *ff, const deg_t f_ncols, const deg_t g_ncols, const int *p, int djb) {
   blm_t *f = m4ri_mm_malloc(sizeof(blm_t));
 
   // iterator over irreducible polynomials
@@ -470,7 +495,9 @@ blm_t *blm_init_crt(const deg_t f_ncols, const deg_t g_ncols, const int *p) {
     m += costs[d] * p[d];
 
   f->F = mzd_init(m, f_ncols);
+  f->f = NULL;
   f->G = mzd_init(m, g_ncols);
+  f->g = NULL;
 
   rci_t r = 0;
 
@@ -563,7 +590,17 @@ blm_t *blm_init_crt(const deg_t f_ncols, const deg_t g_ncols, const int *p) {
    * 2) We solve for H as we know poly(c) and (F*vec(a) x G*vec(b)). We pick points poly(a) = x^v,
    * poly(b) = x^w (hence: poly(c) = x^(v+w)).
    */
-  return _blm_finish_polymult(f);
+  _blm_finish_polymult(ff, f);
+  f->h = NULL;
+
+  /**
+   * 3) We compile DJB maps if asked for.
+   */
+
+  if (djb)
+    _blm_djb_compile(f);
+
+  return f;
 }
 
 
@@ -571,5 +608,10 @@ void blm_free(blm_t *f) {
   mzd_free(f->F);
   mzd_free(f->G);
   mzd_free(f->H);
+  if (f->f != f->g)
+    djb_free(f->g);
+  djb_free(f->f);
+  djb_free(f->h);
+
   m4ri_mm_free(f);
 }

@@ -44,12 +44,19 @@
  *
  * Encodes the bilinear map H*((F*A) x (G*B)) where A,B are vectors of mzd_t, "*" is matrix-vector
  * multiplication and "x" is pointwise multiplication.
+ *
+ * If a DJB map is not NULL, it will be used instead its matrix representant.
  */
 
 typedef struct {
   mzd_t *H;
+  djb_t *h;
+
   mzd_t *F;
+  djb_t *f;
+
   mzd_t *G;
+  djb_t *g;
 } blm_t;
 
 /**
@@ -57,13 +64,6 @@ typedef struct {
  */
 
 extern const int costs[17];
-
-
-/**
- * \brief Apply binlinear map f.
- */
-
-void _mzd_ptr_apply_blm(const gf2e *ff, mzd_t **X, const mzd_t **A, const mzd_t **B, const blm_t *f);
 
 /**
  * Return the multiplication cost of the multiplication scheme p
@@ -94,7 +94,7 @@ int *crt_init(const deg_t f_len, const deg_t g_len);
  * be irreducible polynomials, but merely co-prime).
  */
 
-blm_t *blm_init_crt(const deg_t f_ncols, const deg_t g_ncols, const int *p);
+blm_t *blm_init_crt(const gf2e *ff, const deg_t f_ncols, const deg_t g_ncols, const int *p, int djb);
 
 /**
  * Given F and G compute H.
@@ -102,7 +102,7 @@ blm_t *blm_init_crt(const deg_t f_ncols, const deg_t g_ncols, const int *p);
  * \param f Bilinear Map with F and G already computed.
  */
 
-blm_t *_blm_finish_polymult(blm_t *f);
+blm_t *_blm_finish_polymult(const gf2e *ff, blm_t *f);
 
 /**
  * Free bilinear map f.
@@ -110,7 +110,18 @@ blm_t *_blm_finish_polymult(blm_t *f);
 
 void blm_free(blm_t *f);
 
+blm_t *_blm_djb_compile(blm_t *f);
 
-void _mzd_ptr_apply_blm_djb(const gf2e *ff, mzd_t **X, const mzd_t **A, const mzd_t **B, const blm_t *f);
+void _mzd_ptr_apply_blm_mzd(mzd_t **X, const mzd_t **A, const mzd_t **B, const blm_t *f);
+
+void _mzd_ptr_apply_blm_djb(mzd_t **X, const mzd_t **A, const mzd_t **B, const blm_t *f);
+
+static inline void _mzd_ptr_apply_blm(mzd_t **X, const mzd_t **A, const mzd_t **B, const blm_t *f) {
+  if (f->f!=NULL)
+    _mzd_ptr_apply_blm_djb(X, A, B, f);
+  else
+    _mzd_ptr_apply_blm_mzd(X, A, B, f);
+}
+
 
 #endif //M4RIE_BLM_H

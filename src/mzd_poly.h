@@ -70,6 +70,7 @@ static inline mzd_poly_t *mzd_poly_init(const deg_t d, const rci_t m, const rci_
 static inline void mzd_poly_free(mzd_poly_t *A) {
   for(int i=0; i<A->depth; i++)
    mzd_free(A->x[i]);
+  m4ri_mm_free(A->x);
   m4ri_mm_free(A);
 }
 
@@ -141,7 +142,7 @@ static inline mzd_poly_t *_mzd_poly_addmul_blm(mzd_poly_t *C, mzd_poly_t *A, mzd
   if (C == NULL)
     C = mzd_poly_init(A->depth+B->depth-1, A->nrows, B->ncols);
 
-  _mzd_ptr_apply_blm(NULL, C->x, (const mzd_t**)A->x, (const mzd_t**)B->x, f);
+  _mzd_ptr_apply_blm(C->x, (const mzd_t**)A->x, (const mzd_t**)B->x, f);
   return C;
 }
 
@@ -152,7 +153,7 @@ static inline mzd_poly_t *_mzd_poly_addmul_blm(mzd_poly_t *C, mzd_poly_t *A, mzd
 
 static inline mzd_poly_t *_mzd_poly_addmul_crt(mzd_poly_t *C, mzd_poly_t *A, mzd_poly_t *B) {
   int *p = crt_init(A->depth, B->depth);
-  blm_t *f = blm_init_crt(A->depth, B->depth, p);
+  blm_t *f = blm_init_crt(NULL, A->depth, B->depth, p, 1);
   _mzd_poly_addmul_blm(C, A, B, f);
   blm_free(f);
   m4ri_mm_free(p);
