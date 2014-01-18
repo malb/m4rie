@@ -99,6 +99,7 @@ void _mzd_ptr_apply_blm_djb(mzd_t **X, const mzd_t **A, const mzd_t **B, const b
 }
 
 
+
 int *crt_init(const deg_t f_len, const deg_t g_len) {
   int *p_best = (int*)m4ri_mm_calloc(M4RIE_CRT_LEN, sizeof(int));
   int  c_best = f_len * g_len;
@@ -479,6 +480,7 @@ blm_t *_blm_finish_polymult(const gf2e *ff, blm_t *f) {
 }
 
 const int costs[17] = {0, 1, 3, 6, 9, 13, 17, 22, 27, 31, 36, 40, 45, 49, 55, 60, 64};
+//const int costs[17] = {0, 1, 3, 6, 9, 13, 15, 22, 24, 30, 33, 39, 42, 48, 51, 54, 60}; /* best possible */
 
 blm_t *blm_init_crt(const gf2e *ff, const deg_t f_ncols, const deg_t g_ncols, const int *p, int djb) {
   blm_t *f = m4ri_mm_malloc(sizeof(blm_t));
