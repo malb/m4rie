@@ -682,19 +682,19 @@ static inline mzd_slice_t *mzd_slice_addmul_karatsuba(mzd_slice_t *C, const mzd_
 }
 
 /**
- * \brief \f$ C = C + A \cdot B \f$ using bilinear maps over matrices over \GF2.
+ * \brief \f$ C = A \cdot B \f$ using bilinear maps over matrices over \GF2.
  *
  * \param C Preallocated return matrix, may be NULL for automatic creation.
  * \param A Input matrix A.
  * \param B Input matrix B.
- * \param f Blinear map such that C == C + H*((F*A) x (G*B)), if NULL it will be created and destroyed
+ * \param f Blinear map such that C == H*((F*A) x (G*B)), if NULL it will be created and destroyed
  *
  * \ingroup Multiplication
  *
  * \note Calling _mzd_slice_addmul_karatsuba will be more efficient
  */
 
-static inline mzd_slice_t *_mzd_slice_addmul_blm(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B, blm_t *f) {
+static inline mzd_slice_t *_mzd_slice_mul_blm(mzd_slice_t *C, const mzd_slice_t *A, const mzd_slice_t *B, blm_t *f) {  
   if (C == NULL)
     C = mzd_slice_init(A->finite_field, A->nrows, B->ncols);
 
@@ -740,7 +740,7 @@ static inline mzd_slice_t *mzd_slice_mul_blm(mzd_slice_t *C, const mzd_slice_t *
       m4ri_die("mzd_slice_mul_karatsuba: rows and columns of returned matrix must match.\n");
     mzd_slice_set_ui(C,0);
   }
-  return _mzd_slice_addmul_blm(C, A, B, f);
+  return _mzd_slice_mul_blm(C, A, B, f);
 }
 
 /**
@@ -762,7 +762,10 @@ static inline mzd_slice_t *mzd_slice_addmul_blm(mzd_slice_t *C, const mzd_slice_
     m4ri_die("mzd_slice_addmul_karatsuba: rows, columns and fields must match.\n");
   if (C->finite_field != A->finite_field || C->nrows != A->nrows || C->ncols != B->ncols)
     m4ri_die("mzd_slice_addmul_karatsuba: rows and columns of returned matrix must match.\n");
-  return _mzd_slice_addmul_blm(C, A, B, f);
+  mzd_slice_t *T = _mzd_slice_mul_blm(NULL, A, B, f);
+  mzd_slice_add(C, C, T);
+  mzd_slice_free(T);
+  return C;
 }
 
 

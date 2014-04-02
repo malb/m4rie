@@ -235,7 +235,7 @@ void _mzd_ptr_addmul_karatsuba16(const gf2e *ff, mzd_t **X, const mzd_t **A, con
 /**
  * W = m*V
  *
- * Apply the linear map m to V (considered as a vector) and write the result in W.
+ * Apply the linear map m to V (considered as a vector) and write the result to W.
  *
  * \param m Linear map
  * \param W Output vector of matrices mod 2.

@@ -213,21 +213,23 @@ static inline mzed_t *mzed_addmul_karatsuba(mzed_t *C, const mzed_t *A, const mz
  */
 
 static inline mzed_t *_mzed_addmul_blm(mzed_t *C, const mzed_t *A, const mzed_t *B) {
-  mzd_slice_t *As,*Bs,*Cs;
-  if(C)
-    Cs = mzed_slice(NULL,C);
-  else
-    Cs = NULL;
+  mzd_slice_t *As,*Bs;
   As = mzed_slice(NULL,A);
   Bs = mzed_slice(NULL,B);
 
-  Cs = _mzd_slice_addmul_blm(Cs, As, Bs, NULL);
+  mzd_slice_t *Ts = _mzd_slice_mul_blm(NULL, As, Bs, NULL);
+  mzed_t *T = mzed_cling(NULL, Ts);
+  mzd_slice_free(Ts);
 
-  C = mzed_cling(C, Cs);
+  if (C) {
+    C = mzed_add(C, C, T);
+    mzed_free(T);
+  } else {
+    C = T;
+  }
 
   mzd_slice_free(As);
   mzd_slice_free(Bs);
-  mzd_slice_free(Cs);
   return C;
 }
 

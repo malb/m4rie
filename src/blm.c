@@ -87,6 +87,8 @@ void _mzd_ptr_apply_blm_djb(mzd_t **X, const mzd_t **A, const mzd_t **B, const b
     mzd_free(t2[i]);
   }
 
+  
+
   djb_apply_mzd_ptr(f->h, X, (const mzd_t**)t0);
 
   for(rci_t i=0; i<f->F->nrows; i++) {
