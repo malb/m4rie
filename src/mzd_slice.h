@@ -530,7 +530,7 @@ static inline mzd_slice_t *mzd_slice_add(mzd_slice_t *C, const mzd_slice_t *A, c
     m4ri_die("mzd_slice_add: input matrices A (%d x %d) and B (%d x %d) do not match.\n",A->nrows,A->ncols, B->nrows,B->ncols);
 
   if(C == NULL)
-    mzd_slice_init(A->finite_field, A->nrows, A->ncols);
+    C = mzd_slice_init(A->finite_field, A->nrows, A->ncols);
   else if ( (A->finite_field != C->finite_field) | (A->nrows != C->nrows) | (A->ncols != C->ncols) )
     m4ri_die("mzd_slice_add: input matrix A (%d x %d) and output matrix (%d x %d) do not match.\n",A->nrows,A->ncols, C->nrows, C->ncols);
 
