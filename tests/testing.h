@@ -7,7 +7,7 @@
     printf("\n%s in %s:%d failed\n", #expr, __FILE__, __LINE__);  \
   } 
 
-const word m4rie_canary = (word)"canary!";
+const word m4rie_canary = (word)0x63616E61727921ULL;
 
 static inline word field_mask(const gf2e *ff) {
   const word mask_fld = ((1<<ff->degree)-1);
