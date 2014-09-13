@@ -278,7 +278,7 @@ static inline mzed_t *mzed_addmul_blm(mzed_t *C, const mzed_t *A, const mzed_t *
  * \param A Matrix
  * \param r Row index.
  * \param c Column index.
- * \param X Multiplier
+ * \param x Multiplier
  *
  * \ingroup RowOperations
  */
@@ -293,6 +293,8 @@ static inline void mzd_slice_rescale_row(mzd_slice_t *A, rci_t r, rci_t c, word 
   mzed_free(A_we);
   mzd_slice_free_window(A_w);
 }
+
+///@cond INTERNAL
 
 /*
  * a bunch of constants to make code more readable
@@ -313,5 +315,6 @@ static const word x__left08 = 0xff00000000000000ULL;
 static const word x__left16 = 0xffff000000000000ULL;
 static const word x__left32 = 0xffffffff00000000ULL;
 
+///@endcond
 
 #endif //M4RIE_CONVERSION_H

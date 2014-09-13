@@ -44,15 +44,48 @@ typedef struct {
   deg_t depth;   /**< Degree +1      */
 } mzd_poly_t;
 
+/**
+ * \brief C += (A+B)*x^offset
+ *
+ * \param C Target polynomial.
+ * \param A Source polynomial.
+ * \param B Source polynomial.
+ * \param offset The result is shifted offset entries upwards.
+ * 
+ * \ingroup Addition
+ *
+ * \warning No bounds checks are performed.
+ */
+
 static inline mzd_poly_t *_mzd_poly_add(mzd_poly_t *C, const mzd_poly_t *A, const mzd_poly_t *B, unsigned int offset) {
   _mzd_ptr_add(C->x+offset, (const mzd_t**)A->x, (const mzd_t**)B->x, A->depth);
   return C;
 }
 
+/**
+ * \brief C += (A+B)
+ *
+ * \param C Target polynomial.
+ * \param A Source polynomial.
+ * \param B Source polynomial.
+ * 
+ * \ingroup Addition
+ */
+
 static inline mzd_poly_t *mzd_poly_add(mzd_poly_t *C, const mzd_poly_t *A, const mzd_poly_t *B) {
   assert(C->depth >= A->depth && A->depth == B->depth);
   return _mzd_poly_add(C, A, B, 0);
 }
+
+/**
+ * \brief Create a new polynomial of degree d with m x n matrices as coefficients.
+ *
+ * \param d Degree.
+ * \param m Number of rows.
+ * \param n Number of columns.
+ *
+ * \ingroup Constructions
+ */
 
 static inline mzd_poly_t *mzd_poly_init(const deg_t d, const rci_t m, const rci_t n) {
   mzd_poly_t *A = (mzd_poly_t*)m4ri_mm_malloc(sizeof(mzd_poly_t));
@@ -67,12 +100,29 @@ static inline mzd_poly_t *mzd_poly_init(const deg_t d, const rci_t m, const rci_
   return A;
 }
 
+/**
+ * \brief Free polynomial A
+ *
+ * \param A Polynomial.
+ *
+ * \ingroup Constructions
+ */
+ 
 static inline void mzd_poly_free(mzd_poly_t *A) {
   for(int i=0; i<A->depth; i++)
    mzd_free(A->x[i]);
   m4ri_mm_free(A->x);
   m4ri_mm_free(A);
 }
+
+/**
+ * \brief change depth of A to new_depth.
+ *
+ * \param A Polynomial.
+ * \param new_depth New depth (may be <,=,> than current depth).
+ *
+ * \ingroup Constructions
+ */
 
 static inline mzd_poly_t *_mzd_poly_adapt_depth(mzd_poly_t *A, const deg_t new_depth) {
   if (new_depth < A->depth) {
@@ -89,6 +139,16 @@ static inline mzd_poly_t *_mzd_poly_adapt_depth(mzd_poly_t *A, const deg_t new_d
   return A;
 }
 
+/**
+ * \brief C += A*B using naive polynomial multiplication
+ *
+ * \param C Target polynomial.
+ * \param A Source polynomial.
+ * \param B Source polynomial.
+ *
+ * \ingroup Multiplication
+ */
+
 static inline mzd_poly_t *_mzd_poly_addmul_naive(mzd_poly_t *C, const mzd_poly_t *A, const mzd_poly_t *B) {
   if (C == NULL)
     C = mzd_poly_init(A->depth+B->depth-1, A->nrows, B->ncols);
@@ -100,6 +160,17 @@ static inline mzd_poly_t *_mzd_poly_addmul_naive(mzd_poly_t *C, const mzd_poly_t
   }
   return C;
 }
+
+/**
+ * \brief C += A*B using Karatsuba multiplication on balanced inputs
+ *
+ * \param C Target polynomial.
+ * \param A Source polynomial.
+ * \param B Source polynomial.
+ *
+ * \ingroup Multiplication
+ */
+
 
 static inline mzd_poly_t *_mzd_poly_addmul_karatsubs_balanced(mzd_poly_t *C, const mzd_poly_t *A, const mzd_poly_t *B) {
   assert(A->depth == B->depth);

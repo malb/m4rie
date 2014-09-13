@@ -49,14 +49,14 @@
  */
 
 typedef struct {
-  mzd_t *H;
-  djb_t *h;
+  mzd_t *H; /*!< final linear map H*/
+  djb_t *h; /*!< final linear map H (DJB encoding)*/
 
-  mzd_t *F;
-  djb_t *f;
+  mzd_t *F; /*!< lineatr map on A */
+  djb_t *f; /*!< lineatr map on N (DJB encoding) */
 
-  mzd_t *G;
-  djb_t *g;
+  mzd_t *G; /*!< lineatr map on B */
+  djb_t *g; /*!< lineatr map on B (DJB encoding) */
 } blm_t;
 
 /**
@@ -99,6 +99,7 @@ blm_t *blm_init_crt(const gf2e *ff, const deg_t f_ncols, const deg_t g_ncols, co
 /**
  * Given F and G compute H.
  *
+ * \param ff finite field for modular reduction
  * \param f Bilinear Map with F and G already computed.
  */
 
@@ -110,11 +111,44 @@ blm_t *_blm_finish_polymult(const gf2e *ff, blm_t *f);
 
 void blm_free(blm_t *f);
 
+/**
+ * \brief Compile DJB map for f
+ *  
+ * \param f Bilinear map
+ */
+
 blm_t *_blm_djb_compile(blm_t *f);
+
+/**
+ * \brief Apply f (stored as a matrix) on A and B, writing to X
+ *  
+ * \param X Array of matrices
+ * \param A Array of matrices 
+ * \param B Array of matrices 
+ * \param f Bilinear map
+ */
 
 void _mzd_ptr_apply_blm_mzd(mzd_t **X, const mzd_t **A, const mzd_t **B, const blm_t *f);
 
+/**
+ * \brief Apply f (stored as a DJB map) on A and B, writing to X
+ *  
+ * \param X Array of matrices
+ * \param A Array of matrices 
+ * \param B Array of matrices 
+ * \param f Bilinear map
+ */
+
 void _mzd_ptr_apply_blm_djb(mzd_t **X, const mzd_t **A, const mzd_t **B, const blm_t *f);
+
+/**
+ * \brief Apply f on A and B, writing to X
+ *  
+ * \param X Array of matrices
+ * \param A Array of matrices 
+ * \param B Array of matrices 
+ * \param f Bilinear map
+ */
 
 static inline void _mzd_ptr_apply_blm(mzd_t **X, const mzd_t **A, const mzd_t **B, const blm_t *f) {
   if (f->f!=NULL)

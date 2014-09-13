@@ -152,6 +152,15 @@ static inline void mzd_slice_free(mzd_slice_t *A) {
 #endif
 }
 
+/**
+ * \brief copy A to B
+ *
+ * \param B Matrix.
+ * \param A Matrix. 
+ *
+ * \ingroup Constructions
+ */
+
 static inline mzd_slice_t *mzd_slice_copy(mzd_slice_t *B, const mzd_slice_t *A) {
   if(B == NULL)
     B = mzd_slice_init(A->finite_field, A->nrows, A->ncols);
@@ -500,7 +509,7 @@ static inline void mzd_slice_free_window(mzd_slice_t *A) {
 /**
  * \brief \f$ C = A + B\f$.
  *
- * \param C Preallocated sum matrix, may be NULL for automatic creation.
+ * \param C Preallocated sum matrix.
  * \param A Matrix
  * \param B Matrix
  *

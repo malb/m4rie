@@ -31,6 +31,10 @@
 #include <m4ri/m4ri.h>
 #include <m4rie/gf2x.h>
 
+/**
+ * \brief maximal supported degree
+ */
+
 #define M4RIE_MAX_DEGREE 16
 
 /**
@@ -38,6 +42,10 @@
  */
 
 typedef struct gf2e_struct gf2e;
+
+/**
+ * \brief \GF2E
+ */
 
 struct gf2e_struct {
   deg_t degree;    /**< The degree \e. */
@@ -181,6 +189,10 @@ static inline word *gf2e_t16_init(const gf2e *ff, const word a) {
 static inline void gf2e_t16_free(word *mul) {
   m4ri_mm_free(mul);
 }
+
+/**
+ * \brief all Irreducible polynomials over GF(2) up to degree 16.
+ */
 
 extern const word* irreducible_polynomials[17];
 

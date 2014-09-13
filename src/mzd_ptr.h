@@ -136,7 +136,7 @@ static inline void _mzd_ptr_add(mzd_t **c, const mzd_t **a, const mzd_t **b, con
  * COMPUTERS, VOL. 54, NO. 3, MARCH 2005/
  * 
  * \param ff Finite Field, may be NULL for polynomial arithmetic.
- * \param C Preallocated return matrix, of length >= 2 (ff != NULL) or >=3 (ff == NULL)
+ * \param X Preallocated return matrix, of length >= 2 (ff != NULL) or >=3 (ff == NULL)
  * \param A Input matrix A, preallocated of length >= 2.
  * \param B Input matrix B, preallocated of length >= 2.
  *
