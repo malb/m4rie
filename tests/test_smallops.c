@@ -1,5 +1,5 @@
 /**
- * \file test_smallops.cc
+ * \file test_smallops.c
  * \brief Test code for auxilary routines
  *
  * \author Martin Albrecht <martinralbrecht@googlemail.com>

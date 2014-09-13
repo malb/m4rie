@@ -1,5 +1,5 @@
 /*
- * benchmarking.cc
+ * benchmarking.c
  *
  * Benchmark engine.
  *

@@ -1,5 +1,5 @@
 /**
- * \file test_multiplication.cc
+ * \file test_multiplication.c
  * \brief Test code for multiplication routines
  *
  * \author Martin Albrecht <martinralbrecht@googlemail.com>

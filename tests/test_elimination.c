@@ -1,5 +1,5 @@
 /**
- * \file test_elimination.cc
+ * \file test_elimination.c
  * \brief Test code for elimination routines
  *
  * \author Martin Albrecht <martinralbrecht@googlemail.com>

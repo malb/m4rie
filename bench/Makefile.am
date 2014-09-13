@@ -17,23 +17,23 @@ clean-local:
 	-rm -f cpucycles.h
 	-rm -f $(EXTRA_PROGRAMS)
 
-bench_elimination_SOURCES=bench_elimination.cc cpucycles.h benchmarking.cc
+bench_elimination_SOURCES=bench_elimination.c cpucycles.h benchmarking.c
 bench_elimination_CXXFLAGS=${BENCHCXXFLAGS}
 bench_elimination_LDFLAGS=${BENCHLDFLAGS} ${BENCHLIBADD}
 
-bench_multiplication_SOURCES=bench_multiplication.cc cpucycles.h benchmarking.cc
+bench_multiplication_SOURCES=bench_multiplication.c cpucycles.h benchmarking.c
 bench_multiplication_CXXFLAGS=${BENCHCXXFLAGS}
 bench_multiplication_LDFLAGS=${BENCHLDFLAGS} ${BENCHLIBADD}
 
-bench_smallops_SOURCES=bench_smallops.cc cpucycles.h benchmarking.cc
+bench_smallops_SOURCES=bench_smallops.c cpucycles.h benchmarking.c
 bench_smallops_CXXFLAGS=${BENCHCXXFLAGS}
 bench_smallops_LDFLAGS=${BENCHLDFLAGS} ${BENCHLIBADD}
 
-bench_trsm_SOURCES=bench_trsm.cc cpucycles.h benchmarking.cc
+bench_trsm_SOURCES=bench_trsm.c cpucycles.h benchmarking.c
 bench_trsm_CXXFLAGS=${BENCHCXXFLAGS}
 bench_trsm_LDFLAGS=${BENCHLDFLAGS} ${BENCHLIBADD}
 
-bench_ple_SOURCES=bench_ple.cc cpucycles.h benchmarking.cc
+bench_ple_SOURCES=bench_ple.c cpucycles.h benchmarking.c
 bench_ple_CXXFLAGS=${BENCHCXXFLAGS}
 bench_ple_LDFLAGS=${BENCHLDFLAGS} ${BENCHLIBADD}
 

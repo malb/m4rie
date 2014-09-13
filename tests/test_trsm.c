@@ -1,5 +1,5 @@
 /**
- * \file test_trsm.cc
+ * \file test_trsm.c
  * \brief Test code for triangular system solving with matrices (TRSM) routines
  *
  * \author Martin Albrecht <martinralbrecht@googlemail.com>

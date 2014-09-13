@@ -1,5 +1,5 @@
 /**
- * \file test_ple.cc
+ * \file test_ple.c
  * \brief Test code for PLE elimination routines
  *
  * \author Martin Albrecht <martinralbrecht@googlemail.com>
