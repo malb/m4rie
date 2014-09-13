@@ -51,7 +51,7 @@ libm4rie_la_LIBADD = -lm4ri
 
 #testing
 TESTCFLAGS = ${AM_CFLAGS} @CFLAGS@ ${M4RIE_M4RI_CFLAGS} ${M4RI_CFLAGS} -I./tests
-TESTLIBADD = -lm4ri -lm4rie 
+TESTLIBADD = -lm4ri -lm4rie -lm
 TESTLDADD = 
 TESTLDFLAGS = ${M4RIE_M4RI_LDFLAGS}
 
