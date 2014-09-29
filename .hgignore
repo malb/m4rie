@@ -19,9 +19,11 @@ src/config.h.in~
 src/cscope.out
 src/cscope.files
 .deps
+.projectile
 autom4te.cache
 Makefile
 bench/Makefile
+bench/cpucycles.h
 config.log
 config.status
 libtool
