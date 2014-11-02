@@ -412,9 +412,9 @@ blm_t *_blm_finish_polymult(const gf2e *ff, blm_t *f) {
     pivots->rows[r][1] = w;
 
     w++;
-    if (w == f->G->ncols) {
+    if (w == (word)f->G->ncols) {
       v++;
-      if (v == f->F->ncols)
+      if (v == (word)f->F->ncols)
         v = 0;
       w = v;
     }
@@ -457,7 +457,7 @@ blm_t *_blm_finish_polymult(const gf2e *ff, blm_t *f) {
     for(rci_t j=0; j<m; j++) {
       v = pivots->rows[j][0];
       w = pivots->rows[j][1];
-      if ((v+w) == i)
+      if ((v+w) == (word)i)
         mzd_write_bit(a, 0, j, 1);
     }
     mzd_mul(b, a, DT, 0);
