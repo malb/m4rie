@@ -39,3 +39,4 @@ bench/bench_ple
 bench/bench_smallops
 bench/bench_trsm
 bench/cpucycles.h
+/.dir-locals.el
