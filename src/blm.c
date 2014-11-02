@@ -430,8 +430,6 @@ blm_t *_blm_finish_polymult(const gf2e *ff, blm_t *f) {
         r = rank;
     }
   }
-  mzd_free(F_T);
-  mzd_free(G_T);
   mzp_free(P);
   mzp_free(Q);
 
@@ -442,6 +440,8 @@ blm_t *_blm_finish_polymult(const gf2e *ff, blm_t *f) {
     for(wi_t j=0; j< C->width; j++)
       C->rows[r][j] = F_T->rows[v][j] & G_T->rows[w][j];
   }
+  mzd_free(F_T);
+  mzd_free(G_T);
 
   // This should be replaced by TRSM calls
   mzd_t *D = mzd_inv_m4ri(NULL, C, 0); 
