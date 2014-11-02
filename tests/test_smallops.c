@@ -65,7 +65,7 @@ int test_slice(gf2e *ff, int m, int n) {
   mzd_slice_free(b);
   
   return fail_ret; 
-};
+}
 
 int test_slice_known_answers(gf2e *ff, int m, int n) {
   int fail_ret = 0;
