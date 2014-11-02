@@ -1,5 +1,5 @@
 #include <unistd.h>
-#include <m4rie.h>
+#include <m4rie/m4rie.h>
 
 #define m4rie_check(expr)						\
   if (!expr) {								\

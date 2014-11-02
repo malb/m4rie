@@ -210,7 +210,6 @@ int main(int argc, char **argv) {
     fail_ret += test_batch(ff,  65, 129);
     fail_ret += test_batch(ff, 201, 200);
     fail_ret += test_batch(ff, 217,   2);
-
     gf2e_free(ff);
   }
 
