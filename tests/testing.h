@@ -110,8 +110,8 @@ static inline int mzd_slice_canary_is_alive(mzd_slice_t *A) {
         return 0;
       }
     }
-    return 1;
   }
+  return 1;
 }
 
 static inline mzed_t *random_mzed_t(gf2e *ff, int m, int n) {
