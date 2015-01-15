@@ -17,4 +17,4 @@ clean-local:
 	-rm -f cpucycles.h
 	-rm -f $(EXTRA_PROGRAMS)
 
-all: ${EXTRA_PROGRAMS}
+all: cpucycles.o ${EXTRA_PROGRAMS}
