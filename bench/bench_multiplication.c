@@ -1,5 +1,5 @@
 #include <m4rie/m4rie.h>
-#include <cpucycles.h>
+#include "cpucycles.h"
 #include "benchmarking.h"
 
 struct mul_params {
