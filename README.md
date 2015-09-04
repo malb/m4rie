@@ -101,7 +101,7 @@ and cite the appropriate publications mentioned in
 
 # History
 
-* **2015/0417** Our hosting for http://m4ri.sagemath.org at University of Washington. is
+* **2015/04/17** Our hosting for http://m4ri.sagemath.org at University of Washington. is
   discontinued and we’re moving everything over to https://bitbucket.org/malb/m4ri. A copy of the
   old website (except for large files) is available at
   http://malb.bitbucket.org/m4ri-e-website-2008-2015/.
