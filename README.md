@@ -101,28 +101,31 @@ and cite the appropriate publications mentioned in
 
 # History
 
+* **2015/09/08** A new version of M4RIE is available improving the build system and fixing a bug in
+  the tests. It is available at https://bitbucket.org/malb/m4rie/downloads.
+
 * **2015/04/17** Our hosting for http://m4ri.sagemath.org at University of Washington. is
   discontinued and we’re moving everything over to https://bitbucket.org/malb/m4ri. A copy of the
   old website (except for large files) is available at
   http://malb.bitbucket.org/m4ri-e-website-2008-2015/.
 
 * **2014/09/14** A new version of M4RI and M4RIE is available for
-  [download](https://bitbucket.org/malb/m4ri/downloads). The biggest change is that `A->offset` was
+  [download](https://bitbucket.org/malb/m4rie/downloads). The biggest change is that `A->offset` was
   dropped. Also, various small (multicore) performance improvements were implemented. The update for
   M4RIE is to maintain compatibility with M4RI. A few improvements were implemented for the mzd_poly
   module as well.
 
 * **2012/06/13** New versions of both M4RI and M4RIE are available for
-  [download](https://bitbucket.org/malb/m4ri/downloads). A detailed changlog are available
-  [here](https://bitbucket.org/malb/m4ri/wiki/M4RI-20120613) for M4RI.
+  [download](https://bitbucket.org/malb/m4rie/downloads). A detailed changlog are available
+  [here](https://bitbucket.org/malb/m4rie/wiki/M4RI-20120613) for M4RI.
 
 * **2012/04/13** New versions of both M4RI and M4RIE are available for
-  [download](https://bitbucket.org/malb/m4ri/downloads). Detailed changlogs are available
+  [download](https://bitbucket.org/malb/m4rie/downloads). Detailed changlogs are available
   [here](https://bitbucket.org/malb/m4ri/wiki/M4RI-20120415) for M4RI and
   [here](https://bitbucket.org/malb/m4rie/wiki/M4RIE-20120415) for M4RIE.
 
 * **2011/12/04** New versions of both M4RI and M4RIE are available for
-  [download](https://bitbucket.org/malb/m4ri/downloads). The highlight of this version for M4RI is support
+  [download](https://bitbucket.org/malb/m4rie/downloads). The highlight of this version for M4RI is support
   for reading and writing 1-bit PNG images. The highlight of this release of M4RIE is much improved
   performance for $4 < e \leq 8$. Detailed changlogs are available
   [here](https://bitbucket.org/malb/m4ri/wiki/M4RI-20111203) for M4RI and
