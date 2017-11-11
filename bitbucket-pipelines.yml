@@ -8,7 +8,7 @@ pipelines:
           - git clone https://bitbucket.org/malb/m4ri
           - cd m4ri
           - autoreconf -i
-          - ./configure
+          - ./configure --prefix=/usr
           - make
           - make install
           - cd ..
