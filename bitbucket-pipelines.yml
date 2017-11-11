@@ -12,7 +12,7 @@ pipelines:
           - make
           - make install
           - cd ..
-      - step:
+    - step:
         name: Build and test
         script:
           - autoreconf -i
