@@ -62,6 +62,7 @@ void gf2e_free(gf2e *ff) {
   }
   m4ri_mm_free(ff->pow_gen);
   m4ri_mm_free(ff->red);
+  m4ri_mm_free(ff);
 }
 
 const word _irreducible_polynomials_degree_01[   3]  = {    2, 0x00002, 0x00003 };
