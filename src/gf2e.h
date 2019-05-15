@@ -31,6 +31,18 @@
 #include <m4ri/m4ri.h>
 #include <m4rie/gf2x.h>
 
+#ifdef _WIN32
+  #if defined(DLL_EXPORT) && defined(M4RIE_BUILDING_M4RIE)
+    #define M4RIE_DLL_EXPORT __declspec(dllexport)
+  #elif defined(M4RI_USE_DLL) && !defined(M4RIE_BUILDING_M4RIE)
+    #define M4RIE_DLL_EXPORT __declspec(dllimport)
+  #else
+    #define M4RIE_DLL_EXPORT
+  #endif
+#else
+  #define M4RIE_DLL_EXPORT
+#endif
+
 /**
  * \brief maximal supported degree
  */
@@ -194,6 +206,6 @@ static inline void gf2e_t16_free(word *mul) {
  * \brief all Irreducible polynomials over GF(2) up to degree 16.
  */
 
-extern const word* irreducible_polynomials[17];
+M4RIE_DLL_EXPORT extern const word* irreducible_polynomials[17];
 
 #endif //M4RIE_GF2E_H
