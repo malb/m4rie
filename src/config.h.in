@@ -65,3 +65,6 @@
 
 /* Version number of package */
 #undef VERSION
+
+/* Define to indicate that m4ri is being built instead of being used */
+#define M4RIE_BUILDING_M4RIE
