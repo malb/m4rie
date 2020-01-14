@@ -41,3 +41,5 @@ bench/bench_trsm
 bench/cpucycles.h
 /.dir-locals.el
 /bench/cpucycles-20060326/cpucycles.h
+/m4rie.pc
+*~

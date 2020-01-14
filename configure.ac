@@ -64,6 +64,6 @@ AC_SUBST(RELEASE)
 
 AC_PROG_MAKE_SET
 
-AC_CONFIG_FILES([Makefile tests/Makefile bench/Makefile])
+AC_CONFIG_FILES([Makefile tests/Makefile bench/Makefile m4rie.pc])
 AC_OUTPUT
 

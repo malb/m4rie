@@ -1,22 +1,14 @@
-M4RIE is a library for fast arithmetic with dense matrices over GF(2^e) for 2 ≤ e ≤ 16. The name
-stems from the fact that is relies heavily on M4RI. M4RIE is part of the Sage mathematics software.
-M4RIE is available under the General Public License Version 2 or later (GPLv2+).
-
-[![Build Status](https://drone.io/bitbucket.org/malb/m4rie/status.png)](https://drone.io/bitbucket.org/malb/m4rie/latest)
+M4RIE is a library for fast arithmetic with dense matrices over GF(2^e) for 2 ≤ e ≤ 16. The name stems from the fact that is relies heavily on M4RI. M4RIE is part of the Sage mathematics software. M4RIE is available under the General Public License Version 2 or later (GPLv2+).
 
 # Main Features #
 
-* basic arithmetic with dense matrices over GF(2^e) (addition, equality testing, stacking,
-  augmenting, sub-matrices, etc.),
+* basic arithmetic with dense matrices over GF(2^e) (addition, equality testing, stacking, augmenting, sub-matrices, etc.),
 
-* asymptotically fast $O(n^{\log_2 7})$ matrix multiplication using the Karatsuba trick due to
-  Boothby and Bradshaw,
+* asymptotically fast $O(n^{\log_2 7})$ matrix multiplication using the Karatsuba trick due to Boothby and Bradshaw,
 
-* asymptotically fast $O(n^{\log_2 7})$ matrix multiplication using “Newton-John Table” based
-  multiplication & the Strassen-Winograd algorithm,
+* asymptotically fast $O(n^{\log_2 7})$ matrix multiplication using “Newton-John Table” based multiplication & the Strassen-Winograd algorithm,
 
-* fast row echelon form computation and matrix inversion via a “Newton-John Table” based algorithm
-  using only $O(n^2)$ field multiplications and $O(n^3)$ field additions,
+* fast row echelon form computation and matrix inversion via a “Newton-John Table” based algorithm using only $O(n^2)$ field multiplications and $O(n^3)$ field additions,
 
 * asymptotically fast row echelon form computation and matrix inversion via PLE decomposition,
 
@@ -24,8 +16,7 @@ M4RIE is available under the General Public License Version 2 or later (GPLv2+).
 
 * support for Linux, OpenSolaris and OS X (all GCC).
 
-See [Further Reading](https://bitbucket.org/malb/m4rie/wiki/Further%20Reading) for implemented
-algorithms.
+See [Further Reading](https://bitbucket.org/malb/m4rie/wiki/Further%20Reading) for implemented algorithms.
 
 # Prerequisites 
 
@@ -37,8 +28,7 @@ See [Performance](http://malb.bitbucket.org/m4ri-e-website-2008-2015/performance
 
 # Install #
 
-If you downloaded M4RIE as a compressed tarball from its website, installation instructions are
-contained in the file INSTALL. If you downloaded M4RI by cloning the mainline tree at
+If you downloaded M4RI by cloning the mainline tree at
 
 https://bitbucket.org/malb/m4ri
 
@@ -52,21 +42,16 @@ Then do the usual
     make
     make check
 
-For details see the instructions in the file INSTALL. Note that if your system does not have
-`autoreconf` installed, you can download release tarballs from
-[drone.io](https://drone.io/bitbucket.org/malb/m4rie/files) which can be built and installed without
-it.
+For details see the instructions in the file `INSTALL`.
 
 # Documentation #
 
-To build the reference manual, ensure that you have Doxygen installed. The HTML version of the
-reference manual can be built as follows:
+To build the reference manual, ensure that you have Doxygen installed. The HTML version of the reference manual can be built as follows:
 
     cd src/
     doxygen
 
-The built documentation is contained under the doc subdirectory of m4ri/. Once the HTML version is
-built, you can build the PDF version as follows:
+The built documentation is contained under the doc subdirectory of m4ri/. Once the HTML version is built, you can build the PDF version as follows:
 
     cd doc/latex/
     make
@@ -79,57 +64,36 @@ The following people have contributed to the M4RIE library.
 
 * **[Martin Albrecht](http://martinralbrecht.wordpress.com)**
 
-We are grateful to **[William Stein](http://modular.math.washington.edu/)** for providing our
-hosting and general infrastructure in the past.
+We are grateful to **[William Stein](http://modular.math.washington.edu/)** for providing our hosting and general infrastructure in the past.
 
 # Citing M4RIE
 
-If you use our libraries in a non-trivial part of your research please consider citing them as
-follows:
+If you use our libraries in a non-trivial part of your research please consider citing them as follows:
 
 	@manual{M4RI,
 	    key          = "M4RIE",
 	    author       = "Martin Albrecht",
 	    organization = "The M4RIE~Team",
-	    title        = "{The M4RIE Library -- Version XXXXYYZZ}",
-	    year         = 2015,
+	    title        = "{The M4RIE Library -- Version **version**}",
+	    year         = **year**,
 	    url          = "\url{https://bitbucket.org/malb/m4rie}",
 	}
 
-and cite the appropriate publications mentioned in
-[Further Reading](https://bitbucket.org/malb/m4rie/wiki/Further%20Reading).
+and cite the appropriate publications mentioned in [Further Reading](https://bitbucket.org/malb/m4rie/wiki/Further%20Reading).
 
 # History
 
-* **2015/09/08** A new version of M4RIE is available improving the build system and fixing a bug in
-  the tests. It is available at https://bitbucket.org/malb/m4rie/downloads.
+* **2015/09/08** A new version of M4RIE is available improving the build system and fixing a bug in the tests. It is available at https://bitbucket.org/malb/m4rie/downloads.
 
-* **2015/04/17** Our hosting for http://m4ri.sagemath.org at University of Washington. is
-  discontinued and we’re moving everything over to https://bitbucket.org/malb/m4ri. A copy of the
-  old website (except for large files) is available at
-  http://malb.bitbucket.org/m4ri-e-website-2008-2015/.
+* **2015/04/17** Our hosting for http://m4ri.sagemath.org at University of Washington. is discontinued and we’re moving everything over to https://bitbucket.org/malb/m4ri. A copy of the old website (except for large files) is available at http://malb.bitbucket.org/m4ri-e-website-2008-2015/.
 
-* **2014/09/14** A new version of M4RI and M4RIE is available for
-  [download](https://bitbucket.org/malb/m4rie/downloads). The biggest change is that `A->offset` was
-  dropped. Also, various small (multicore) performance improvements were implemented. The update for
-  M4RIE is to maintain compatibility with M4RI. A few improvements were implemented for the mzd_poly
-  module as well.
+* **2014/09/14** A new version of M4RI and M4RIE is available for [download](https://bitbucket.org/malb/m4rie/downloads). The biggest change is that `A->offset` was dropped. Also, various small (multicore) performance improvements were implemented. The update for M4RIE is to maintain compatibility with M4RI. A few improvements were implemented for the mzd_poly module as well.
 
-* **2012/06/13** New versions of both M4RI and M4RIE are available for
-  [download](https://bitbucket.org/malb/m4rie/downloads). A detailed changlog are available
-  [here](https://bitbucket.org/malb/m4rie/wiki/M4RI-20120613) for M4RI.
+* **2012/06/13** New versions of both M4RI and M4RIE are available for [download](https://bitbucket.org/malb/m4rie/downloads). A detailed changlog are available [here](https://bitbucket.org/malb/m4rie/wiki/M4RI-20120613) for M4RI.
 
-* **2012/04/13** New versions of both M4RI and M4RIE are available for
-  [download](https://bitbucket.org/malb/m4rie/downloads). Detailed changlogs are available
-  [here](https://bitbucket.org/malb/m4ri/wiki/M4RI-20120415) for M4RI and
-  [here](https://bitbucket.org/malb/m4rie/wiki/M4RIE-20120415) for M4RIE.
+* **2012/04/13** New versions of both M4RI and M4RIE are available for [download](https://bitbucket.org/malb/m4rie/downloads). Detailed changlogs are available [here](https://bitbucket.org/malb/m4ri/wiki/M4RI-20120415) for M4RI and [here](https://bitbucket.org/malb/m4rie/wiki/M4RIE-20120415) for M4RIE.
 
-* **2011/12/04** New versions of both M4RI and M4RIE are available for
-  [download](https://bitbucket.org/malb/m4rie/downloads). The highlight of this version for M4RI is support
-  for reading and writing 1-bit PNG images. The highlight of this release of M4RIE is much improved
-  performance for $4 < e \leq 8$. Detailed changlogs are available
-  [here](https://bitbucket.org/malb/m4ri/wiki/M4RI-20111203) for M4RI and
-  [here](https://bitbucket.org/malb/m4rie/wiki/M4RIE-20111203) for M4RIE.
+* **2011/12/04** New versions of both M4RI and M4RIE are available for [download](https://bitbucket.org/malb/m4rie/downloads). The highlight of this version for M4RI is support for reading and writing 1-bit PNG images. The highlight of this release of M4RIE is much improved performance for $4 < e \leq 8$. Detailed changlogs are available [here](https://bitbucket.org/malb/m4ri/wiki/M4RI-20111203) for M4RI and [here](https://bitbucket.org/malb/m4rie/wiki/M4RIE-20111203) for M4RIE.
 
 * **2011/11/30** A [technical report](http://arxiv.org/abs/1111.6900) by Martin R. Albrecht is available describing the M4RIE library. In particular, Newton-John tables are introduced and our implementation of Karatsuba based matrix-matrix multiplication is described:
 

@@ -33,8 +33,7 @@
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
-/* Define to the sub-directory in which libtool stores uninstalled libraries.
-   */
+/* Define to the sub-directory where libtool stores uninstalled libraries. */
 #undef LT_OBJDIR
 
 /* Define whether debugging is enabled */
@@ -66,3 +65,8 @@
 
 /* Version number of package */
 #undef VERSION
+
+/* Define to indicate that m4rie is being built instead of being used */
+#ifdef _WIN32
+#define M4RIE_BUILDING_M4RIE
+#endif

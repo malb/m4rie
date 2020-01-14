@@ -46,6 +46,9 @@ pkgincludesub_HEADERS = m4rie/gf2x.h \
 	m4rie/permutation.h \
 	m4rie/conversion.h
 
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = m4rie.pc
+
 libm4rie_la_LDFLAGS = -release 0.0.$(RELEASE) -no-undefined ${M4RIE_M4RI_LDFLAGS}
 libm4rie_la_LIBADD = -lm4ri
 
