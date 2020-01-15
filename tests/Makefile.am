@@ -1,6 +1,6 @@
 AUTOMAKE_OPTIONS = foreign subdir-objects
 
-AM_CFLAGS = ${SIMD_FLAGS} ${OPENMP_CFLAGS} ${DEBUG_FLAGS} ${M4RIE_M4RI_CFLAGS} ${M4RI_CFLAGS} -I${top_srcdir} @CFLAGS@
+AM_CFLAGS = ${SIMD_FLAGS} ${OPENMP_CFLAGS} ${DEBUG_FLAGS} ${M4RIE_M4RI_CFLAGS} ${M4RI_CFLAGS} -I${top_srcdir}
 LDADD = ${top_builddir}/libm4rie.la -lm4ri -lm
 LDFLAGS = ${M4RIE_M4RI_LDFLAGS} -no-install
 
