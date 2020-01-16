@@ -83,6 +83,8 @@ and cite the appropriate publications mentioned in [Further Reading](https://bit
 
 # History
 
+* **2020/01/15** A new version of M4RIE is available with a few small build system tweaks. It is available at https://bitbucket.org/malb/m4rie/downloads.
+
 * **2015/09/08** A new version of M4RIE is available improving the build system and fixing a bug in the tests. It is available at https://bitbucket.org/malb/m4rie/downloads.
 
 * **2015/04/17** Our hosting for http://m4ri.sagemath.org at University of Washington. is discontinued and we’re moving everything over to https://bitbucket.org/malb/m4ri. A copy of the old website (except for large files) is available at http://malb.bitbucket.org/m4ri-e-website-2008-2015/.
