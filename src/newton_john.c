@@ -510,13 +510,22 @@ mzed_t *mzed_invert_newton_john(mzed_t *B, const mzed_t *A) {
   mzed_t *I = mzed_init(A->finite_field, A->nrows, A->ncols);
   mzed_set_ui(I, 1);
   mzed_t *T = mzed_concat(NULL, A, I);
+
+  mzed_echelonize_newton_john(T, 1);
+
+  mzed_t *J = mzed_init_window(T, 0, 0, A->nrows, A->ncols);
+  int r = mzed_cmp(I, J);
+  mzed_free(J);
   mzed_free(I);
 
-  rci_t r = mzed_echelonize_newton_john(T, 1);
-  if (r != A->nrows) 
+  if(r != 0) {
+    mzed_free(T);
     m4ri_die("mzed_invert_newton_john: input matrix does not have full rank.");
-  B = mzed_submatrix(B, T, 0, A->ncols, A->nrows, T->ncols);
-  mzed_free(T);
+  } else {
+    B = mzed_submatrix(B, T, 0, A->ncols, A->nrows, T->ncols);
+    mzed_free(T);
+  }
+
   return B;
 }
 
