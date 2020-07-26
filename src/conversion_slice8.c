@@ -47,7 +47,7 @@ mzd_slice_t *_mzed_slice8(mzd_slice_t *T, const mzed_t *F) {
         word *t5 = T->x[5]->rows[i];
         word *t6 = T->x[6]->rows[i];
         word *t7 = T->x[7]->rows[i];
-        const word const *f  = F->x->rows[i];
+        const word * const f  = F->x->rows[i];
 
         /* bulk of work */
         for(j=0, j2=0; j+8 < F->x->width; j+=8,j2++) {
@@ -190,7 +190,7 @@ mzd_slice_t *_mzed_slice8(mzd_slice_t *T, const mzed_t *F) {
         word *t4 = T->x[4]->rows[i];
         word *t5 = T->x[5]->rows[i];
         word *t6 = T->x[6]->rows[i];
-        const word const *f  = F->x->rows[i];
+        const word * const f  = F->x->rows[i];
 
         /* bulk of work */
         for(j=0, j2=0; j+8 < F->x->width; j+=8,j2++) {
@@ -318,7 +318,7 @@ mzd_slice_t *_mzed_slice8(mzd_slice_t *T, const mzed_t *F) {
         word *t3 = T->x[3]->rows[i];
         word *t4 = T->x[4]->rows[i];
         word *t5 = T->x[5]->rows[i];
-        const word const *f  = F->x->rows[i];
+        const word * const f  = F->x->rows[i];
 
         /* bulk of work */
         for(j=0, j2=0; j+8 < F->x->width; j+=8,j2++) {
@@ -431,7 +431,7 @@ mzd_slice_t *_mzed_slice8(mzd_slice_t *T, const mzed_t *F) {
         word *t2 = T->x[2]->rows[i];
         word *t3 = T->x[3]->rows[i];
         word *t4 = T->x[4]->rows[i];
-        const word const *f  = F->x->rows[i];
+        const word * const f  = F->x->rows[i];
 
         /* bulk of work */
         for(j=0, j2=0; j+8 < F->x->width; j+=8,j2++) {
