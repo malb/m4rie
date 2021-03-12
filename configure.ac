@@ -18,6 +18,9 @@ AC_PROG_CXX
 
 AC_PROG_CC_C99()
 
+AC_SEARCH_LIBS([sqrt], [m], [], [
+  AC_MSG_ERROR([unable to find the sqrt() function])
+])
 
 if test "$ac_cv_prog_cc_c99" = "no"; then
    AC_MSG_ERROR([C99 support is required but not found.])
