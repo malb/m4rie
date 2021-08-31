@@ -61,15 +61,15 @@ mzd_slice_t *_mzed_slice16(mzd_slice_t *T, const mzed_t *F) {
      bits */
 
   for(size_t i=0; i<T->nrows; i++) {
-    word *t0 = T->x[0]->rows[i];
-    word *t1 = T->x[1]->rows[i];
-    word *t2 = T->x[2]->rows[i];
-    word *t3 = T->x[3]->rows[i];
-    word *t4 = T->x[4]->rows[i];
-    word *t5 = T->x[5]->rows[i];
-    word *t6 = T->x[6]->rows[i];
-    word *t7 = T->x[7]->rows[i];
-    const word * const f  = F->x->rows[i];
+    word *t0 = mzd_row(T->x[0], i);
+    word *t1 = mzd_row(T->x[1], i);
+    word *t2 = mzd_row(T->x[2], i);
+    word *t3 = mzd_row(T->x[3], i);
+    word *t4 = mzd_row(T->x[4], i);
+    word *t5 = mzd_row(T->x[5], i);
+    word *t6 = mzd_row(T->x[6], i);
+    word *t7 = mzd_row(T->x[7], i);
+    const word * const f = mzd_row(F->x, i);
 
     /* bulk of work */
     for(j=0, j2=0; j+16 < F->x->width; j+=16,j2++) {
@@ -115,11 +115,11 @@ mzd_slice_t *_mzed_slice16(mzd_slice_t *T, const mzed_t *F) {
   }
   if(T->depth >= 12) {
     for(size_t i=0; i<T->nrows; i++) {
-      word *t0 = T->x[ 8]->rows[i];
-      word *t1 = T->x[ 9]->rows[i];
-      word *t2 = T->x[10]->rows[i];
-      word *t3 = T->x[11]->rows[i];
-      const word * const f  = F->x->rows[i];
+      word *t0 = mzd_row(T->x[ 8], i);
+      word *t1 = mzd_row(T->x[ 9], i);
+      word *t2 = mzd_row(T->x[10], i);
+      word *t3 = mzd_row(T->x[11], i);
+      const word * const f = mzd_row(F->x, i);
 
       /* bulk of work */
       for(j=0, j2=0; j+16 < F->x->width; j+=16,j2++) {
@@ -159,11 +159,11 @@ mzd_slice_t *_mzed_slice16(mzd_slice_t *T, const mzed_t *F) {
     switch(T->depth) {
     case 16: {
       for(size_t i=0; i<T->nrows; i++) {
-        word *t0 = T->x[12]->rows[i];
-        word *t1 = T->x[13]->rows[i];
-        word *t2 = T->x[14]->rows[i];
-        word *t3 = T->x[15]->rows[i];
-        const word * const f  = F->x->rows[i];
+        word *t0 = mzd_row(T->x[12], i);
+        word *t1 = mzd_row(T->x[13], i);
+        word *t2 = mzd_row(T->x[14], i);
+        word *t3 = mzd_row(T->x[15], i);
+        const word * const f = mzd_row(F->x, i);
 
         /* bulk of work */
         for(j=0, j2=0; j+16 < F->x->width; j+=16,j2++) {
@@ -202,10 +202,10 @@ mzd_slice_t *_mzed_slice16(mzd_slice_t *T, const mzed_t *F) {
     } break;
     case 15: {
       for(size_t i=0; i<T->nrows; i++) {
-        word *t0 = T->x[12]->rows[i];
-        word *t1 = T->x[13]->rows[i];
-        word *t2 = T->x[14]->rows[i];
-        const word * const f  = F->x->rows[i];
+        word *t0 = mzd_row(T->x[12], i);
+        word *t1 = mzd_row(T->x[13], i);
+        word *t2 = mzd_row(T->x[14], i);
+        const word * const f = mzd_row(F->x, i);
 
         /* bulk of work */
         for(j=0, j2=0; j+16 < F->x->width; j+=16,j2++) {
@@ -242,9 +242,9 @@ mzd_slice_t *_mzed_slice16(mzd_slice_t *T, const mzed_t *F) {
     } break;
     case 14: {
       for(size_t i=0; i<T->nrows; i++) {
-        word *t0 = T->x[12]->rows[i];
-        word *t1 = T->x[13]->rows[i];
-        const word * const f  = F->x->rows[i];
+        word *t0 = mzd_row(T->x[12], i);
+        word *t1 = mzd_row(T->x[13], i);
+        const word * const f = mzd_row(F->x, i);
 
         /* bulk of work */
         for(j=0, j2=0; j+16 < F->x->width; j+=16,j2++) {
@@ -279,8 +279,8 @@ mzd_slice_t *_mzed_slice16(mzd_slice_t *T, const mzed_t *F) {
     } break;
     case 13: {
       for(size_t i=0; i<T->nrows; i++) {
-        word *t0 = T->x[12]->rows[i];
-        const word * const f  = F->x->rows[i];
+        word *t0 = mzd_row(T->x[12], i);
+        const word * const f = mzd_row(F->x, i);
 
         /* bulk of work */
         for(j=0, j2=0; j+16 < F->x->width; j+=16,j2++) {
@@ -316,10 +316,10 @@ mzd_slice_t *_mzed_slice16(mzd_slice_t *T, const mzed_t *F) {
     switch(T->depth) {
     case 11: {
       for(size_t i=0; i<T->nrows; i++) {
-        word *t0 = T->x[ 8]->rows[i];
-        word *t1 = T->x[ 9]->rows[i];
-        word *t2 = T->x[10]->rows[i];
-        const word * const f  = F->x->rows[i];
+        word *t0 = mzd_row(T->x[ 8], i);
+        word *t1 = mzd_row(T->x[ 9], i);
+        word *t2 = mzd_row(T->x[10], i);
+        const word * const f  = mzd_row(F->x, i);
 
         /* bulk of work */
         for(j=0, j2=0; j+16 < F->x->width; j+=16,j2++) {
@@ -356,9 +356,9 @@ mzd_slice_t *_mzed_slice16(mzd_slice_t *T, const mzed_t *F) {
     } break;
     case 10: {
       for(size_t i=0; i<T->nrows; i++) {
-        word *t0 = T->x[ 8]->rows[i];
-        word *t1 = T->x[ 9]->rows[i];
-        const word * const f  = F->x->rows[i];
+        word *t0 = mzd_row(T->x[ 8], i);
+        word *t1 = mzd_row(T->x[ 9], i);
+        const word * const f = mzd_row(F->x, i);
 
         /* bulk of work */
         for(j=0, j2=0; j+16 < F->x->width; j+=16,j2++) {
@@ -393,8 +393,8 @@ mzd_slice_t *_mzed_slice16(mzd_slice_t *T, const mzed_t *F) {
     } break;
     case  9: {
       for(size_t i=0; i<T->nrows; i++) {
-        word *t0 = T->x[ 8]->rows[i];
-        const word * const f  = F->x->rows[i];
+        word *t0 = mzd_row(T->x[ 8], i);
+        const word * const f = mzd_row(F->x, i);
 
         /* bulk of work */
         for(j=0, j2=0; j+16 < F->x->width; j+=16,j2++) {

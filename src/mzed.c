@@ -169,8 +169,8 @@ mzed_t *mzed_mul_scalar(mzed_t *C, const word a, const mzed_t *B) {
    */
 
   for(rci_t i=0; i<C->nrows; i++) {
-    word *c_row = C->x->rows[i];
-    const word *b_row = B->x->rows[i];
+    word *c_row = mzd_row(C->x, i);
+    const word *b_row = mzd_row(B->x, i);
     for(wi_t j=0; j<C->x->width-1; j++) {
       const word tmp = b_row[j];
       const word a0 = tmp & mask_16;
@@ -288,8 +288,8 @@ void mzed_add_multiple_of_row(mzed_t *A, rci_t ar, const mzed_t *B, rci_t br, wo
 
   mzd_t *from_x = B->x;
   mzd_t *to_x = A->x;
-  word *_f = from_x->rows[br];
-  word *_t = to_x->rows[ar];
+  word *_f = mzd_row(from_x, br);
+  word *_t = mzd_row(to_x, ar);
   wi_t j;
 
   register word __f = _f[startblock]>>(start%m4ri_radix);
@@ -555,8 +555,8 @@ void mzed_add_multiple_of_row(mzed_t *A, rci_t ar, const mzed_t *B, rci_t br, wo
   } else if (A->w == 16) {
     mzd_t *from_x = B->x;
     mzd_t *to_x = A->x;
-    word *_f = from_x->rows[br];
-    word *_t = to_x->rows[ar];
+    word *_f = mzd_row(from_x, br);
+    word *_t = mzd_row(to_x, ar);
     size_t j;
     register word __t, __f;
 

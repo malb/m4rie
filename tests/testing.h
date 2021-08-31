@@ -2,7 +2,7 @@
 #include <m4rie/m4rie.h>
 
 #define m4rie_check(expr)						\
-  if (!expr) {								\
+  if (!(expr)) {								\
     fail_ret += 1;                                                      \
     printf("\n%s in %s:%d failed\n", #expr, __FILE__, __LINE__);  \
   } 
@@ -38,7 +38,8 @@ static inline void mzed_set_canary(mzed_t *A) {
   const rci_t n = A->x->width-1;
 
   for(rci_t i=0; i<A->nrows; i++) {
-    A->x->rows[i][n] = (A->x->rows[i][n] & mask_end)   | (m4rie_canary & mask_field & ~mask_end);
+    word *row = mzd_row(A->x, i);
+    row[n] = (row[n] & mask_end) | (m4rie_canary & mask_field & ~mask_end);
   }
 }
 
@@ -47,7 +48,8 @@ static inline void mzed_clear_canary(mzed_t *A) {
   const rci_t n = A->x->width-1;
 
   for(rci_t i=0; i<A->nrows; i++) {
-    A->x->rows[i][n] &= mask_end;
+    word *row = mzd_row(A->x, i);
+    row[n] &= mask_end;
   }
 }
 
@@ -57,7 +59,8 @@ static inline int mzed_canary_is_alive(mzed_t *A) {
   const rci_t n = A->x->width-1;
 
   for(rci_t i=0; i<A->nrows; i++) {
-    if ((A->x->rows[i][n] & ~mask_end)   !=  (m4rie_canary & mask_field & ~mask_end)) {
+    word *row = mzd_row(A->x, i);
+    if ((row[n] & ~mask_end) != (m4rie_canary & mask_field & ~mask_end)) {
       return 0;
     }
   }
@@ -68,11 +71,12 @@ static inline int mzed_interval_clean(mzed_t *A) {
   const word mask_end  = __M4RI_LEFT_BITMASK(A->x->ncols % m4ri_radix);
   const word mask_field = field_mask(A->finite_field);
   for(rci_t i=0; i<A->nrows; i++) {
+    word *row = mzd_row(A->x, i);
     for(wi_t j=0; j<A->x->width-1; j++) {
-      if (A->x->rows[i][j] & mask_field)
+      if (row[j] & mask_field)
         return 0;
     }
-    if (A->x->rows[i][A->x->width-1] & mask_field & mask_end)
+    if (row[A->x->width-1] & mask_field & mask_end)
       return 0;
   }
   return 1;
@@ -84,7 +88,8 @@ static inline void mzd_slice_set_canary(mzd_slice_t *A) {
 
   for(unsigned int e=0; e<A->finite_field->degree; e++) {
     for(rci_t i=0; i<A->nrows; i++) {
-      A->x[e]->rows[i][n] = (A->x[e]->rows[i][n] & mask_end)   | (m4rie_canary & ~mask_end);
+      word *row = mzd_row(A->x[e], i);
+      row[n] = (row[n] & mask_end) | (m4rie_canary & ~mask_end);
     }
   }
 }
@@ -95,7 +100,8 @@ static inline void mzd_slice_clear_canary(mzd_slice_t *A) {
 
   for(int e=0; e<A->finite_field->degree; e++) {
     for(rci_t i=0; i<A->nrows; i++) {
-      A->x[e]->rows[i][n] &=mask_end;
+      word *row = mzd_row(A->x[e], i);
+      row[n] &=mask_end;
     }
   }
 }
@@ -106,7 +112,8 @@ static inline int mzd_slice_canary_is_alive(mzd_slice_t *A) {
 
   for(unsigned int e=0; e<A->finite_field->degree; e++) {
     for(rci_t i=0; i<A->nrows; i++) {
-      if ((A->x[e]->rows[i][n] & ~mask_end)   != (m4rie_canary & ~mask_end)) {
+      word *row = mzd_row(A->x[e], i);
+      if ((row[n] & ~mask_end) != (m4rie_canary & ~mask_end)) {
         return 0;
       }
     }

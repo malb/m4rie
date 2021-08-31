@@ -129,9 +129,9 @@ mzd_slice_t *_mzed_slice2(mzd_slice_t *T, const mzed_t *F) {
     return T;
 
   for(size_t i=0; i<T->nrows; i++) {
-    word *t0 = T->x[0]->rows[i];
-    word *t1 = T->x[1]->rows[i];
-    const word *f  = F->x->rows[i];
+    word *t0 = mzd_row(T->x[0], i);
+    word *t1 = mzd_row(T->x[1], i);
+    const word *f  = mzd_row(F->x, i);
 
     /* bulk of work */
     for(j=0, j2=0; j+2 < F->x->width; j+=2,j2++) {
@@ -188,9 +188,9 @@ mzed_t *_mzed_cling2(mzed_t *T, const mzd_slice_t *F) {
     return T;
 
   for(size_t i=0; i<T->nrows; i++) {
-    const word *f0 = F->x[0]->rows[i];
-    const word *f1 = F->x[1]->rows[i];
-    word *t  = T->x->rows[i];
+    const word *f0 = mzd_row(F->x[0], i);
+    const word *f1 = mzd_row(F->x[1], i);
+    word *t  = mzd_row(T->x, i);
 
     for(j=0, j2=0; j+2 < T->x->width; j+=2, j2++) {
       t[j+0] = (word_cling_64_02(f0[j2]<<32)>>1) | (word_cling_64_02(f1[j2]<<32)>>0);
@@ -223,10 +223,10 @@ mzd_slice_t *_mzed_slice4(mzd_slice_t *T, const mzed_t *F) {
 
   if (T->depth == 3) {
     for(size_t i=0; i<T->nrows; i++) {
-      word *t0 = T->x[0]->rows[i];
-      word *t1 = T->x[1]->rows[i];
-      word *t2 = T->x[2]->rows[i];
-      const word * const f  = F->x->rows[i];
+      word *t0 = mzd_row(T->x[0], i);
+      word *t1 = mzd_row(T->x[1], i);
+      word *t2 = mzd_row(T->x[2], i);
+      const word * const f = mzd_row(F->x, i);
 
       /* bulk of work */
       for(j=0, j2=0; j+4 < F->x->width; j+=4,j2++) {
@@ -265,11 +265,11 @@ mzd_slice_t *_mzed_slice4(mzd_slice_t *T, const mzed_t *F) {
     }
   } else {
     for(size_t i=0; i<T->nrows; i++) {
-      word *t0 = T->x[0]->rows[i];
-      word *t1 = T->x[1]->rows[i];
-      word *t2 = T->x[2]->rows[i];
-      word *t3 = T->x[3]->rows[i];
-      const word * const f  = F->x->rows[i];
+      word *t0 = mzd_row(T->x[0], i);
+      word *t1 = mzd_row(T->x[1], i);
+      word *t2 = mzd_row(T->x[2], i);
+      word *t3 = mzd_row(T->x[3], i);
+      const word * const f = mzd_row(F->x, i);
 
       /* bulk of work */
       for(j=0, j2=0; j+4 < F->x->width; j+=4,j2++) {
@@ -327,11 +327,11 @@ mzed_t *_mzed_cling4(mzed_t *T, const mzd_slice_t *F) {
 
   if (F->finite_field->degree == 4) {
     for(rci_t i=0; i<T->nrows; i++) {
-      const word *f0 = F->x[0]->rows[i];
-      const word *f1 = F->x[1]->rows[i];
-      const word *f2 = F->x[2]->rows[i];
-      const word *f3 = F->x[3]->rows[i];
-      word *t  = T->x->rows[i];
+      const word *f0 = mzd_row(F->x[0], i);
+      const word *f1 = mzd_row(F->x[1], i);
+      const word *f2 = mzd_row(F->x[2], i);
+      const word *f3 = mzd_row(F->x[3], i);
+      word *t = mzd_row(T->x, i);
 
       for(j=0, j2=0; j+4 < T->x->width; j+=4, j2++) {
         t[j+0] = (word_cling_64_04(f0[j2]<<48)>>3) | (word_cling_64_04(f1[j2]<<48)>>2) | (word_cling_64_04(f2[j2]<<48)>>1) | (word_cling_64_04(f3[j2]<<48)>>0);
@@ -370,10 +370,10 @@ mzed_t *_mzed_cling4(mzed_t *T, const mzd_slice_t *F) {
     }
   } else { //degree == 3
     for(rci_t i=0; i<T->nrows; i++) {
-      const word *f0 = F->x[0]->rows[i];
-      const word *f1 = F->x[1]->rows[i];
-      const word *f2 = F->x[2]->rows[i];
-      word *t  = T->x->rows[i];
+      const word *f0 = mzd_row(F->x[0], i);
+      const word *f1 = mzd_row(F->x[1], i);
+      const word *f2 = mzd_row(F->x[2], i);
+      word *t = mzd_row(T->x, i);
 
       for(j=0, j2=0; j+4 < T->x->width; j+=4, j2++) {
         t[j+0] = (word_cling_64_04(f0[j2]<<48)>>3) | (word_cling_64_04(f1[j2]<<48)>>2) | (word_cling_64_04(f2[j2]<<48)>>1);

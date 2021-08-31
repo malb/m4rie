@@ -37,15 +37,15 @@ mzed_t *_mzed_cling8(mzed_t *T, const mzd_slice_t *F) {
   switch (F->finite_field->degree) {
   case 8: {
     for(rci_t i=0; i<T->nrows; i++) {
-      const word *f0 = F->x[0]->rows[i];
-      const word *f1 = F->x[1]->rows[i];
-      const word *f2 = F->x[2]->rows[i];
-      const word *f3 = F->x[3]->rows[i];
-      const word *f4 = F->x[4]->rows[i];
-      const word *f5 = F->x[5]->rows[i];
-      const word *f6 = F->x[6]->rows[i];
-      const word *f7 = F->x[7]->rows[i];
-      word *t  = T->x->rows[i];
+      const word *f0 = mzd_row(F->x[0], i);
+      const word *f1 = mzd_row(F->x[1], i);
+      const word *f2 = mzd_row(F->x[2], i);
+      const word *f3 = mzd_row(F->x[3], i);
+      const word *f4 = mzd_row(F->x[4], i);
+      const word *f5 = mzd_row(F->x[5], i);
+      const word *f6 = mzd_row(F->x[6], i);
+      const word *f7 = mzd_row(F->x[7], i);
+      word *t = mzd_row(T->x, i);
 
       for(j=0, j2=0; j+8 < T->x->width; j+=8, j2++) {
         t[j+0] = (word_cling_64_08(f0[j2]<<56)>>7) | (word_cling_64_08(f1[j2]<<56)>>6) | (word_cling_64_08(f2[j2]<<56)>>5) | (word_cling_64_08(f3[j2]<<56)>>4) \
@@ -103,14 +103,14 @@ mzed_t *_mzed_cling8(mzed_t *T, const mzd_slice_t *F) {
 
   case 7: {
     for(rci_t i=0; i<T->nrows; i++) {
-      const word *f0 = F->x[0]->rows[i];
-      const word *f1 = F->x[1]->rows[i];
-      const word *f2 = F->x[2]->rows[i];
-      const word *f3 = F->x[3]->rows[i];
-      const word *f4 = F->x[4]->rows[i];
-      const word *f5 = F->x[5]->rows[i];
-      const word *f6 = F->x[6]->rows[i];
-      word *t  = T->x->rows[i];
+      const word *f0 = mzd_row(F->x[0], i);
+      const word *f1 = mzd_row(F->x[1], i);
+      const word *f2 = mzd_row(F->x[2], i);
+      const word *f3 = mzd_row(F->x[3], i);
+      const word *f4 = mzd_row(F->x[4], i);
+      const word *f5 = mzd_row(F->x[5], i);
+      const word *f6 = mzd_row(F->x[6], i);
+      word *t = mzd_row(T->x, i);
 
       for(j=0, j2=0; j+8 < T->x->width; j+=8, j2++) {
         t[j+0] = (word_cling_64_08(f0[j2]<<56)>>7) | (word_cling_64_08(f1[j2]<<56)>>6) | (word_cling_64_08(f2[j2]<<56)>>5) | (word_cling_64_08(f3[j2]<<56)>>4) \
@@ -168,13 +168,13 @@ mzed_t *_mzed_cling8(mzed_t *T, const mzd_slice_t *F) {
 
   case 6: {
     for(rci_t i=0; i<T->nrows; i++) {
-      const word *f0 = F->x[0]->rows[i];
-      const word *f1 = F->x[1]->rows[i];
-      const word *f2 = F->x[2]->rows[i];
-      const word *f3 = F->x[3]->rows[i];
-      const word *f4 = F->x[4]->rows[i];
-      const word *f5 = F->x[5]->rows[i];
-      word *t  = T->x->rows[i];
+      const word *f0 = mzd_row(F->x[0], i);
+      const word *f1 = mzd_row(F->x[1], i);
+      const word *f2 = mzd_row(F->x[2], i);
+      const word *f3 = mzd_row(F->x[3], i);
+      const word *f4 = mzd_row(F->x[4], i);
+      const word *f5 = mzd_row(F->x[5], i);
+      word *t = mzd_row(T->x, i);
 
       for(j=0, j2=0; j+8 < T->x->width; j+=8, j2++) {
         t[j+0] = (word_cling_64_08(f0[j2]<<56)>>7) | (word_cling_64_08(f1[j2]<<56)>>6) | (word_cling_64_08(f2[j2]<<56)>>5) | (word_cling_64_08(f3[j2]<<56)>>4) \
@@ -232,12 +232,12 @@ mzed_t *_mzed_cling8(mzed_t *T, const mzd_slice_t *F) {
 
   case 5: {
     for(rci_t i=0; i<T->nrows; i++) {
-      const word *f0 = F->x[0]->rows[i];
-      const word *f1 = F->x[1]->rows[i];
-      const word *f2 = F->x[2]->rows[i];
-      const word *f3 = F->x[3]->rows[i];
-      const word *f4 = F->x[4]->rows[i];
-      word *t  = T->x->rows[i];
+      const word *f0 = mzd_row(F->x[0], i);
+      const word *f1 = mzd_row(F->x[1], i);
+      const word *f2 = mzd_row(F->x[2], i);
+      const word *f3 = mzd_row(F->x[3], i);
+      const word *f4 = mzd_row(F->x[4], i);
+      word *t = mzd_row(T->x, i);
 
       for(j=0, j2=0; j+8 < T->x->width; j+=8, j2++) {
         t[j+0] = (word_cling_64_08(f0[j2]<<56)>>7) | (word_cling_64_08(f1[j2]<<56)>>6) | (word_cling_64_08(f2[j2]<<56)>>5) | (word_cling_64_08(f3[j2]<<56)>>4) | (word_cling_64_08(f4[j2]<<56)>>3);
