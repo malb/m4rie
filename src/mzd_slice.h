@@ -206,7 +206,7 @@ static inline word mzd_slice_read_elem(const mzd_slice_t *A, const rci_t row, co
 
 static inline void mzd_slice_add_elem(mzd_slice_t *A, const rci_t row, const rci_t col, word elem) {
   for(int i=0; i<A->depth; i++) {
-    __mzd_xor_bits(A->x[i], row, col, 1, elem&1);
+    mzd_xor_bits(A->x[i], row, col, 1, elem&1);
     elem=elem>>1;
   }
 }
