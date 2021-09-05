@@ -422,7 +422,7 @@ void mzed_set_ui(mzed_t *A, word value);
  */
 
 static inline word mzed_read_elem(const mzed_t *A, const rci_t row, const rci_t col) {
-  return mzd_read_bits(A->x, row, A->w*col, A->w);
+  return __mzd_read_bits(A->x, row, A->w*col, A->w);
 }
 
 /**
@@ -437,7 +437,7 @@ static inline word mzed_read_elem(const mzed_t *A, const rci_t row, const rci_t 
  */
 
 static inline void mzed_add_elem(mzed_t *A, const rci_t row, const rci_t col, const word elem) {
-  mzd_xor_bits(A->x, row, A->w*col, A->w, elem);
+  __mzd_xor_bits(A->x, row, A->w*col, A->w, elem);
 }
 
 /**
@@ -452,8 +452,8 @@ static inline void mzed_add_elem(mzed_t *A, const rci_t row, const rci_t col, co
  */
 
 static inline void mzed_write_elem(mzed_t *A, const rci_t row, const rci_t col, const word elem) {
-  mzd_clear_bits(A->x, row, A->w*col, A->w);
-  mzd_xor_bits(A->x, row, A->w*col, A->w, elem);
+  __mzd_clear_bits(A->x, row, A->w*col, A->w);
+  __mzd_xor_bits(A->x, row, A->w*col, A->w, elem);
 }
 
 /**
