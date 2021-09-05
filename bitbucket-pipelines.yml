@@ -1,4 +1,4 @@
-image: gcc:6.1
+image: gcc:10
 
 pipelines:
   default:
