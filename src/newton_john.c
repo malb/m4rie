@@ -61,8 +61,12 @@ void njt_mzed_free(njt_mzed_t *T) {
 
 static inline void mzed_combine4(mzed_t *C, rci_t rc, 
                                  mzed_t *T0, rci_t r0, mzed_t *T1, rci_t r1, mzed_t *T2, rci_t r2, mzed_t *T3, rci_t r3) {
-  const word *t[4] = {T0->x->rows[r0], T1->x->rows[r1], T2->x->rows[r2], T3->x->rows[r3]};
-  _mzd_combine_4(C->x->rows[rc], t, C->x->width);
+  const word *t[4];
+  t[0] = mzd_row(T0->x, r0);
+  t[1] = mzd_row(T1->x, r1);
+  t[2] = mzd_row(T2->x, r2);
+  t[3] = mzd_row(T3->x, r3);
+  _mzd_combine_4(mzd_row(C->x, rc), t, C->x->width);
 }
 
 /**
@@ -91,9 +95,16 @@ static inline void mzed_combine4(mzed_t *C, rci_t rc,
 static inline void mzed_combine8(mzed_t *C, rci_t rc, 
                                  mzed_t *T0, rci_t r0, mzed_t *T1, rci_t r1, mzed_t *T2, rci_t r2, mzed_t *T3, rci_t r3,
                                  mzed_t *T4, rci_t r4, mzed_t *T5, rci_t r5, mzed_t *T6, rci_t r6, mzed_t *T7, rci_t r7) {
-  const word *t[8] = {T0->x->rows[r0], T1->x->rows[r1], T2->x->rows[r2], T3->x->rows[r3], 
-                      T4->x->rows[r4], T5->x->rows[r5], T6->x->rows[r6], T7->x->rows[r7]};
-  _mzd_combine_8(C->x->rows[rc], t, C->x->width);
+  const word *t[8];
+  t[0] = mzd_row(T0->x, r0);
+  t[1] = mzd_row(T1->x, r1);
+  t[2] = mzd_row(T2->x, r2);
+  t[3] = mzd_row(T3->x, r3);
+  t[4] = mzd_row(T4->x, r4);
+  t[5] = mzd_row(T5->x, r5);
+  t[6] = mzd_row(T6->x, r6);
+  t[7] = mzd_row(T7->x, r7);
+  _mzd_combine_8(mzd_row(C->x, rc), t, C->x->width);
 }
 
 
@@ -181,14 +192,14 @@ njt_mzed_t *mzed_make_table(njt_mzed_t *T, const mzed_t *A, const rci_t r, const
   }
 
   for(rci_t i=1; i < T->T->nrows; ++i) {
-    word *ti = T->T->x->rows[i] + homeblock;
-    word *ti1 = T->T->x->rows[i-1] + homeblock;
+    word *ti = mzd_row(T->T->x, i) + homeblock;
+    word *ti1 = mzd_row(T->T->x, i-1) + homeblock;
 
     const rci_t rowneeded = m4ri_codebook[degree]->inc[i - 1];
     const int id = m4ri_codebook[degree]->ord[i];
     T->L[id] = i;
 
-    word *m = T->M->x->rows[rowneeded] + homeblock;
+    word *m = mzd_row(T->M->x, rowneeded) + homeblock;
 
     /* there might still be stuff left over from the previous table creation,
        here we assume that this is at most 8 * m4ri_radix bits away. */

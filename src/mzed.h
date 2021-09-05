@@ -521,8 +521,8 @@ static inline void mzed_add_row(mzed_t *A, rci_t ar, const mzed_t *B, rci_t br, 
   const word bitmask_begin = __M4RI_RIGHT_BITMASK(m4ri_radix - (start%m4ri_radix));
   const word bitmask_end = A->x->high_bitmask;
 
-  word *_a = A->x->rows[ar];
-  const word *_b = B->x->rows[br];
+  word *_a = mzd_row(A->x, ar);
+  const word *_b = mzd_row(B->x, br);
   wi_t j;
 
   if (A->x->width - startblock > 1) {
@@ -552,7 +552,7 @@ static inline void mzed_rescale_row(mzed_t *A, rci_t r, rci_t start_col, const w
   const gf2e *ff = A->finite_field;
   const rci_t start = A->w*start_col;
   const wi_t startblock = start/m4ri_radix;
-  word *_a = A->x->rows[r];
+  word *_a = mzd_row(A->x, r);
   const word bitmask_begin = __M4RI_RIGHT_BITMASK(m4ri_radix - (start%m4ri_radix));
   const word bitmask_end   = A->x->high_bitmask;
   register word __a = _a[startblock]>>(start%m4ri_radix);
