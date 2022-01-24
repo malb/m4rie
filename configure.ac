@@ -1,4 +1,4 @@
-AC_INIT(m4rie,20200125)
+AC_INIT([m4rie],[20200125])
 
 AC_CANONICAL_HOST
 
@@ -8,15 +8,13 @@ AC_CONFIG_MACRO_DIR([m4])
 
 AM_INIT_AUTOMAKE
 
-AC_PROG_LIBTOOL
+LT_INIT
 
 AC_PROG_INSTALL
 
 AC_CONFIG_HEADERS(m4rie/config.h)
 
-AC_PROG_CXX
-
-AC_PROG_CC_C99()
+AC_PROG_CC
 
 AC_SEARCH_LIBS([sqrt], [m], [], [
   AC_MSG_ERROR([unable to find the sqrt() function])
