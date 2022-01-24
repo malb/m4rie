@@ -49,7 +49,7 @@ static inline word __mzd_read_bits(const mzd_t *M, const rci_t x, const rci_t y,
  * mzd_xor_bits with assumption that all bits are in the same word
  */
 
-static inline void __mzd_xor_bits(const mzd_t *M, const rci_t x, const rci_t y, const rci_t n, word values) {
+static inline void __mzd_xor_bits(mzd_t *M, const rci_t x, const rci_t y, const rci_t n, word values) {
   int const spot   = y % m4ri_radix;
   wi_t const block = y / m4ri_radix;
   mzd_row(M, x)[block] ^= values << spot;
@@ -59,7 +59,7 @@ static inline void __mzd_xor_bits(const mzd_t *M, const rci_t x, const rci_t y, 
  * mzd_clear_bits with assumption that all bits are in the same word
  */
 
-static inline void __mzd_clear_bits(const mzd_t *M, const rci_t x, const rci_t y, const rci_t n) {
+static inline void __mzd_clear_bits(mzd_t *M, const rci_t x, const rci_t y, const rci_t n) {
   word values = m4ri_ffff >> (m4ri_radix - n);
   int const spot   = y % m4ri_radix;
   wi_t const block = y / m4ri_radix;

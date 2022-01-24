@@ -28,7 +28,7 @@
 #include "mzd_slice.h"
 #include "strassen.h"
 
-#define CLOSER(a,b,target) (abs((long)a-(long)target)<abs((long)b-(long)target))
+#define CLOSER(a,b,target) (labs((long)a-(long)target)<labs((long)b-(long)target))
 
 mzed_t *mzed_mul_strassen(mzed_t *C, const mzed_t *A, const mzed_t *B, int cutoff) {
   C = _mzed_mul_init(C, A, B, TRUE);
