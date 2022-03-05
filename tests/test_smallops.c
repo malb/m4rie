@@ -187,7 +187,7 @@ int test_batch(gf2e *ff, int m, int n) {
   return fail_ret;
 }
 
-int main(int, char **) {
+int main(int argc, char **argv) {
 
   gf2e *ff;
   int fail_ret = 0;
