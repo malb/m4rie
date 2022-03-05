@@ -557,7 +557,7 @@ void mzed_add_multiple_of_row(mzed_t *A, rci_t ar, const mzed_t *B, rci_t br, wo
     mzd_t *to_x = A->x;
     word *_f = mzd_row(from_x, br);
     word *_t = mzd_row(to_x, ar);
-    size_t j;
+    wi_t j;
     register word __t, __f;
 
     __f = _f[startblock]>>(start%m4ri_radix), __t = _t[startblock];

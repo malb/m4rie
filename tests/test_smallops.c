@@ -52,7 +52,7 @@ int test_slice(gf2e *ff, int m, int n) {
   m4rie_check(mzd_slice_cmp(a, b) == 0);
 
   mzed_t *B = mzed_cling(NULL, b);
-  
+
   m4rie_check(mzed_cmp(A, B) == 0);
 
   mzed_cling(A, a);
@@ -63,8 +63,8 @@ int test_slice(gf2e *ff, int m, int n) {
   mzed_free(B);
   mzd_slice_free(a);
   mzd_slice_free(b);
-  
-  return fail_ret; 
+
+  return fail_ret;
 }
 
 int test_slice_known_answers(gf2e *ff, int m, int n) {
@@ -79,8 +79,8 @@ int test_slice_known_answers(gf2e *ff, int m, int n) {
     mzed_set_ui(A, 1<<j);
     mzd_slice_t *a = mzed_slice(NULL, A);
 
-    for(int i=0; i<a->depth; i++) {
-      if (i!=j) {
+    for(unsigned int i=0; i<a->depth; i++) {
+      if (i!=(unsigned int)j) {
         m4rie_check( mzd_is_zero(a->x[i]) );
       } else {
         m4rie_check( mzd_cmp(a->x[i], one) == 0 );
@@ -121,7 +121,7 @@ int test_add(gf2e *ff, int m, int n) {
   mzd_slice_t *a = mzed_slice(NULL, A);
   mzd_slice_t *b = mzed_slice(NULL, B);
   mzd_slice_t *c = mzed_slice(NULL, C);
-  
+
   mzd_slice_set_canary(a);
   mzd_slice_set_canary(b);
   mzd_slice_set_canary(c);
@@ -155,7 +155,7 @@ int test_add(gf2e *ff, int m, int n) {
   mzd_slice_free(c);
   mzd_slice_free(d);
 
-  return fail_ret; 
+  return fail_ret;
 }
 
 int test_batch(gf2e *ff, int m, int n) {
@@ -187,7 +187,7 @@ int test_batch(gf2e *ff, int m, int n) {
   return fail_ret;
 }
 
-int main(int argc, char **argv) {
+int main(int, char **) {
 
   gf2e *ff;
   int fail_ret = 0;

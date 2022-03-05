@@ -709,7 +709,7 @@ mzd_t *_crt_modred_mat(const deg_t length, const word poly, const deg_t d) {
     mzd_set_ui(f, 0);
     mzd_row(f, 0)[i/m4ri_radix] = __M4RI_TWOPOW(i%m4ri_radix);
     word ii = i;
-    while(ii >= d) {
+    while(ii >= (word)d) {
       /* f ^= gf2x_mul((1ULL<<(ii-d)), poly, length); */
       mzd_set_ui(t, 0);
       mzd_xor_bits(t, 0, ii-d, d+1, poly);
@@ -725,7 +725,7 @@ mzd_t *_crt_modred_mat(const deg_t length, const word poly, const deg_t d) {
         }
       }
     }
-    for(deg_t j=0; j<= ii; j++) 
+    for(deg_t j=0; j<= (deg_t)ii; j++)
       mzd_write_bit(A, j, i, (mzd_row(f, 0)[j/m4ri_radix]>>(j%m4ri_radix)) & 0x1);
   }
   return A;
@@ -899,21 +899,21 @@ blm_t *blm_init_crt(const gf2e *ff, const deg_t f_ncols, const deg_t g_ncols, co
     mzd_t *N  = _small_multiplication_map(d);
 
     for(int i=0; i<p[d]; i++) {
-      if (p_it[d] < irreducible_polynomials[d][0]) {
+      if ((word)p_it[d] < irreducible_polynomials[d][0]) {
         poly = irreducible_polynomials[d][ 1 + p_it[d] ];
         p_it[d]++;
-      } else if (d/2 && p_it[d/2] < irreducible_polynomials[d/2][0]) {
+      } else if (d/2 && (word)p_it[d/2] < irreducible_polynomials[d/2][0]) {
         /** the minimal polynomial is a square */
         poly = irreducible_polynomials[d/2][ 1 + p_it[d/2]];
         p_it[d/2]++;
         poly = gf2x_mul(poly, poly, d/2+1);
-      } else if (d/4 && p_it[d/4] < irreducible_polynomials[d/4][0]) {
+      } else if (d/4 && (word)p_it[d/4] < irreducible_polynomials[d/4][0]) {
         /** the minimal polynomial is a fourth power */
         poly = irreducible_polynomials[d/4][1 + p_it[d/4]];
         p_it[d/4]++;
         poly = gf2x_mul(poly, poly, d/4+1);
         poly = gf2x_mul(poly, poly, d/2+1);
-      } else if (d/8 && p_it[d/8] < irreducible_polynomials[d/8][0]) {
+      } else if (d/8 && (word)p_it[d/8] < irreducible_polynomials[d/8][0]) {
         /** the minimal polynomial is an eigth power */
         poly = irreducible_polynomials[d/8][p_it[d/8]+ 1];
         p_it[d/8]++;

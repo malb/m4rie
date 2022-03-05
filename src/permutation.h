@@ -103,7 +103,7 @@ static inline void mzed_apply_p_right_trans(mzed_t *A, mzp_t const *P) {
  */
 
 static inline void mzd_slice_apply_p_left(mzd_slice_t *A, mzp_t const *P) {
-  for(int i=0; i<A->depth; i++) {
+  for(unsigned int i=0; i<A->depth; i++) {
     mzd_apply_p_left(A->x[i], P);
   }
 }
@@ -118,7 +118,7 @@ static inline void mzd_slice_apply_p_left(mzd_slice_t *A, mzp_t const *P) {
  */
 
 static inline void mzd_slice_apply_p_left_trans(mzd_slice_t *A, mzp_t const *P) {
-  for(int i=0; i<A->depth; i++) {
+  for(unsigned int i=0; i<A->depth; i++) {
     mzd_apply_p_left_trans(A->x[i], P);
   }
 }
@@ -133,7 +133,7 @@ static inline void mzd_slice_apply_p_left_trans(mzd_slice_t *A, mzp_t const *P) 
  */
 
 static inline void mzd_slice_apply_p_right(mzd_slice_t *A, mzp_t const *P) {
-  for(int i=0; i<A->depth; i++) {
+  for(unsigned int i=0; i<A->depth; i++) {
     mzd_apply_p_right(A->x[i], P);
   }
 }
@@ -148,7 +148,7 @@ static inline void mzd_slice_apply_p_right(mzd_slice_t *A, mzp_t const *P) {
  */
 
 static inline void mzd_slice_apply_p_right_trans(mzd_slice_t *A, mzp_t const *P) {
-  for(int i=0; i<A->depth; i++) {
+  for(unsigned int i=0; i<A->depth; i++) {
     mzd_apply_p_right_trans(A->x[i], P);
   }
 }
@@ -165,7 +165,7 @@ static inline void mzd_slice_apply_p_right_trans(mzd_slice_t *A, mzp_t const *P)
  */
 
 static inline void mzd_slice_apply_p_right_trans_tri(mzd_slice_t *A, mzp_t const *P) {
-  for(int i=0; i<A->depth; i++) {
+  for(unsigned int i=0; i<A->depth; i++) {
     mzd_apply_p_right_trans_tri(A->x[i], P);
   }
 }

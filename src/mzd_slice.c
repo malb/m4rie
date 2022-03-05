@@ -33,7 +33,7 @@ mzd_slice_t *mzd_slice_mul_scalar(mzd_slice_t *C, const word a, const mzd_slice_
 
   for(int i=0; i<ff->degree; i++) {
     if(a&(1<<i)) {
-      for(int j=0; j<B->depth; j++)
+      for(unsigned int j=0; j<B->depth; j++)
         _mzd_ptr_add_modred(ff, B->x[j], C->x, i+j);
     }
   }
@@ -47,7 +47,7 @@ mzd_slice_t *mzd_slice_addmul_scalar(mzd_slice_t *C, const word a, const mzd_sli
 
   for(int i=0; i<ff->degree; i++) {
     if(a&(1<<i)) {
-      for(int j=0; j<B->depth; j++)
+      for(unsigned int j=0; j<B->depth; j++)
         _mzd_ptr_add_modred(ff, B->x[j], C->x, i+j);
     }
   }
@@ -55,7 +55,7 @@ mzd_slice_t *mzd_slice_addmul_scalar(mzd_slice_t *C, const word a, const mzd_sli
 }
 
 void mzd_slice_set_ui(mzd_slice_t *A, word value) {
-  for(int i=0; i<A->depth; i++) {
+  for(unsigned int i=0; i<A->depth; i++) {
     mzd_set_ui(A->x[i], (value>>i)&1);
   }
 }

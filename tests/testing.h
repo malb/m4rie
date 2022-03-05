@@ -86,7 +86,7 @@ static inline void mzd_slice_set_canary(mzd_slice_t *A) {
   const word mask_end   = __M4RI_LEFT_BITMASK(A->ncols % m4ri_radix);
   const rci_t n = A->x[0]->width-1;
 
-  for(unsigned int e=0; e<A->finite_field->degree; e++) {
+  for(deg_t e=0; e<A->finite_field->degree; e++) {
     for(rci_t i=0; i<A->nrows; i++) {
       word *row = mzd_row(A->x[e], i);
       row[n] = (row[n] & mask_end) | (m4rie_canary & ~mask_end);
@@ -98,7 +98,7 @@ static inline void mzd_slice_clear_canary(mzd_slice_t *A) {
   const word mask_end   = __M4RI_LEFT_BITMASK(A->ncols % m4ri_radix);
   const rci_t n = A->x[0]->width-1;
 
-  for(int e=0; e<A->finite_field->degree; e++) {
+  for(deg_t e=0; e<A->finite_field->degree; e++) {
     for(rci_t i=0; i<A->nrows; i++) {
       word *row = mzd_row(A->x[e], i);
       row[n] &=mask_end;
@@ -110,7 +110,7 @@ static inline int mzd_slice_canary_is_alive(mzd_slice_t *A) {
   const word mask_end   = __M4RI_LEFT_BITMASK(A->ncols % m4ri_radix);
   const rci_t n = A->x[0]->width-1;
 
-  for(unsigned int e=0; e<A->finite_field->degree; e++) {
+  for(deg_t e=0; e<A->finite_field->degree; e++) {
     for(rci_t i=0; i<A->nrows; i++) {
       word *row = mzd_row(A->x[e], i);
       if ((row[n] & ~mask_end) != (m4rie_canary & ~mask_end)) {

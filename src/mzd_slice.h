@@ -83,7 +83,7 @@ static inline mzd_slice_t *mzd_slice_init(const gf2e *ff, const rci_t m, const r
   A->ncols = n;
   A->depth = ff->degree;
 
-  for(int i=0; i<A->depth; i++)
+  for(unsigned int i=0; i<A->depth; i++)
     A->x[i] = mzd_init(m,n);
   return A;
 }
@@ -143,7 +143,7 @@ static inline mzd_slice_t *_mzd_slice_adapt_depth(mzd_slice_t *A, const unsigned
  */
 
 static inline void mzd_slice_free(mzd_slice_t *A) {
-  for(int i=0; i<A->depth; i++)
+  for(unsigned int i=0; i<A->depth; i++)
    mzd_free(A->x[i]);
 #if __M4RI_USE_MM_MALLOC
   _mm_free(A);
@@ -165,7 +165,7 @@ static inline mzd_slice_t *mzd_slice_copy(mzd_slice_t *B, const mzd_slice_t *A) 
   if(B == NULL)
     B = mzd_slice_init(A->finite_field, A->nrows, A->ncols);
 
-  for(int i=0; i<A->depth; i++) {
+  for(unsigned int i=0; i<A->depth; i++) {
     mzd_copy(B->x[i],A->x[i]);
   }
   return B;
@@ -185,7 +185,7 @@ static inline mzd_slice_t *mzd_slice_copy(mzd_slice_t *B, const mzd_slice_t *A) 
 
 static inline word mzd_slice_read_elem(const mzd_slice_t *A, const rci_t row, const rci_t col) {
   word ret = 0;
-  for(int i=0; i<A->depth; i++) {
+  for(unsigned int i=0; i<A->depth; i++) {
     ret |= mzd_read_bit(A->x[i], row, col)<<i;
   }
   return ret;
@@ -205,7 +205,7 @@ static inline word mzd_slice_read_elem(const mzd_slice_t *A, const rci_t row, co
  */
 
 static inline void mzd_slice_add_elem(mzd_slice_t *A, const rci_t row, const rci_t col, word elem) {
-  for(int i=0; i<A->depth; i++) {
+  for(unsigned int i=0; i<A->depth; i++) {
     __mzd_xor_bits(A->x[i], row, col, 1, elem&1);
     elem=elem>>1;
   }
@@ -225,7 +225,7 @@ static inline void mzd_slice_add_elem(mzd_slice_t *A, const rci_t row, const rci
  */
 
 static inline void mzd_slice_write_elem(mzd_slice_t *A, const rci_t row, const rci_t col, word elem) {
-  for(int i=0; i<A->depth; i++) {
+  for(unsigned int i=0; i<A->depth; i++) {
     mzd_write_bit(A->x[i], row, col, elem&1);
     elem=elem>>1;
   }
@@ -248,7 +248,7 @@ static inline int mzd_slice_cmp(mzd_slice_t *A, mzd_slice_t *B) {
   int r = 0;
   if ((A->finite_field != B->finite_field) | (A->depth != B->depth) )
     return -1;
-  for(int i=0; i<A->depth; i++)
+  for(unsigned int i=0; i<A->depth; i++)
     r |= mzd_cmp(A->x[i],B->x[i]);
   return r;
 }
@@ -262,7 +262,7 @@ static inline int mzd_slice_cmp(mzd_slice_t *A, mzd_slice_t *B) {
  */
 
 static inline int mzd_slice_is_zero(const mzd_slice_t *A) {
-  for(int i=0; i<A->depth; i++) {
+  for(unsigned int i=0; i<A->depth; i++) {
     if (!mzd_is_zero(A->x[i]))
       return 0;
   }
@@ -280,7 +280,7 @@ static inline int mzd_slice_is_zero(const mzd_slice_t *A) {
  */
 
 static inline void mzd_slice_row_swap(mzd_slice_t *A, const rci_t rowa, const rci_t rowb) {
-  for(int i=0; i<A->depth; i++) {
+  for(unsigned int i=0; i<A->depth; i++) {
     mzd_row_swap(A->x[i], rowa, rowb);
   }
 }
@@ -299,7 +299,7 @@ static inline void mzd_slice_row_swap(mzd_slice_t *A, const rci_t rowa, const rc
  */
 
 static inline void mzd_slice_copy_row(mzd_slice_t* B, size_t i, const mzd_slice_t* A, size_t j) {
-  for(int ii=0; ii<A->depth; ii++)
+  for(unsigned int ii=0; ii<A->depth; ii++)
     mzd_copy_row(B->x[ii], i, A->x[ii], j);
 }
 
@@ -314,7 +314,7 @@ static inline void mzd_slice_copy_row(mzd_slice_t* B, size_t i, const mzd_slice_
  */
 
 static inline void mzd_slice_col_swap(mzd_slice_t *A, const rci_t cola, const rci_t colb) {
-  for(int i=0; i<A->depth; i++)
+  for(unsigned int i=0; i<A->depth; i++)
     mzd_col_swap(A->x[i], cola, colb);
 }
 
@@ -329,7 +329,7 @@ static inline void mzd_slice_col_swap(mzd_slice_t *A, const rci_t cola, const rc
  */
 
 static inline void mzd_slice_col_swap_in_rows(mzd_slice_t *A, const rci_t cola, const rci_t colb, const rci_t start_row, rci_t stop_row) {
-  for(unsigned int e=0; e < A->finite_field->degree; e++) {
+  for(int e=0; e < A->finite_field->degree; e++) {
     mzd_col_swap_in_rows(A->x[e], cola, colb, start_row, stop_row);
   };
 }
@@ -348,7 +348,7 @@ static inline void mzd_slice_col_swap_in_rows(mzd_slice_t *A, const rci_t cola, 
  */
 
 static inline void mzd_slice_row_add(mzd_slice_t *A, const rci_t sourcerow, const rci_t destrow) {
-  for(int i=0; i<A->depth; i++)
+  for(unsigned int i=0; i<A->depth; i++)
     mzd_row_add(A->x[i], sourcerow, destrow);
 }
 
@@ -372,7 +372,7 @@ void mzd_slice_print(const mzd_slice_t *A);
  */
 
 static inline void _mzd_slice_compress_l(mzd_slice_t *A, const rci_t r1, const rci_t n1, const rci_t r2) {
-  for(int i=0; i<A->depth; i++)
+  for(unsigned int i=0; i<A->depth; i++)
     _mzd_compress_l(A->x[i], r1, n1, r2);
 }
 
@@ -398,7 +398,7 @@ static inline mzd_slice_t *mzd_slice_concat(mzd_slice_t *C, const mzd_slice_t *A
   if(C == NULL)
     C = mzd_slice_init(A->finite_field, A->nrows, A->ncols + B->ncols);
 
-  for(int i=0; i<A->depth; i++) {
+  for(unsigned int i=0; i<A->depth; i++) {
     mzd_concat(C->x[i], A->x[i], B->x[i]);
   }
   return C;
@@ -425,7 +425,7 @@ static inline mzd_slice_t *mzd_slice_stack(mzd_slice_t *C, const mzd_slice_t *A,
   if(C == NULL)
     C = mzd_slice_init(A->finite_field, A->nrows + B->nrows, A->ncols);
 
-  for(int i=0; i<A->depth; i++) {
+  for(unsigned int i=0; i<A->depth; i++) {
     mzd_stack(C->x[i], A->x[i], B->x[i]);
   }
   return C;
@@ -449,7 +449,7 @@ static inline mzd_slice_t *mzd_slice_submatrix(mzd_slice_t *S, const mzd_slice_t
   if(S==NULL)
     S = mzd_slice_init(A->finite_field, highr - lowr, highc - lowc);
 
-  for(int i=0; i<A->depth; i++) {
+  for(unsigned int i=0; i<A->depth; i++) {
     mzd_submatrix(S->x[i], A->x[i], lowr, lowc, highr, highc);
   }
   return S;
@@ -485,7 +485,7 @@ static inline mzd_slice_t *mzd_slice_init_window(const mzd_slice_t *A,
   B->depth = A->depth;
   B->nrows = highr - lowr;
   B->ncols = highc - lowc;
-  for(int i=0; i<A->depth; i++) {
+  for(unsigned int i=0; i<A->depth; i++) {
     B->x[i] = mzd_init_window(A->x[i], lowr, lowc, highr, highc);
   }
   return B;
@@ -500,7 +500,7 @@ static inline mzd_slice_t *mzd_slice_init_window(const mzd_slice_t *A,
  */
 
 static inline void mzd_slice_free_window(mzd_slice_t *A) {
-  for(int i=0; i<A->depth; i++) {
+  for(unsigned int i=0; i<A->depth; i++) {
     mzd_free_window(A->x[i]);
   }
   m4ri_mm_free(A);
@@ -846,7 +846,7 @@ static inline mzd_slice_t *mzd_slice_addmul(mzd_slice_t *C, const mzd_slice_t *A
  */
 
 static inline void mzd_slice_randomize(mzd_slice_t *A) {
-  for(int i=0; i<A->depth; i++)
+  for(unsigned int i=0; i<A->depth; i++)
     mzd_randomize(A->x[i]);
 }
 

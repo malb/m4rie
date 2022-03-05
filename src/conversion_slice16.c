@@ -49,7 +49,7 @@ static inline word word_slice_64_16(word a) {
 
 mzd_slice_t *_mzed_slice16(mzd_slice_t *T, const mzed_t *F) {
   assert(T && (8 < T->depth && T->depth <= 16));
-  size_t j, j2 = 0;
+  wi_t j, j2 = 0;
   register word r0,r1,r2,r3,r4,r5,r6,r7 = 0;
 
   const word bitmask_end = T->x[0]->high_bitmask;
@@ -60,7 +60,7 @@ mzd_slice_t *_mzed_slice16(mzd_slice_t *T, const mzed_t *F) {
   /* we do multiple runs over T to make the code more compact, we start by doing the first eight
      bits */
 
-  for(size_t i=0; i<T->nrows; i++) {
+  for(rci_t i=0; i<T->nrows; i++) {
     word *t0 = mzd_row(T->x[0], i);
     word *t1 = mzd_row(T->x[1], i);
     word *t2 = mzd_row(T->x[2], i);
@@ -114,7 +114,7 @@ mzd_slice_t *_mzed_slice16(mzd_slice_t *T, const mzed_t *F) {
     t7[j2] |= r7 & bitmask_end;
   }
   if(T->depth >= 12) {
-    for(size_t i=0; i<T->nrows; i++) {
+    for(rci_t i=0; i<T->nrows; i++) {
       word *t0 = mzd_row(T->x[ 8], i);
       word *t1 = mzd_row(T->x[ 9], i);
       word *t2 = mzd_row(T->x[10], i);
@@ -158,7 +158,7 @@ mzd_slice_t *_mzed_slice16(mzd_slice_t *T, const mzed_t *F) {
 
     switch(T->depth) {
     case 16: {
-      for(size_t i=0; i<T->nrows; i++) {
+      for(rci_t i=0; i<T->nrows; i++) {
         word *t0 = mzd_row(T->x[12], i);
         word *t1 = mzd_row(T->x[13], i);
         word *t2 = mzd_row(T->x[14], i);
@@ -201,7 +201,7 @@ mzd_slice_t *_mzed_slice16(mzd_slice_t *T, const mzed_t *F) {
       }
     } break;
     case 15: {
-      for(size_t i=0; i<T->nrows; i++) {
+      for(rci_t i=0; i<T->nrows; i++) {
         word *t0 = mzd_row(T->x[12], i);
         word *t1 = mzd_row(T->x[13], i);
         word *t2 = mzd_row(T->x[14], i);
@@ -241,7 +241,7 @@ mzd_slice_t *_mzed_slice16(mzd_slice_t *T, const mzed_t *F) {
       }
     } break;
     case 14: {
-      for(size_t i=0; i<T->nrows; i++) {
+      for(rci_t i=0; i<T->nrows; i++) {
         word *t0 = mzd_row(T->x[12], i);
         word *t1 = mzd_row(T->x[13], i);
         const word * const f = mzd_row(F->x, i);
@@ -278,7 +278,7 @@ mzd_slice_t *_mzed_slice16(mzd_slice_t *T, const mzed_t *F) {
       }
     } break;
     case 13: {
-      for(size_t i=0; i<T->nrows; i++) {
+      for(rci_t i=0; i<T->nrows; i++) {
         word *t0 = mzd_row(T->x[12], i);
         const word * const f = mzd_row(F->x, i);
 
@@ -315,7 +315,7 @@ mzd_slice_t *_mzed_slice16(mzd_slice_t *T, const mzed_t *F) {
   } else {
     switch(T->depth) {
     case 11: {
-      for(size_t i=0; i<T->nrows; i++) {
+      for(rci_t i=0; i<T->nrows; i++) {
         word *t0 = mzd_row(T->x[ 8], i);
         word *t1 = mzd_row(T->x[ 9], i);
         word *t2 = mzd_row(T->x[10], i);
@@ -355,7 +355,7 @@ mzd_slice_t *_mzed_slice16(mzd_slice_t *T, const mzed_t *F) {
       }
     } break;
     case 10: {
-      for(size_t i=0; i<T->nrows; i++) {
+      for(rci_t i=0; i<T->nrows; i++) {
         word *t0 = mzd_row(T->x[ 8], i);
         word *t1 = mzd_row(T->x[ 9], i);
         const word * const f = mzd_row(F->x, i);
@@ -392,7 +392,7 @@ mzd_slice_t *_mzed_slice16(mzd_slice_t *T, const mzed_t *F) {
       }
     } break;
     case  9: {
-      for(size_t i=0; i<T->nrows; i++) {
+      for(rci_t i=0; i<T->nrows; i++) {
         word *t0 = mzd_row(T->x[ 8], i);
         const word * const f = mzd_row(F->x, i);
 

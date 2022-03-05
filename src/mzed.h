@@ -955,7 +955,7 @@ static inline void mzed_col_swap(mzed_t *M, const rci_t cola, const rci_t colb) 
  */
 
 static inline void mzed_col_swap_in_rows(mzed_t *A, const rci_t cola, const rci_t colb, const rci_t start_row, rci_t stop_row) {
-  for(unsigned int e=0; e < A->finite_field->degree; e++) {
+  for(int e=0; e < A->finite_field->degree; e++) {
     mzd_col_swap_in_rows(A->x, A->w*cola+e, A->w*colb+e, start_row, stop_row);
   };
 }

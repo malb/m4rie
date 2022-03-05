@@ -153,8 +153,8 @@ static inline mzd_poly_t *_mzd_poly_addmul_naive(mzd_poly_t *C, const mzd_poly_t
   if (C == NULL)
     C = mzd_poly_init(A->depth+B->depth-1, A->nrows, B->ncols);
 
-  for(unsigned int i=0; i<A->depth; i++) {
-    for(unsigned int j=0; j<B->depth; j++) {
+  for(int i=0; i<A->depth; i++) {
+    for(int j=0; j<B->depth; j++) {
       mzd_addmul(C->x[i+j], A->x[i], B->x[j], 0);
     }
   }

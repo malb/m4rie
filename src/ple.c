@@ -75,7 +75,7 @@ rci_t _mzed_ple(mzed_t *A, mzp_t *P, mzp_t *Q, rci_t cutoff) {
   if (cutoff == 0)
     cutoff = __M4RIE_PLE_CUTOFF;
 
-  if ((A->ncols > m4ri_radix && (gf2e_degree_to_w(A->finite_field) * A->ncols * A->nrows) > cutoff)) {
+  if ((A->ncols > m4ri_radix && (rci_t)(gf2e_degree_to_w(A->finite_field) * A->ncols * A->nrows) > cutoff)) {
     mzd_slice_t *a = mzed_slice(NULL, A);
     rci_t r = _mzd_slice_ple(a, P, Q, cutoff);
     mzed_cling(A, a);
@@ -93,7 +93,7 @@ rci_t _mzd_slice_ple(mzd_slice_t *A, mzp_t *P, mzp_t *Q, rci_t cutoff) {
   if (cutoff == 0)
     cutoff = __M4RIE_PLE_CUTOFF;
 
-  if (ncols <= m4ri_radix || (gf2e_degree_to_w(A->finite_field) * A->ncols * A->nrows) <= cutoff) {
+  if (ncols <= m4ri_radix || (rci_t)(gf2e_degree_to_w(A->finite_field) * A->ncols * A->nrows) <= cutoff) {
     mzed_t *Abar = mzed_cling(NULL, A);
     rci_t r = mzed_ple_newton_john(Abar, P, Q);
     mzed_slice(A, Abar);

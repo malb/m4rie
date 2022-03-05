@@ -3,7 +3,7 @@
 #include "newton_john.h"
 
 static inline mzd_slice_t * mzd_slice_addmul_mzd(mzd_slice_t *C, const word a, const mzd_t *A) {
-  for(int i=0; i<C->depth; i++)
+  for(unsigned int i=0; i<C->depth; i++)
     if(a & 1ULL<<i)
       mzd_add(C->x[i], C->x[i], A);
   return C;

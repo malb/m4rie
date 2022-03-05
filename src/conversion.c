@@ -120,7 +120,7 @@ mzed_t *mzed_cling(mzed_t *A, const mzd_slice_t *Z) {
 
 mzd_slice_t *_mzed_slice2(mzd_slice_t *T, const mzed_t *F) {
   assert(T && (T->depth >= 2));
-  size_t j, j2 = 0;
+  wi_t j, j2 = 0;
 
   const word bitmask_end = T->x[0]->high_bitmask;
   register word r0,r1,r2,r3;
@@ -128,7 +128,7 @@ mzd_slice_t *_mzed_slice2(mzd_slice_t *T, const mzed_t *F) {
   if (mzed_is_zero(F))
     return T;
 
-  for(size_t i=0; i<T->nrows; i++) {
+  for(rci_t i=0; i<T->nrows; i++) {
     word *t0 = mzd_row(T->x[0], i);
     word *t1 = mzd_row(T->x[1], i);
     const word *f  = mzd_row(F->x, i);
@@ -179,7 +179,7 @@ mzd_slice_t *_mzed_slice2(mzd_slice_t *T, const mzed_t *F) {
 }
 
 mzed_t *_mzed_cling2(mzed_t *T, const mzd_slice_t *F) {
-  size_t j,j2 = 0;
+  wi_t j,j2 = 0;
   register word tmp;
 
   const word bitmask_end = T->x->high_bitmask;
@@ -187,7 +187,7 @@ mzed_t *_mzed_cling2(mzed_t *T, const mzd_slice_t *F) {
   if (mzd_slice_is_zero(F))
     return T;
 
-  for(size_t i=0; i<T->nrows; i++) {
+  for(rci_t i=0; i<T->nrows; i++) {
     const word *f0 = mzd_row(F->x[0], i);
     const word *f1 = mzd_row(F->x[1], i);
     word *t  = mzd_row(T->x, i);
@@ -213,7 +213,7 @@ mzed_t *_mzed_cling2(mzed_t *T, const mzd_slice_t *F) {
 
 mzd_slice_t *_mzed_slice4(mzd_slice_t *T, const mzed_t *F) {
   assert(T && (T->depth == 3 || T->depth == 4));
-  size_t j, j2 = 0;
+  wi_t j, j2 = 0;
   register word r0,r1,r2,r3 = 0;
 
   const word bitmask_end = T->x[0]->high_bitmask;
@@ -222,7 +222,7 @@ mzd_slice_t *_mzed_slice4(mzd_slice_t *T, const mzed_t *F) {
     return T;
 
   if (T->depth == 3) {
-    for(size_t i=0; i<T->nrows; i++) {
+    for(rci_t i=0; i<T->nrows; i++) {
       word *t0 = mzd_row(T->x[0], i);
       word *t1 = mzd_row(T->x[1], i);
       word *t2 = mzd_row(T->x[2], i);
@@ -264,7 +264,7 @@ mzd_slice_t *_mzed_slice4(mzd_slice_t *T, const mzed_t *F) {
       t2[j2] |= r2 & bitmask_end;
     }
   } else {
-    for(size_t i=0; i<T->nrows; i++) {
+    for(rci_t i=0; i<T->nrows; i++) {
       word *t0 = mzd_row(T->x[0], i);
       word *t1 = mzd_row(T->x[1], i);
       word *t2 = mzd_row(T->x[2], i);
@@ -318,7 +318,7 @@ mzd_slice_t *_mzed_slice4(mzd_slice_t *T, const mzed_t *F) {
 }
 
 mzed_t *_mzed_cling4(mzed_t *T, const mzd_slice_t *F) {
-  size_t j,j2 = 0;
+  wi_t j,j2 = 0;
 
   const word bitmask_end = T->x->high_bitmask;
 

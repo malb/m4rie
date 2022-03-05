@@ -98,7 +98,7 @@ rci_t mzd_slice_echelonize_ple(mzd_slice_t *A, int full) {
     r = mzd_slice_ple(A, P, Q);
 
     for(rci_t i = 0; i < r; ++i) {
-      for(int e=0; e < A->depth; e++) {
+      for(unsigned e=0; e < A->depth; e++) {
         for(rci_t j = 0; j <= i; j++) {
           int const length = MIN(m4ri_radix, i - j + 1);
           mzd_clear_bits(A->x[e], i, j, length);

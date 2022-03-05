@@ -325,7 +325,7 @@ mzed_t *_mzed_addmul_strassen(mzed_t *C, const mzed_t *A, const mzed_t *B, int c
   return C;
 }
 
-rci_t _mzed_strassen_cutoff(const mzed_t *C, const mzed_t *A, const mzed_t *B) {
+rci_t _mzed_strassen_cutoff(const mzed_t *, const mzed_t *A, const mzed_t *) {
   rci_t cutoff;
 
   /* it seems most of it is cache bound: 2 matrix * (n^2 *w / 8 ) <= L2  */
@@ -364,7 +364,7 @@ rci_t _mzed_strassen_cutoff(const mzed_t *C, const mzed_t *A, const mzed_t *B) {
     break;
   }
 
-  if (cutoff < 2*__M4RI_TWOPOW(A->finite_field->degree))
+  if (cutoff < (rci_t)(2*__M4RI_TWOPOW(A->finite_field->degree)))
     cutoff = 2*__M4RI_TWOPOW(A->finite_field->degree);
   return cutoff;
 }

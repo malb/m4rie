@@ -546,7 +546,7 @@ void mzed_trsm_lower_left_newton_john(const mzed_t *L, mzed_t *B) {
   assert(B->nrows == L->ncols);
 
   const gf2e *ff = L->finite_field;
-  if (__M4RI_TWOPOW(ff->degree) >= L->nrows) {
+  if ((rci_t)__M4RI_TWOPOW(ff->degree) >= L->nrows) {
     mzed_trsm_lower_left_naive(L, B);
     return;
   }
@@ -568,7 +568,7 @@ void mzed_trsm_upper_left_newton_john(const mzed_t *U, mzed_t *B) {
   assert(B->nrows == U->ncols);
 
   const gf2e *ff = U->finite_field;
-  if ( (__M4RI_TWOPOW(ff->degree) >= U->nrows) ) {
+  if ((rci_t)__M4RI_TWOPOW(ff->degree) >= U->nrows) {
     mzed_trsm_upper_left_naive(U, B);
     return;
   }
@@ -590,7 +590,7 @@ void mzd_slice_trsm_lower_left_newton_john(const mzd_slice_t *L, mzd_slice_t *B)
   assert(B->nrows == L->ncols);
 
   const gf2e *ff = L->finite_field;
-  if (__M4RI_TWOPOW(ff->degree) >= L->nrows) {
+  if ((rci_t)__M4RI_TWOPOW(ff->degree) >= L->nrows) {
     mzd_slice_trsm_lower_left_naive(L, B);
     return;
   }
@@ -615,7 +615,7 @@ void mzd_slice_trsm_upper_left_newton_john(const mzd_slice_t *U, mzd_slice_t *B)
   assert(B->nrows == U->ncols);
 
   const gf2e *ff = U->finite_field;
-  if ( (__M4RI_TWOPOW(ff->degree) >= U->nrows)) {
+  if ((rci_t)__M4RI_TWOPOW(ff->degree) >= U->nrows) {
     mzd_slice_trsm_upper_left_naive(U, B);
     return;
   }
