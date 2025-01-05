@@ -43,3 +43,5 @@ bench/cpucycles.h
 /bench/cpucycles-20060326/cpucycles.h
 /m4rie.pc
 *~
+/.cache/
+/compile_commands.json
