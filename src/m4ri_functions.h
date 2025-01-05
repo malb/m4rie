@@ -41,7 +41,7 @@ static inline word __mzd_read_bits(const mzd_t *M, const rci_t x, const rci_t y,
   int const spot   = y % m4ri_radix;
   wi_t const block = y / m4ri_radix;
   int const spill = spot + n - m4ri_radix;
-  word temp = mzd_row(M, x)[block] << -spill;
+  word temp = mzd_row_const(M, x)[block] << -spill;
   return temp >> (m4ri_radix - n);
 }
 
