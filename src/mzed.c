@@ -17,6 +17,7 @@
 *                  http://www.gnu.org/licenses/
 ******************************************************************************/
 
+#include <inttypes.h>
 #include <stdlib.h>
 
 #include "config.h"
@@ -252,16 +253,14 @@ void mzed_set_ui(mzed_t *A, word value) {
 }
 
 void mzed_print(const mzed_t *A) {
-  char formatstr[10];
   int width = (A->w/4);
   if (A->w%4) 
     width += 1;
-  sprintf(formatstr,"%%%dx",width);
   for (rci_t i=0; i < A->nrows; ++i) {
     printf("[");
     for (rci_t j=0; j < A->ncols; j++) {
       word tmp = mzed_read_elem(A,i,j);
-      printf(formatstr,(int)tmp);
+      printf("%*" PRIx64, width, tmp);
       if(j<A->ncols-1)
         printf(" ");
     }
