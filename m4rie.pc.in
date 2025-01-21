@@ -6,5 +6,6 @@ includedir=@includedir@
 Name: M4RIE
 Description: Dense linear algebra over GF(2^e).
 Version: @PACKAGE_VERSION@
-Libs: -L${libdir} -lm4rie -lm4ri -lm
-Cflags: -I${includedir} @M4RI_CFLAGS@
+Requires: m4ri >= 20240729
+Libs: -L${libdir} -lm4rie -lm
+Cflags: -I${includedir}
