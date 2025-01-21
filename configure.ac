@@ -28,15 +28,6 @@ if test "$ac_cv_prog_cc_c99" = "no"; then
    AC_MSG_ERROR([C99 support is required but not found.])
 fi
 
-# OpenMP support
-AC_ARG_ENABLE([openmp],
-        AS_HELP_STRING( [--enable-openmp],[add support for OpenMP multicore support.]))
-
-AS_IF([test "x$enable_openmp" = "xyes"], [
-   AX_OPENMP()
-])
-AC_SUBST(OPENMP_CFLAGS)
-
 # Debugging support
 AC_ARG_ENABLE(debug, [  --enable-debug          Enable assert() statements for debugging.])
 
