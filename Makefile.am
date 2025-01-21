@@ -51,7 +51,7 @@ pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = m4rie.pc
 
 libm4rie_la_LDFLAGS = -version-info @LT_VERSION@ -no-undefined ${M4RIE_M4RI_LDFLAGS}
-libm4rie_la_LIBADD = -lm4ri
+libm4rie_la_LIBADD = @M4RI_LIBS@
 
 SUBDIRS = . tests
 DIST_SUBDIRS = $(SUBDIRS) bench
