@@ -7,5 +7,5 @@ Name: M4RIE
 Description: Dense linear algebra over GF(2^e).
 Version: @PACKAGE_VERSION@
 Requires: m4ri >= 20240729
-Libs: -L${libdir} -lm4rie -lm
+Libs: -L${libdir} -lm4rie
 Cflags: -I${includedir}
