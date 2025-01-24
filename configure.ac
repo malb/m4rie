@@ -44,10 +44,9 @@ AC_ARG_WITH(m4ri,
 AS_IF([test -n "$m4rie_config_m4riprefix"], [
    M4RIE_M4RI_PREFIX=${m4rie_m4ri_prefix}
    AC_SUBST(M4RIE_M4RI_PREFIX)
-   M4RIE_M4RI_LDFLAGS="-L${m4rie_config_m4riprefix}/lib"
-   AC_SUBST(M4RIE_M4RI_LDFLAGS)
-   M4RIE_M4RI_CFLAGS="-I${m4rie_config_m4riprefix}/include"
-   AC_SUBST(M4RIE_M4RI_CFLAGS)
+
+   M4RI_CFLAGS="-I${m4rie_config_m4riprefix}/include"
+   M4RI_LIBS="-L${m4rie_config_m4riprefix}/lib -lm4ri"
 ], [
   # Don't use pkgconfig if the user passed --with-m4ri=$path,
   # because in that case, we want to use the copy from $path

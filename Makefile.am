@@ -1,6 +1,6 @@
 AUTOMAKE_OPTIONS = foreign subdir-objects
 ACLOCAL_AMFLAGS = -I m4
-AM_CFLAGS=${SIMD_FLAGS} ${DEBUG_FLAGS} ${M4RIE_M4RI_CFLAGS} ${M4RI_CFLAGS}
+AM_CFLAGS=${SIMD_FLAGS} ${DEBUG_FLAGS} ${M4RI_CFLAGS}
 EXTRA_DIST = m4rie/Doxyfile
 
 lib_LTLIBRARIES = libm4rie.la
@@ -50,7 +50,7 @@ pkgincludesub_HEADERS = m4rie/gf2x.h \
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = m4rie.pc
 
-libm4rie_la_LDFLAGS = -version-info @LT_VERSION@ -no-undefined ${M4RIE_M4RI_LDFLAGS}
+libm4rie_la_LDFLAGS = -version-info @LT_VERSION@ -no-undefined ${M4RI_LIBS}
 libm4rie_la_LIBADD = @M4RI_LIBS@
 
 SUBDIRS = . tests

@@ -12,10 +12,10 @@ TOPSRCDIR = $(srcdir)/..
 TOPBUILDDIR = $(builddir)/..
 DEFINES =
 # include TOPBUILDIR for m4ri_config.h
-AM_CFLAGS = -I$(TOPSRCDIR) -I$(TOPBUILDDIR) -D_XOPEN_SOURCE=600 @CFLAGS@ $(DEFINES) ${M4RIE_M4RI_CFLAGS}
+AM_CFLAGS = -I$(TOPSRCDIR) -I$(TOPBUILDDIR) -D_XOPEN_SOURCE=600 @CFLAGS@ $(DEFINES) ${M4RI_CFLAGS}
 
 STAGEDIR := $(realpath -s $(TOPBUILDDIR)/.libs)
-AM_LDFLAGS = -L$(STAGEDIR) -Wl,-rpath,$(STAGEDIR) cpucycles.o @M4RI_LIBS@ -lm4rie -lm ${M4RIE_M4RI_LDFLAGS} -Wl,-rpath,${M4RIE_M4RI_PREFIX}/lib
+AM_LDFLAGS = -L$(STAGEDIR) -Wl,-rpath,$(STAGEDIR) cpucycles.o @M4RI_LIBS@ -lm4rie -lm -Wl,-rpath,${M4RIE_M4RI_PREFIX}/lib
 
 BENCH = bench_multiplication \
         bench_elimination \
