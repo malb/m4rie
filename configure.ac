@@ -53,7 +53,12 @@ AS_IF([test -n "$m4rie_config_m4riprefix"], [
   # because in that case, we want to use the copy from $path
   # and not the one that pkgconfig knows about.
   PKG_CHECK_MODULES([M4RI], [m4ri >= 20240729], [], [
-    AC_MSG_ERROR(["m4ri not found"])
+    # pkgconfig failed, but we can try the old-fashioned way
+    AC_SEARCH_LIBS([mzd_info],[m4ri],[
+      M4RI_LIBS="-lm4ri"
+    ], [
+      AC_MSG_ERROR([required library m4ri not found])
+    ])
   ])
 ])
 
