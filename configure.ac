@@ -20,6 +20,7 @@ AC_CONFIG_HEADERS(m4rie/config.h)
 
 AC_PROG_CC
 
+# libm is only used directly in bench/benchmarking.c
 AC_SEARCH_LIBS([sqrt], [m], [], [
   AC_MSG_ERROR([unable to find the sqrt() function])
 ])
@@ -46,7 +47,7 @@ AS_IF([test -n "$m4rie_config_m4riprefix"], [
    AC_SUBST(M4RIE_M4RI_PREFIX)
 
    M4RI_CFLAGS="-I${m4rie_config_m4riprefix}/include"
-   M4RI_LIBS="-L${m4rie_config_m4riprefix}/lib -lm4ri"
+   M4RI_LIBS="-L${m4rie_config_m4riprefix}/lib -lm4ri -lm"
 ], [
   # Don't use pkgconfig if the user passed --with-m4ri=$path,
   # because in that case, we want to use the copy from $path
@@ -54,7 +55,10 @@ AS_IF([test -n "$m4rie_config_m4riprefix"], [
   PKG_CHECK_MODULES([M4RI], [m4ri >= 20240729], [], [
     # pkgconfig failed, but we can try the old-fashioned way
     AC_SEARCH_LIBS([mzd_info],[m4ri],[
-      M4RI_LIBS="-lm4ri"
+      # Current versions of m4ri.pc have "Libs: ... -lm". It's not
+      # 100% clear if libm is supposed to be part of its interface,
+      # but m4ri.h includes math.h, so we better play it safe.
+      M4RI_LIBS="-lm4ri -lm"
     ], [
       AC_MSG_ERROR([required library m4ri not found])
     ])
