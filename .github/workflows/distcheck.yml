@@ -24,7 +24,7 @@ jobs:
           autoreconf -i
           ./configure --prefix=/usr
           make -j $JOBS
-          make install
+          sudo make install
           cd ..
       - name: Configure
         run: |
