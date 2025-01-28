@@ -20,7 +20,7 @@ See [Further Reading](https://bitbucket.org/malb/m4rie/wiki/Further%20Reading) f
 
 # Prerequisites 
 
-M4RIE depends heavily on [M4RI](https://bitbucket.org/malb/m4ri).
+M4RIE depends heavily on [M4RI](https://github.com/malb/m4ri).
 
 # Performance
 
@@ -30,7 +30,7 @@ See [Performance](http://malb.bitbucket.org/m4ri-e-website-2008-2015/performance
 
 If you downloaded M4RI by cloning the mainline tree at
 
-https://bitbucket.org/malb/m4ri
+https://github.com/malb/m4ri
 
 you need to first run the following command:
 
@@ -55,8 +55,6 @@ The built documentation is contained under the doc subdirectory of m4ri/. Once t
 
     cd doc/latex/
     make
-
-The documentation is also available [here](http://malb.bitbucket.org/m4rie/).
 
 # Contributors
 
