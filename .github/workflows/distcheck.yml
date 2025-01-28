@@ -19,7 +19,7 @@ jobs:
           sudo DEBIAN_FRONTEND=noninteractive apt-get install autoconf automake libtool
       - name: Install M4RI
         run: |
-          git clone https://bitbucket.org/malb/m4ri
+          git clone https://github.com/malb/m4ri
           cd m4ri
           autoreconf -i
           ./configure --prefix=/usr
