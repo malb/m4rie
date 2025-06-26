@@ -28,9 +28,49 @@ jobs:
           cd ..
       - name: Configure
         run: |
-          autoreconf -i
+          chmod +x autogen.sh
+          ./autogen.sh
           ASAN_OPTIONS=detect_leaks=0 CFLAGS="-fsanitize=address" ./configure --enable-debug
       - name: Check
         run: ASAN_OPTIONS=detect_leaks=0 make -j $JOBS check
+      - name: Distcheck
+        run: make -j $JOBS distcheck
+
+  windows:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+      - name: Install prerequisites
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          install: >-
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-autotools
+            mingw-w64-ucrt-x86_64-libtool
+            mingw-w64-ucrt-x86_64-pkg-config
+            git
+            make
+      - name: Install M4RI
+        run: |
+          git clone https://github.com/malb/m4ri
+          cd m4ri
+          autoreconf -i
+          ./configure --prefix=/ucrt64
+          make -j $JOBS
+          make install
+          cd ..
+      - name: Configure
+        run: |
+          chmod +x autogen.sh
+          ./autogen.sh
+          ./configure --enable-debug
+      - name: Check
+        run: make -j $JOBS check
       - name: Distcheck
         run: make -j $JOBS distcheck

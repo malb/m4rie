@@ -30,7 +30,8 @@ jobs:
           cd ..
       - name: Configure
         run: |
-          autoreconf -i
+          chmod +x autogen.sh
+          ./autogen.sh
           ./configure
       - name: Compile
         run: make -j $JOBS

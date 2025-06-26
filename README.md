@@ -14,7 +14,7 @@ M4RIE is a library for fast arithmetic with dense matrices over GF(2^e) for 2 â‰
 
 * asymptotically fast TRiangular System solving with Matrices (upper left, lower left),
 
-* support for Linux, OpenSolaris and OS X (all GCC).
+* support for Linux, OpenSolaris and OS X (all GCC). Support for Windows (MSYS2/MinGW) is provided on a best effort basis and may disappear any time.
 
 See [Further Reading](https://bitbucket.org/malb/m4rie/wiki/Further%20Reading) for implemented algorithms.
 
@@ -34,7 +34,7 @@ https://github.com/malb/m4ri
 
 you need to first run the following command:
 
-    autoreconf --install
+    ./autogen.sh
 
 Then do the usual
 
