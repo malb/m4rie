@@ -27,6 +27,10 @@
 #ifndef M4RIE_MZED_H
 #define M4RIE_MZED_H
 
+if defined (__cplusplus)
+#define register
+#endif
+
 /******************************************************************************
 *
 *            M4RIE: Linear Algebra over GF(2^e)
