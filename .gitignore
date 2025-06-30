@@ -45,3 +45,6 @@ bench/cpucycles.h
 *~
 /.cache/
 /compile_commands.json
+/m4rie
+/scratch
+/scratch.c
