@@ -397,6 +397,14 @@ void mzed_randomize(mzed_t *A);
 mzed_t *mzed_copy(mzed_t *B, const mzed_t *A);
 
 /**
+ * \brief Transpose a matrix.
+ *
+ * \param DST Preallocated return matrix, may be NULL for automatic creation.
+ * \param A Matrix
+ */
+mzed_t *mzed_transpose(mzed_t *DST, const mzed_t *A);
+
+/**
  * \brief Return diagonal matrix with value on the diagonal.
  *
  * If the matrix is not square then the largest possible square
