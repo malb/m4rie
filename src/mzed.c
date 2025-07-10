@@ -221,7 +221,7 @@ mzed_t *mzed_transpose(mzed_t *DST, const mzed_t *A) {
     for (wi_t block = 0; block < DST->x->rowstride; block++) {
       word buf = mzd_read_bits(DST->x, col, block * m4ri_radix, m4ri_radix);
       if (row % row_divisor != 0) {
-        buf = elem >> (block*m4ri_radix - (row - 1) * A->w);
+        buf ^= elem >> (block*m4ri_radix - (row - 1) * A->w);
       }
       for (; row * A->w < (block + 1) * m4ri_radix; row++) {
         elem = mzd_read_bits(A->x, row, A->w * col, A->w);
