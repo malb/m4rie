@@ -210,7 +210,7 @@ mzed_t *mzed_transpose(mzed_t *DST, const mzed_t *A) {
   if (DST == NULL)
     DST = mzed_init(A->finite_field, A->ncols, A->nrows);
   if (DST->finite_field != A->finite_field || DST->nrows != A->ncols || DST->ncols != A->nrows) {
-    m4ri_die("mzed_copy: target matrix has wrong dimensions or base field.");
+    m4ri_die("mzed_transpose: target matrix has wrong dimensions or base field.");
   }
   if (A->nrows == 0 || A->ncols == 0)
     return DST;
