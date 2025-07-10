@@ -215,7 +215,7 @@ mzed_t *mzed_transpose(mzed_t *DST, const mzed_t *A) {
   if (A->nrows == 0 || A->ncols == 0)
     return DST;
   int const row_divisor = m4ri_radix / (A->w & (-A->w));
-  for (rci_t col = 0; col < A->nrows; col++) {
+  for (rci_t col = 0; col < A->ncols; col++) {
     word elem;
     rci_t row = 0;
     for (wi_t block = 0; block < DST->x->rowstride; block++) {
