@@ -206,6 +206,48 @@ mzed_t *mzed_copy(mzed_t *A, const mzed_t *B) {
   return A;
 }
 
+mzed_t *mzed_transpose(mzed_t *DST, const mzed_t *A) {
+  if (DST == NULL)
+    DST = mzed_init(A->finite_field, A->ncols, A->nrows);
+  if (DST->finite_field != A->finite_field || DST->nrows != A->ncols || DST->ncols != A->nrows) {
+    m4ri_die("mzed_transpose: target matrix has wrong dimensions or base field.");
+  }
+  if (A->nrows == 0 || A->ncols == 0)
+    return DST;
+  int const row_divisor = m4ri_radix / (A->w & (-A->w));
+  word *buf = malloc(sizeof(word) * A->ncols);
+  word *elem = malloc(sizeof(word) * A->ncols);
+  rci_t row = 0;
+  for (rci_t block = 0; block < DST->x->rowstride; block++) {
+    for (rci_t col = 0; col < A->ncols; col++) {
+      buf[col] = mzd_read_bits(DST->x, col, block * m4ri_radix, m4ri_radix);
+    }
+    if (row % row_divisor != 0) {
+      for (rci_t col = 0; col < A->ncols; col++) {
+        buf[col] ^= elem[col] >> (block*m4ri_radix - (row - 1) * A->w);
+      }
+    }
+    for (; (row+1) * A->w <= (block+1) * m4ri_radix; row++) {
+      for (rci_t col = 0; col < A->ncols; col++) {
+        buf[col] ^= (mzd_read_bits(A->x, row, A->w * col, A->w) << (row * A->w - block * m4ri_radix));
+      }
+    }
+    if (row * A->w < (block+1) * m4ri_radix) {
+      for (rci_t col = 0; col < A->ncols; col++) {
+        elem[col] = mzd_read_bits(A->x, row, A->w * col, A->w);
+        buf[col] ^= (elem[col] << (row * A->w - block * m4ri_radix));
+      }
+      row++;
+    }
+    for (rci_t col = 0; col < A->ncols; col++) {
+      mzd_xor_bits(DST->x, col, block * m4ri_radix, m4ri_radix, buf[col]);
+    }
+  }
+  free(buf);
+  free(elem);
+  return DST;
+}
+
 rci_t mzed_echelonize_naive(mzed_t *A, int full) {
   rci_t start_row,r,c,i,elim_start;
   word x = 0;
