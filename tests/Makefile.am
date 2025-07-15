@@ -6,7 +6,7 @@ AM_LDFLAGS = ${M4RI_LIBS} -no-install
 
 EXTRA_DIST = testing.h
 
-TESTS = test_trsm test_elimination test_multiplication test_smallops test_ple
+TESTS = test_trsm test_elimination test_multiplication test_smallops test_ple test_transpose
 check_PROGRAMS = ${TESTS}
 
 all: ${TESTS}

@@ -214,37 +214,35 @@ mzed_t *mzed_transpose(mzed_t *DST, const mzed_t *A) {
   }
   if (A->nrows == 0 || A->ncols == 0)
     return DST;
-  int const row_divisor = m4ri_radix / (A->w & (-A->w));
   word *buf = malloc(sizeof(word) * A->ncols);
-  word *elem = malloc(sizeof(word) * A->ncols);
   rci_t row = 0;
-  for (rci_t block = 0; block < DST->x->rowstride; block++) {
-    for (rci_t col = 0; col < A->ncols; col++) {
-      buf[col] = mzd_read_bits(DST->x, col, block * m4ri_radix, m4ri_radix);
-    }
-    if (row % row_divisor != 0) {
+  int const trailing_bits = (DST->ncols * DST->w) % m4ri_radix;
+  for (rci_t block = 0; block < DST->x->width; block++) {
+    if (block == DST->x->width - 1) {
       for (rci_t col = 0; col < A->ncols; col++) {
-        buf[col] ^= elem[col] >> (block*m4ri_radix - (row - 1) * A->w);
+        buf[col] = __mzd_read_bits(DST->x, col, block * m4ri_radix, trailing_bits);
+      }
+    } else {
+      for (rci_t col = 0; col < A->ncols; col++) {
+        buf[col] = __mzd_read_bits(DST->x, col, block * m4ri_radix, m4ri_radix);
       }
     }
-    for (; (row+1) * A->w <= (block+1) * m4ri_radix; row++) {
+    for (; row * A->w < (block+1) * m4ri_radix && row < A->nrows; row++) {
       for (rci_t col = 0; col < A->ncols; col++) {
-        buf[col] ^= (mzd_read_bits(A->x, row, A->w * col, A->w) << (row * A->w - block * m4ri_radix));
+        buf[col] ^= (__mzd_read_bits(A->x, row, A->w * col, A->w) << (row * A->w - block * m4ri_radix));
       }
     }
-    if (row * A->w < (block+1) * m4ri_radix) {
+    if (block == DST->x->width - 1) {
       for (rci_t col = 0; col < A->ncols; col++) {
-        elem[col] = mzd_read_bits(A->x, row, A->w * col, A->w);
-        buf[col] ^= (elem[col] << (row * A->w - block * m4ri_radix));
+        __mzd_xor_bits(DST->x, col, block * m4ri_radix, trailing_bits, buf[col]);
       }
-      row++;
-    }
-    for (rci_t col = 0; col < A->ncols; col++) {
-      mzd_xor_bits(DST->x, col, block * m4ri_radix, m4ri_radix, buf[col]);
+    } else {
+      for (rci_t col = 0; col < A->ncols; col++) {
+        __mzd_xor_bits(DST->x, col, block * m4ri_radix, m4ri_radix, buf[col]);
+      }
     }
   }
   free(buf);
-  free(elem);
   return DST;
 }
 
