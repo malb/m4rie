@@ -1,7 +1,7 @@
 #include "testing.h"
 
 int test_equality(gf2e *ff, rci_t m, rci_t n) {
-  int fail_ret = 0, bad_elem;
+  int fail_ret = 0;
   mzed_t *A0 = random_mzed_t(ff, m, n);
   mzed_t *A1 = mzed_init(ff, n, m);
   
