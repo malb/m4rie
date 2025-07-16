@@ -214,9 +214,10 @@ mzed_t *mzed_transpose(mzed_t *DST, const mzed_t *A) {
   }
   if (A->nrows == 0 || A->ncols == 0)
     return DST;
-  word *buf = malloc(sizeof(word) * A->ncols);
-  rci_t row = 0;
   int const trailing_bits = (DST->ncols * DST->w) % m4ri_radix;
+  int const elems_per_block = 64 / A->w;
+  word *buf = malloc(sizeof(word) * ((A->ncols + elems_per_block - 1) & ~(elems_per_block - 1)));
+  rci_t row = 0;
   for (rci_t block = 0; block < DST->x->width; block++) {
     if (block == DST->x->width - 1) {
       for (rci_t col = 0; col < A->ncols; col++) {
@@ -228,8 +229,81 @@ mzed_t *mzed_transpose(mzed_t *DST, const mzed_t *A) {
       }
     }
     for (; row * A->w < (block+1) * m4ri_radix && row < A->nrows; row++) {
-      for (rci_t col = 0; col < A->ncols; col++) {
-        buf[col] ^= (__mzd_read_bits(A->x, row, A->w * col, A->w) << (row * A->w - block * m4ri_radix));
+      for (rci_t col = 0; col < A->ncols; col+=elems_per_block) {
+        word raw_data = __mzd_read_bits(A->x, row, A->w * col, m4ri_radix);
+        word shift = row * A->w - block * m4ri_radix;
+        switch (A->w) {
+          case 2:
+            buf[col]    ^=  (raw_data & 0x0000000000000003ULL) << shift;
+            buf[col+1]  ^= ((raw_data & 0x000000000000000CULL) >> 2) << shift;
+            buf[col+2]  ^= ((raw_data & 0x0000000000000030ULL) >> 4) << shift;
+            buf[col+3]  ^= ((raw_data & 0x00000000000000C0ULL) >> 6) << shift;
+            buf[col+4]  ^= ((raw_data & 0x0000000000000300ULL) >> 8) << shift;
+            buf[col+5]  ^= ((raw_data & 0x0000000000000C00ULL) >> 10) << shift;
+            buf[col+6]  ^= ((raw_data & 0x0000000000003000ULL) >> 12) << shift;
+            buf[col+7]  ^= ((raw_data & 0x000000000000C000ULL) >> 14) << shift;
+            buf[col+8]  ^= ((raw_data & 0x0000000000030000ULL) >> 16) << shift;
+            buf[col+9]  ^= ((raw_data & 0x00000000000C0000ULL) >> 18) << shift;
+            buf[col+10] ^= ((raw_data & 0x0000000000300000ULL) >> 20) << shift;
+            buf[col+11] ^= ((raw_data & 0x0000000000C00000ULL) >> 22) << shift;
+            buf[col+12] ^= ((raw_data & 0x0000000003000000ULL) >> 24) << shift;
+            buf[col+13] ^= ((raw_data & 0x000000000C000000ULL) >> 26) << shift;
+            buf[col+14] ^= ((raw_data & 0x0000000030000000ULL) >> 28) << shift;
+            buf[col+15] ^= ((raw_data & 0x00000000C0000000ULL) >> 30) << shift;
+            buf[col+16] ^= ((raw_data & 0x0000000300000000ULL) >> 32) << shift;
+            buf[col+17] ^= ((raw_data & 0x0000000C00000000ULL) >> 34) << shift;
+            buf[col+18] ^= ((raw_data & 0x0000003000000000ULL) >> 36) << shift;
+            buf[col+19] ^= ((raw_data & 0x000000C000000000ULL) >> 38) << shift;
+            buf[col+20] ^= ((raw_data & 0x0000030000000000ULL) >> 40) << shift;
+            buf[col+21] ^= ((raw_data & 0x00000C0000000000ULL) >> 42) << shift;
+            buf[col+22] ^= ((raw_data & 0x0000300000000000ULL) >> 44) << shift;
+            buf[col+23] ^= ((raw_data & 0x0000C00000000000ULL) >> 46) << shift;
+            buf[col+24] ^= ((raw_data & 0x0003000000000000ULL) >> 48) << shift;
+            buf[col+25] ^= ((raw_data & 0x000C000000000000ULL) >> 50) << shift;
+            buf[col+26] ^= ((raw_data & 0x0030000000000000ULL) >> 52) << shift;
+            buf[col+27] ^= ((raw_data & 0x00C0000000000000ULL) >> 54) << shift;
+            buf[col+28] ^= ((raw_data & 0x0300000000000000ULL) >> 56) << shift;
+            buf[col+29] ^= ((raw_data & 0x0C00000000000000ULL) >> 58) << shift;
+            buf[col+30] ^= ((raw_data & 0x3000000000000000ULL) >> 60) << shift;
+            buf[col+31] ^= ((raw_data & 0xC000000000000000ULL) >> 62) << shift;
+            break;
+          case 4:
+            buf[col]    ^=  (raw_data & 0x000000000000000FULL) << shift;
+            buf[col+1]  ^= ((raw_data & 0x00000000000000F0ULL) >> 4) << shift;
+            buf[col+2]  ^= ((raw_data & 0x0000000000000F00ULL) >> 8) << shift;
+            buf[col+3]  ^= ((raw_data & 0x000000000000F000ULL) >> 12) << shift;
+            buf[col+4]  ^= ((raw_data & 0x00000000000F0000ULL) >> 16) << shift;
+            buf[col+5]  ^= ((raw_data & 0x0000000000F00000ULL) >> 20) << shift;
+            buf[col+6]  ^= ((raw_data & 0x000000000F000000ULL) >> 24) << shift;
+            buf[col+7]  ^= ((raw_data & 0x00000000F0000000ULL) >> 28) << shift;
+            buf[col+8]  ^= ((raw_data & 0x0000000F00000000ULL) >> 32) << shift;
+            buf[col+9]  ^= ((raw_data & 0x000000F000000000ULL) >> 36) << shift;
+            buf[col+10] ^= ((raw_data & 0x00000F0000000000ULL) >> 40) << shift;
+            buf[col+11] ^= ((raw_data & 0x0000F00000000000ULL) >> 44) << shift;
+            buf[col+12] ^= ((raw_data & 0x000F000000000000ULL) >> 48) << shift;
+            buf[col+13] ^= ((raw_data & 0x00F0000000000000ULL) >> 52) << shift;
+            buf[col+14] ^= ((raw_data & 0x0F00000000000000ULL) >> 56) << shift;
+            buf[col+15] ^= ((raw_data & 0xF000000000000000ULL) >> 60) << shift;
+            break;
+          case 8:
+            buf[col]   ^=  (raw_data & 0x00000000000000FFULL) << shift;
+            buf[col+1] ^= ((raw_data & 0x000000000000FF00ULL) >> 8) << shift;
+            buf[col+2] ^= ((raw_data & 0x0000000000FF0000ULL) >> 16) << shift;
+            buf[col+3] ^= ((raw_data & 0x00000000FF000000ULL) >> 24) << shift;
+            buf[col+4] ^= ((raw_data & 0x000000FF00000000ULL) >> 32) << shift;
+            buf[col+5] ^= ((raw_data & 0x0000FF0000000000ULL) >> 40) << shift;
+            buf[col+6] ^= ((raw_data & 0x00FF000000000000ULL) >> 48) << shift;
+            buf[col+7] ^= ((raw_data & 0xFF00000000000000ULL) >> 56) << shift;
+            break;
+          case 16:
+            buf[col]   ^=  (raw_data & 0x000000000000FFFFULL) << shift;
+            buf[col+1] ^= ((raw_data & 0x00000000FFFF0000ULL) >> 16) << shift;
+            buf[col+2] ^= ((raw_data & 0x0000FFFF00000000ULL) >> 32) << shift;
+            buf[col+3] ^= ((raw_data & 0xFFFF000000000000ULL) >> 48) << shift;
+            break;
+          default:
+            m4ri_die("mzed_transpose: source matrix has unexpected element width.");
+        }
       }
     }
     if (block == DST->x->width - 1) {
