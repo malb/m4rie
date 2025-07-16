@@ -26,14 +26,12 @@ int run_mzed (void *_p, unsigned long long *data, int *data_len) {
     B = mzed_transpose(B, A);
   } else if (strcmp(p->algorithm, "naive") == 0) {
     for (rci_t row = 0; row < A->nrows; row++) {
-      for (rci_t row = 0; row < A->nrows; row++) {
-        for (rci_t col = 0; col < A->ncols; col++) {
-          mzed_write_elem(B, col, row, mzed_read_elem(A, row, col));
-        }
+      for (rci_t col = 0; col < A->ncols; col++) {
+        mzed_write_elem(B, col, row, mzed_read_elem(A, row, col));
       }
     }
   } else {
-    m4ri_die("uknown algorithm '%s'\n.",p->algorithm);
+    m4ri_die("unknown algorithm '%s'\n.",p->algorithm);
   }
   
   B = mzed_transpose(B, A);
@@ -75,7 +73,7 @@ int main(int argc, char **argv) {
   if (argc >= 5)
     params.algorithm = argv[4];
   else
-    params.algorithm = (char*)"default";
+    params.algorithm = (char*)"optimised";
 
   srandom(17);
   unsigned long long data[2];
