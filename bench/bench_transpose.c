@@ -9,6 +9,27 @@ struct transpose_params {
   char const *algorithm;
 };
 
+int run_mzd (void *_p, unsigned long long *data, int *data_len) {
+  struct transpose_params *p = (struct transpose_params *)_p;
+  *data_len = 2;
+  
+  mzd_t *A = mzd_init(p->m,p->n);
+  mzd_randomize(A);
+  mzd_t *B = mzd_init(p->n,p->m);
+
+  data[0] = walltime(0);
+  data[1] = cpucycles();
+  
+  B = mzd_transpose(B, A);
+
+  data[1] = cpucycles() - data[1];
+  data[0] = walltime(data[0]);
+
+  mzd_free(A);
+  mzd_free(B);
+  return 0;
+}
+
 int run_mzed (void *_p, unsigned long long *data, int *data_len) {
   struct transpose_params *p = (struct transpose_params *)_p;
   *data_len = 2;
@@ -33,8 +54,6 @@ int run_mzed (void *_p, unsigned long long *data, int *data_len) {
   } else {
     m4ri_die("unknown algorithm '%s'\n.",p->algorithm);
   }
-  
-  B = mzed_transpose(B, A);
 
   data[1] = cpucycles() - data[1];
   data[0] = walltime(data[0]);
@@ -48,11 +67,11 @@ int run_mzed (void *_p, unsigned long long *data, int *data_len) {
 void print_help() {
   printf("bench_elimination:\n\n");
   printf("REQUIRED\n");
-  printf("  e -- integer between 2 and 16\n");
+  printf("  e -- integer between 1 and 16\n");
   printf("  m -- integer > 0, number of rows\n");
   printf("  n -- integer > 0, number of columns\n");
-  printf("  algorithm -- optimised -- optimised transpose\n");
-  printf("               naive -- transfer element by element\n");
+  printf("  algorithm (only accepted for 2 <= e <= 16) -- optimised -- optimised transpose\n");
+  printf("                                                naive -- transfer element by element\n");
   printf("\n");
   bench_print_global_options(stdout);
 }
@@ -68,6 +87,10 @@ int main(int argc, char **argv) {
   struct transpose_params params;
 
   params.e = atoi(argv[1]);
+  if (params.e == 1 && argc > 4) {
+    print_help();
+    m4ri_die("");
+  }
   params.m = atoi(argv[2]);
   params.n = atoi(argv[3]);
   if (argc >= 5)
@@ -77,7 +100,10 @@ int main(int argc, char **argv) {
 
   srandom(17);
   unsigned long long data[2];
-  run_bench(run_mzed, (void*)&params, data, 2);
+  if (params.e == 1)
+    run_bench(run_mzd, (void*)&params, data, 2);
+  else
+    run_bench(run_mzed, (void*)&params, data, 2);
 
   double cc_per_bit = (((double)data[1])/ ((double)params.m * (double)params.n * (double)params.e) );
 
