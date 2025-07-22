@@ -21,7 +21,8 @@ BENCH = bench_multiplication \
         bench_elimination \
         bench_smallops \
         bench_trsm \
-        bench_ple
+        bench_ple \
+        bench_transpose
 
 
 CPUCYCLES_DIR = cpucycles-20060326
@@ -39,6 +40,7 @@ bench_elimination_SOURCES = bench_elimination.c benchmarking.c benchmarking.h
 bench_multiplication_SOURCES = bench_multiplication.c benchmarking.c benchmarking.h
 bench_ple_SOURCES = bench_ple.c benchmarking.c benchmarking.h
 bench_smallops_SOURCES = bench_smallops.c benchmarking.c benchmarking.h
+bench_transpose_SOURCES = bench_transpose.c benchmarking.c benchmarking.h
 bench_trsm_SOURCES = bench_trsm.c benchmarking.c benchmarking.h
 
 BUILT_SOURCES = cpucycles.h
